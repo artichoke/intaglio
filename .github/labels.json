@@ -35,6 +35,11 @@
     "description": "Area: crates.io releases and version bumps."
   },
   {
+    "name": "A-security",
+    "color": "f7e101",
+    "description": "Area: security vulnerabilities and unsoundness issues."
+  },
+  {
     "name": "A-utf8-string-interner",
     "color": "f7e101",
     "description": "Area: UTF-8 String SymbolTable."
