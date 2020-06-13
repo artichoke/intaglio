@@ -94,9 +94,19 @@ On macOS, you can install Node.js with
 brew install node
 ```
 
+## Linting
+
+To lint and format Rust sources run:
+
+```sh
+cargo fmt
+touch src/lib.rs
+cargo clippy --all-targets --all-features
+```
+
 To lint and format text sources run:
 
-```
+```sh
 npx prettier --write '**/*'
 ```
 

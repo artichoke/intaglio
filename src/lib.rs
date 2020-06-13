@@ -1078,6 +1078,7 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::needless_pass_by_value)]
 mod tests {
     use quickcheck_macros::quickcheck;
 
@@ -1147,7 +1148,7 @@ mod tests {
     fn intern_twice_symbol_equality(bytes: Vec<u8>) -> bool {
         let mut table = SymbolTable::new();
         let sym_id = table.intern(bytes.clone()).unwrap();
-        let sym_again_id = table.intern(bytes.clone()).unwrap();
+        let sym_again_id = table.intern(bytes).unwrap();
         sym_id == sym_again_id
     }
 
