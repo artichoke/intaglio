@@ -954,7 +954,7 @@ mod tests {
     fn intern_twice_symbol_equality(string: String) -> bool {
         let mut table = SymbolTable::new();
         let sym_id = table.intern(string.clone()).unwrap();
-        let sym_again_id = table.intern(string.clone()).unwrap();
+        let sym_again_id = table.intern(string).unwrap();
         sym_id == sym_again_id
     }
 
