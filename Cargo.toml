@@ -1,0 +1,41 @@
+[package]
+name = "intaglio"
+version = "0.1.0"
+authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
+edition = "2018"
+description = "Bytestring interner and symbol table"
+repository = "https://github.com/artichoke/artichoke"
+readme = "README.md"
+license = "MIT"
+keywords = ["artichoke", "bytestring", "intern", "interner", "symbol"]
+categories = ["caching", "data-structures"]
+include = [
+  "src/**/*.rs",
+  "LICENSE",
+  "README.md"
+]
+
+[dependencies]
+# The dependency on bstr is not strictly necessary, but `intaglio` uses the
+# `fmt::Debug` impl on `BStr` to provide readable debug representations of the
+# bytestring interner variant.
+#
+# If keys are conventionally UTF-8, their UTF-8 portions will be rendered as
+# characters. The UTF-8 invalid parts will be shown as e.g. \xFF escape codes
+# which is also an improvement of how `std` implements `fmt::Debug` for byte
+# slices.
+bstr = { version = "0.2", default-features = false }
+
+[dev-dependencies]
+# Test that the examples in README.md compile.
+doc-comment = "0.3"
+# Property testing for interner getters and setters.
+quickcheck = { version = "0.9", default-features = false }
+quickcheck_macros = "0.9"
+# Check that crate versions are properly updated in documentation and code when
+# bumping the version.
+version-sync = "0.9"
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+# `libc::getrusage` is used to check for memory leaks on Linux in CI.
+libc = "0.2"
