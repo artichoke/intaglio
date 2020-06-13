@@ -838,7 +838,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the new capacity overflows usize.
+    /// Panics if the new capacity overflows `usize`.
     ///
     /// # Examples
     ///
