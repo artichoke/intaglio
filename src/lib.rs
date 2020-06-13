@@ -127,6 +127,10 @@ impl error::Error for SymbolIdOverflowError {
 /// bytestring.
 ///
 /// `SymbolId`s are based on a `u32` index.
+///
+/// `SymbolId`s are not associated with the `SymbolTable` which created them. No
+/// runtime checks ensure that [`SymbolTable::get`] is called with a `SymbolId`
+/// that the table itself issued.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SymbolId(u32);
 
@@ -225,6 +229,10 @@ impl SymbolId {
     ///
     /// `SymbolId`s constructed outside of a [`SymbolTable`] may fail to
     /// resolve to an underlying bytestring using [`SymbolTable::get`].
+    ///
+    /// `SymbolId`s are not associated with the `SymbolTable` which created
+    /// them. No runtime checks ensure that [`SymbolTable::get`] is called with
+    /// a `SymbolId` that the table itself issued.
     #[must_use]
     pub fn new(sym: u32) -> Self {
         Self::from(sym)
@@ -546,13 +554,13 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 ///
 /// ```
 /// # use std::collections::HashMap;
-/// # use intaglio::SymbolTable;
+/// # use intaglio::{SymbolId, SymbolTable};
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
 /// let sym_id = table.intern(b"abc".to_vec())?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
-/// map.insert(0_u32.into(), &b"abc"[..]);
+/// map.insert(SymbolId::new(0), &b"abc"[..]);
 /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
 /// # Ok(())
 /// # }
@@ -832,10 +840,10 @@ impl<S> SymbolTable<S> {
     ///
     /// let iter = table.iter();
     /// let mut map = HashMap::new();
-    /// map.insert(0_u32.into(), &b"abc"[..]);
-    /// map.insert(1_u32.into(), &b"xyz"[..]);
-    /// map.insert(2_u32.into(), &b"123"[..]);
-    /// map.insert(3_u32.into(), &b"789"[..]);
+    /// map.insert(SymbolId::new(0), &b"abc"[..]);
+    /// map.insert(SymbolId::new(1), &b"xyz"[..]);
+    /// map.insert(SymbolId::new(2), &b"123"[..]);
+    /// map.insert(SymbolId::new(3), &b"789"[..]);
     /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
     /// # Ok(())
     /// # }
@@ -1032,7 +1040,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the new capacity overflows usize.
+    /// Panics if the new capacity overflows `usize`.
     ///
     /// # Examples
     ///
