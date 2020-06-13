@@ -884,6 +884,7 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::needless_pass_by_value)]
 mod tests {
     use quickcheck_macros::quickcheck;
 
