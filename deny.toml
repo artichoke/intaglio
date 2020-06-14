@@ -7,6 +7,7 @@ ignore = []
 [licenses]
 unlicensed = "deny"
 allow = [
+  "Apache-2.0",
   "MIT",
 ]
 deny = []
@@ -20,7 +21,9 @@ multiple-versions = "deny"
 highlight = "all"
 allow = []
 deny = []
-skip = []
+skip = [
+  { name = "semver-parser", version = "< 0.9.0" },
+]
 skip-tree = []
 
 [sources]
