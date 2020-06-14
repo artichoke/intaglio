@@ -6,7 +6,7 @@
 <br>
 [![Crate](https://img.shields.io/crates/v/intaglio.svg)](https://crates.io/crates/intaglio)
 [![API](https://docs.rs/intaglio/badge.svg)](https://docs.rs/intaglio)
-[![API master](https://img.shields.io/badge/docs-master-blue.svg)](https://artichoke.github.io/intaglio/intaglio/)
+[![API trunk](https://img.shields.io/badge/docs-trunk-blue.svg)](https://artichoke.github.io/intaglio/intaglio/)
 
 UTF-8 and bytestring interner and symbol table. Used to implement storage for
 the [Ruby `Symbol`][symbol] and the constant name table in [Artichoke
