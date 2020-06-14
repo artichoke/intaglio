@@ -9,12 +9,12 @@
 [![API trunk](https://img.shields.io/badge/docs-trunk-blue.svg)](https://artichoke.github.io/intaglio/intaglio/)
 
 UTF-8 and bytestring interner and symbol table. Used to implement storage for
-the [Ruby `Symbol`][symbol] and the constant name table in [Artichoke
+the [Ruby `Symbol`][symbol] table and the constant name table in [Artichoke
 Ruby][artichoke].
 
 > Symbol objects represent names and some strings inside the Ruby interpreter.
 > They are generated using the `:name` and `:"string"` literals syntax, and by
-> the various to_sym methods. The same `Symbol` object will be created for a
+> the various `to_sym` methods. The same `Symbol` object will be created for a
 > given name or string for the duration of a program's execution, regardless of
 > the context or meaning of that name.
 
@@ -71,7 +71,8 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 ## Implementation
 
 Intaglio interns owned and borrowed strings with no additional copying by
-leveraging `Cow` and `Box::leak`.
+leveraging `Cow` and `Box::leak`. This requires unsafe code in the `Drop`
+implementation of `SymbolTable`. CI runs `drop` tests under Miri.
 
 ## License
 
