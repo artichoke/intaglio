@@ -65,7 +65,7 @@ rustup update stable
 
 ### Rust Crates
 
-Artichoke depends on several Rust libraries, or crates. Once you have the Rust
+Intaglio depends on several Rust libraries, or crates. Once you have the Rust
 toolchain installed, you can install the crates specified in
 [`Cargo.toml`](Cargo.toml) by running:
 
@@ -143,6 +143,7 @@ To see what crates are outdated, you can use
 
 If you need to pull in an updated version of a crate for a bugfix or a new
 feature, update the version number in `Cargo.toml`. See
-[GH-548](https://github.com/artichoke/artichoke/pull/548) for an example.
+[Artichoke GH-548](https://github.com/artichoke/artichoke/pull/548) for an
+example.
 
 Regular dependency bumps are handled by [@dependabot](https://dependabot.com/).
