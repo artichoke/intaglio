@@ -27,6 +27,8 @@ include = [
 bstr = { version = "0.2", default-features = false }
 
 [dev-dependencies]
+# Benchmarking support on stable Rust.
+criterion = "0.3"
 # Test that the examples in README.md compile.
 doc-comment = "0.3"
 # Property testing for interner getters and setters.
@@ -39,3 +41,7 @@ version-sync = "0.9"
 [target.'cfg(target_os = "linux")'.dev-dependencies]
 # `libc::getrusage` is used to check for memory leaks on Linux in CI.
 libc = "0.2"
+
+[[bench]]
+name = "benchmarks"
+harness = false
