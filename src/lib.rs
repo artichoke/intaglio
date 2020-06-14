@@ -6,30 +6,46 @@
 #![warn(missing_debug_implementations)]
 #![warn(rust_2018_idioms)]
 
-//! Intaglio
+//! String interner for bytes and UTF-8 strings.
 //!
-//! This crate is a bytestring interner.
+//! Intaglio is a string interner:
 //!
 //! > String interning is a method of storing only one copy of each distinct
 //! > string value, which must be immutable.
 //!
-//! Intaglio exports [`SymbolTable`] which stores at most one copy of a
-//! bytestring. All requests to intern an `Eq` bytestring, regardless of whether
-//! the bytestring is an owned `Vec<u8>` or borrowed `&'static [u8]` will hand
-//! back the same immutable [`SymbolId`].
+//! This crate has two implementations of the interner:
 //!
-//! [`SymbolId`]s are u32 indexes into the [`SymbolTable`] that are cheap to
-//! compare and copy.
+//! - [`SymbolTable`] operates on raw bytes through `&'static [u8]` and
+//!   [`Vec`]`<u8>`.
+//! - [`str::SymbolTable`] operates on UTF-8 strings through `&'static str` and
+//!   [`String`].
+//!
+//! Intaglio `SymbolTable`s store at most one copy of a string. All requests to
+//! intern a string that is already present in the table, regardless of whether
+//! the string is owned (e.g. `Vec<u8>` or `String`) or borrowed (e.g.
+//! `&'static [u8]` or `&'static str`), will return the same immutable
+//! [`SymbolId`].
+//!
+//! [`SymbolId`]s are u32 indexes into a `SymbolTable` that are cheap to
+//! compare, copy, store, and send.
 //!
 //! # Allocations
 //!
-//! Intaglio's [`SymbolTable`] is backed by a [`Vec`] and [`HashMap`] which grow
+//! Intaglio's `SymbolTable`s is backed by a [`Vec`] and [`HashMap`] which grow
 //! to accommodate growth in the number of stored bytestrings.
 //!
-//! [`SymbolTable::intern`] does not clone or copy interned bytes and takes
-//! ownership of the bytestrings with no additional allocations.
+//! The `SymbolTable`s expose several APIs for tuning the memory usage of the
+//! table which wrap the underlying data structures such as
+//! [`SymbolTable::reserve`] and [`SymbolTable::shrink_to_fit`].
+//!
+//! [`SymbolTable::intern`] and [`str::SymbolTable::intern`] do not clone or
+//! copy interned strings and take ownership of the string contents with no
+//! additional allocations. Owned strings are leaked with [`Box::leak`] and
+//! recovered and deallocated when the table is dropped.
 //!
 //! # Usage
+//!
+//! ## Bytestring
 //!
 //! ```
 //! # use intaglio::SymbolTable;
@@ -42,6 +58,20 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! ## UTF-8 String
+//!
+//! ```
+//! # use intaglio::str;
+//! # fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let mut table = str::SymbolTable::new();
+//! let sym_id = table.intern("abc")?;
+//! assert_eq!(sym_id, table.intern("abc".to_string())?);
+//! assert!(table.contains(sym_id));
+//! assert!(table.is_interned("abc"));
+//! # Ok(())
+//! # }
+//! ```
 
 #![doc(html_root_url = "https://docs.rs/intaglio/0.1.0")]
 
@@ -49,20 +79,21 @@
 doc_comment::doctest!("../README.md");
 
 use bstr::{BStr, ByteSlice};
-use std::borrow::{Borrow, Cow};
-use std::cmp;
+use core::borrow::Borrow;
+use core::cmp;
+use core::convert::{TryFrom, TryInto};
+use core::fmt;
+use core::hash::{BuildHasher, Hash, Hasher};
+use core::iter::{self, FusedIterator};
+use core::marker::PhantomData;
+use core::mem::{self, size_of};
+use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, TryFromIntError};
+use core::ops::{Deref, Range, RangeInclusive};
+use core::slice;
+use std::borrow::Cow;
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
 use std::error;
-use std::fmt;
-use std::hash::{BuildHasher, Hash, Hasher};
-use std::iter::{self, FusedIterator};
-use std::marker::PhantomData;
-use std::mem::{self, size_of};
-use std::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, TryFromIntError};
-use std::ops::{Deref, Range, RangeInclusive};
-use std::slice;
 
 /// An intaglio interner for UTF-8 strings.
 pub mod str;
@@ -249,9 +280,9 @@ impl SymbolId {
 /// necessary to prevent double frees.
 #[derive(Debug)]
 enum Slice {
-    /// True 'static references.
+    /// True `'static` references.
     Static(&'static BStr),
-    /// 'static references created by [`Box::leak`].
+    /// `'static` references created by [`Box::leak`].
     ///
     /// These references can be deallocated by coercing the reference to a
     /// pointer and reconstituting the `Box` with [`Box::from_raw`] on drop.
@@ -259,7 +290,7 @@ enum Slice {
 }
 
 impl Slice {
-    /// Return a reference to the inner 'static byteslice.
+    /// Return a reference to the inner `'static` byteslice.
     fn as_slice(&self) -> &'static [u8] {
         match self {
             Self::Static(global) => global,
@@ -619,7 +650,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// Byte string interner.
 ///
 /// This symbol table is implemented by leaking bytestrings with a fast path for
-/// `&[u8]` that are already 'static.
+/// `&[u8]` that are already `'static`.
 ///
 /// # Usage
 ///
@@ -957,7 +988,8 @@ impl<S> SymbolTable<S> {
     }
 
     /// Transform owned bytes into a leaked boxed slice and return the resulting
-    /// 'static reference which is suitable for storing in the list of symbols.
+    /// `'static` reference which is suitable for storing in the list of
+    /// symbols.
     ///
     /// The reference is wrapped in a `Slice::Leaked` which will convert the
     /// reference back into a `Box` to be deallocated on `drop`.

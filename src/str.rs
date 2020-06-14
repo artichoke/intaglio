@@ -1,21 +1,22 @@
-//! `str` module is a version of the
-//! [intaglio bytestring interner](crate::SymbolTable) that stores Rust UTF-8
-//! [`String`]s and `&'static str`s.
+//! Intaglio interner for UTF-8 [`String`]s.
 //!
-//! The API is nearly identical to
+//! See [`SymbolTable`].
+//!
+//! This module implements a nearly identical API to
 //! [`intaglio::SymbolTable`](crate::SymbolTable).
 
-use std::borrow::{Borrow, Cow};
-use std::cmp;
+use core::borrow::Borrow;
+use core::cmp;
+use core::convert::TryInto;
+use core::hash::{BuildHasher, Hash, Hasher};
+use core::iter::{self, FusedIterator};
+use core::marker::PhantomData;
+use core::mem;
+use core::ops::{Deref, Range, RangeInclusive};
+use core::slice;
+use std::borrow::Cow;
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
-use std::convert::TryInto;
-use std::hash::{BuildHasher, Hash, Hasher};
-use std::iter::{self, FusedIterator};
-use std::marker::PhantomData;
-use std::mem;
-use std::ops::{Deref, Range, RangeInclusive};
-use std::slice;
 
 pub use crate::{SymbolId, SymbolIdOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 
@@ -29,9 +30,9 @@ pub use crate::{SymbolId, SymbolIdOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// necessary to prevent double frees.
 #[derive(Debug)]
 enum Slice {
-    /// True 'static references.
+    /// True `'static` references.
     Static(&'static str),
-    /// 'static references created by [`Box::leak`].
+    /// `'static` references created by [`Box::leak`].
     ///
     /// These references can be deallocated by coercing the reference to a
     /// pointer and reconstituting the `Box` with [`Box::from_raw`] on drop.
@@ -39,7 +40,7 @@ enum Slice {
 }
 
 impl Slice {
-    /// Return a reference to the inner 'static slice.
+    /// Return a reference to the inner `'static` slice.
     fn as_slice(&self) -> &'static str {
         match self {
             Self::Static(global) => global,
@@ -417,7 +418,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// UTF-8 string interner.
 ///
 /// This symbol table is implemented by leaking UTF-8 strings with a fast path for
-/// `&str` that are already 'static.
+/// `&str` that are already `'static`.
 ///
 /// # Usage
 ///
@@ -754,8 +755,9 @@ impl<S> SymbolTable<S> {
         Strings(self.vec.iter())
     }
 
-    /// Transform owned bytes into a leaked boxed slice and return the resulting
-    /// 'static reference which is suitable for storing in the list of symbols.
+    /// Transform owned String into a leaked boxed slice and return the
+    /// resulting `'static` reference which is suitable for storing in the list
+    /// of symbols.
     ///
     /// The reference is wrapped in a `Slice::Leaked` which will convert the
     /// reference back into a `Box` to be deallocated on `drop`.
