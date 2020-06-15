@@ -3,17 +3,29 @@ name = "intaglio"
 version = "0.1.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 edition = "2018"
-description = "Bytestring interner and symbol table"
-repository = "https://github.com/artichoke/artichoke"
+description = "UTF-8 string and bytestring interner and symbol table"
+repository = "https://github.com/artichoke/intaglio"
 readme = "README.md"
 license = "MIT"
-keywords = ["artichoke", "bytestring", "intern", "interner", "symbol"]
+keywords = ["bytestring", "intern", "interner", "symbol", "utf8"]
 categories = ["caching", "data-structures"]
 include = [
   "src/**/*.rs",
   "LICENSE",
   "README.md"
 ]
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
+[features]
+# All features are enabled by default.
+default = ["bytes"]
+# `bytes` feature enables an additional symbol table implementation for
+# interning bytestrings (`Vec<u8>` and `&'static [u8]`). When this feature is
+# enabled, Intaglio will depend on [`bstr`].
+bytes = ["bstr"]
 
 [dependencies]
 # The dependency on bstr is not strictly necessary, but `intaglio` uses the
@@ -24,7 +36,7 @@ include = [
 # characters. The UTF-8 invalid parts will be shown as e.g. \xFF escape codes
 # which is also an improvement of how `std` implements `fmt::Debug` for byte
 # slices.
-bstr = { version = "0.2", default-features = false }
+bstr = { version = "0.2", default-features = false, optional = true }
 
 [dev-dependencies]
 # Benchmarking support on stable Rust.
@@ -41,7 +53,3 @@ version-sync = "0.9"
 [target.'cfg(target_os = "linux")'.dev-dependencies]
 # `libc::getrusage` is used to check for memory leaks on Linux in CI.
 libc = "0.2"
-
-[[bench]]
-name = "benchmarks"
-harness = false
