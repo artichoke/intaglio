@@ -178,9 +178,9 @@ impl Borrow<[u8]> for &mut Slice {
 /// # use intaglio::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern("abc")?;
+/// let sym = table.intern("abc")?;
 /// let all_symbols = table.all_symbols();
-/// assert_eq!(vec![sym_id], all_symbols.collect::<Vec<_>>());
+/// assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
 /// ```
@@ -275,7 +275,7 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 /// # use intaglio::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern("abc")?;
+/// let sym = table.intern("abc")?;
 /// let strings = table.strings();
 /// assert_eq!(vec!["abc"], strings.collect::<Vec<_>>());
 /// # Ok(())
@@ -356,7 +356,7 @@ impl<'a> FusedIterator for Strings<'a> {}
 /// # use intaglio::{Symbol, SymbolTable};
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern("abc")?;
+/// let sym = table.intern("abc")?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
 /// map.insert(Symbol::new(0), "abc");
@@ -426,9 +426,9 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// # use intaglio::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern("abc")?;
-/// assert_eq!(sym_id, table.intern("abc".to_string())?);
-/// assert!(table.contains(sym_id));
+/// let sym = table.intern("abc")?;
+/// assert_eq!(sym, table.intern("abc".to_string())?);
+/// assert!(table.contains(sym));
 /// assert!(table.is_interned("abc"));
 /// # Ok(())
 /// # }
@@ -955,30 +955,30 @@ mod tests {
     #[quickcheck]
     fn intern_twice_symbol_equality(string: String) -> bool {
         let mut table = SymbolTable::new();
-        let sym_id = table.intern(string.clone()).unwrap();
-        let sym_again_id = table.intern(string).unwrap();
-        sym_id == sym_again_id
+        let sym = table.intern(string.clone()).unwrap();
+        let sym_again = table.intern(string).unwrap();
+        sym == sym_again
     }
 
     #[quickcheck]
     fn intern_get_roundtrip(string: String) -> bool {
         let mut table = SymbolTable::new();
-        let sym_id = table.intern(string.clone()).unwrap();
-        let retrieved_bytes = table.get(sym_id).unwrap();
+        let sym = table.intern(string.clone()).unwrap();
+        let retrieved_bytes = table.get(sym).unwrap();
         string == retrieved_bytes
     }
 
     #[quickcheck]
     fn table_contains_sym(string: String) -> bool {
         let mut table = SymbolTable::new();
-        let sym_id = table.intern(string).unwrap();
-        table.contains(sym_id)
+        let sym = table.intern(string).unwrap();
+        table.contains(sym)
     }
 
     #[quickcheck]
-    fn table_does_not_contain_missing_symbol_ids(sym_id: u32) -> bool {
+    fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
         let table = SymbolTable::new();
-        !table.contains(sym_id.into())
+        !table.contains(sym.into())
     }
 
     #[quickcheck]

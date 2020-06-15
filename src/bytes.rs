@@ -13,9 +13,9 @@
 //! # use intaglio::bytes::SymbolTable;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym_id = table.intern(&b"abc"[..])?;
-//! assert_eq!(sym_id, table.intern(b"abc".to_vec())?);
-//! assert_eq!(Some(&b"abc"[..]), table.get(sym_id));
+//! let sym = table.intern(&b"abc"[..])?;
+//! assert_eq!(sym, table.intern(b"abc".to_vec())?);
+//! assert_eq!(Some(&b"abc"[..]), table.get(sym));
 //! # Ok(())
 //! # }
 //! ```
@@ -27,10 +27,10 @@
 //! # use intaglio::bytes::{Symbol, SymbolTable};
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym_id = table.intern(&b"abc"[..])?;
+//! let sym = table.intern(&b"abc"[..])?;
 //! // Retrieve set of `Symbol`s.
 //! let all_symbols = table.all_symbols();
-//! assert_eq!(vec![sym_id], all_symbols.collect::<Vec<_>>());
+//! assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 //!
 //! let mut map = HashMap::new();
 //! map.insert(Symbol::new(0), &b"abc"[..]);
@@ -203,9 +203,9 @@ impl Borrow<[u8]> for &mut Slice {
 /// # use intaglio::bytes::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern(&b"abc"[..])?;
+/// let sym = table.intern(&b"abc"[..])?;
 /// let all_symbols = table.all_symbols();
-/// assert_eq!(vec![sym_id], all_symbols.collect::<Vec<_>>());
+/// assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
 /// ```
@@ -300,7 +300,7 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 /// # use intaglio::bytes::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern(b"abc".to_vec())?;
+/// let sym = table.intern(b"abc".to_vec())?;
 /// let bytestrings = table.bytestrings();
 /// assert_eq!(vec![&b"abc"[..]], bytestrings.collect::<Vec<_>>());
 /// # Ok(())
@@ -381,7 +381,7 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 /// # use intaglio::bytes::{Symbol, SymbolTable};
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern(b"abc".to_vec())?;
+/// let sym = table.intern(b"abc".to_vec())?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
 /// map.insert(Symbol::new(0), &b"abc"[..]);
@@ -451,9 +451,9 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// # use intaglio::bytes::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym_id = table.intern(&b"abc"[..])?;
-/// assert_eq!(sym_id, table.intern(b"abc".to_vec())?);
-/// assert!(table.contains(sym_id));
+/// let sym = table.intern(&b"abc"[..])?;
+/// assert_eq!(sym, table.intern(b"abc".to_vec())?);
+/// assert!(table.contains(sym));
 /// assert!(table.is_interned(b"abc"));
 /// # Ok(())
 /// # }
@@ -980,30 +980,30 @@ mod tests {
     #[quickcheck]
     fn intern_twice_symbol_equality(bytes: Vec<u8>) -> bool {
         let mut table = SymbolTable::new();
-        let sym_id = table.intern(bytes.clone()).unwrap();
-        let sym_again_id = table.intern(bytes).unwrap();
-        sym_id == sym_again_id
+        let sym = table.intern(bytes.clone()).unwrap();
+        let sym_again = table.intern(bytes).unwrap();
+        sym == sym_again
     }
 
     #[quickcheck]
     fn intern_get_roundtrip(bytes: Vec<u8>) -> bool {
         let mut table = SymbolTable::new();
-        let sym_id = table.intern(bytes.clone()).unwrap();
-        let retrieved_bytes = table.get(sym_id).unwrap();
+        let sym = table.intern(bytes.clone()).unwrap();
+        let retrieved_bytes = table.get(sym).unwrap();
         bytes == retrieved_bytes
     }
 
     #[quickcheck]
     fn table_contains_sym(bytes: Vec<u8>) -> bool {
         let mut table = SymbolTable::new();
-        let sym_id = table.intern(bytes).unwrap();
-        table.contains(sym_id)
+        let sym = table.intern(bytes).unwrap();
+        table.contains(sym)
     }
 
     #[quickcheck]
-    fn table_does_not_contain_missing_symbol_ids(sym_id: u32) -> bool {
+    fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
         let table = SymbolTable::new();
-        !table.contains(sym_id.into())
+        !table.contains(sym.into())
     }
 
     #[quickcheck]
