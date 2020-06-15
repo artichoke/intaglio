@@ -10,7 +10,7 @@
 //! # Example: intern bytestring
 //!
 //! ```
-//! # use intaglio::bytes::bytes::SymbolTable;
+//! # use intaglio::bytes::SymbolTable;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym_id = table.intern(&b"abc"[..])?;
@@ -24,7 +24,7 @@
 //!
 //! ```
 //! # use std::collections::HashMap;
-//! # use intaglio::bytes::bytes::SymbolTable;
+//! # use intaglio::bytes::{Symbol, SymbolTable};
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym_id = table.intern(&b"abc"[..])?;
@@ -33,8 +33,8 @@
 //! assert_eq!(vec![sym_id], all_symbols.collect::<Vec<_>>());
 //!
 //! let mut map = HashMap::new();
-//! map.insert(SymnolId::new(0), &b"abc"[..]);
-//! map.insert(SymnolId::new(1), &b"xyz"[..]);
+//! map.insert(Symbol::new(0), &b"abc"[..]);
+//! map.insert(Symbol::new(1), &b"xyz"[..]);
 //! // Retrieve symbol to byte content mappings.
 //! let iter = table.iter();
 //! assert_eq!(map, iter.collect::<HashMap<_, _>>());
