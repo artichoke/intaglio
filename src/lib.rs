@@ -73,7 +73,7 @@ use std::error;
 pub mod bytes;
 mod str;
 
-pub use crate::str::SymbolTable;
+pub use crate::str::*;
 
 // To prevent overflows when indexing into the backing `Vec`, `intaglio`
 // requires `usize` to be at least as big as `u32`.
