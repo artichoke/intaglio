@@ -18,7 +18,7 @@ use std::borrow::Cow;
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
-pub use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
+use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 
 /// Wrapper around `&'static str` that supports deallocating references created
 /// via [`Box::leak`].

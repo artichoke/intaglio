@@ -24,7 +24,8 @@
 //!
 //! ```
 //! # use std::collections::HashMap;
-//! # use intaglio::bytes::{Symbol, SymbolTable};
+//! # use intaglio::bytes::SymbolTable;
+//! # use intaglio::Symbol;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym = table.intern(&b"abc"[..])?;
@@ -61,7 +62,7 @@ use std::borrow::Cow;
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
-pub use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
+use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 
 /// Wrapper around `&'static [u8]` that supports deallocating references created
 /// via [`Box::leak`].
@@ -378,7 +379,8 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 ///
 /// ```
 /// # use std::collections::HashMap;
-/// # use intaglio::bytes::{Symbol, SymbolTable};
+/// # use intaglio::bytes::SymbolTable;
+/// # use intaglio::Symbol;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
 /// let sym = table.intern(b"abc".to_vec())?;
@@ -604,7 +606,8 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::{Symbol, SymbolTable};
+    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.contains(Symbol::new(0)));
@@ -630,7 +633,8 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::{Symbol, SymbolTable};
+    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.get(Symbol::new(0)).is_none());
@@ -654,7 +658,8 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use std::collections::HashMap;
-    /// # use intaglio::bytes::{Symbol, SymbolTable};
+    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -696,7 +701,8 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::{Symbol, SymbolTable};
+    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
