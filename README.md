@@ -8,8 +8,8 @@
 [![API](https://docs.rs/intaglio/badge.svg)](https://docs.rs/intaglio)
 [![API trunk](https://img.shields.io/badge/docs-trunk-blue.svg)](https://artichoke.github.io/intaglio/intaglio/)
 
-UTF-8 and bytestring interner and symbol table. Used to implement storage for
-the [Ruby `Symbol`][symbol] table and the constant name table in [Artichoke
+UTF-8 string and bytestring interner and symbol table. Used to implement storage
+for the [Ruby `Symbol`][symbol] table and the constant name table in [Artichoke
 Ruby][artichoke].
 
 > Symbol objects represent names and some strings inside the Ruby interpreter.
@@ -29,8 +29,6 @@ _Intaglio_ is an alternate name for an _engraved gem_, a gemstone that has been
 carved with an image. The Intaglio crate is used to implement an immutable
 Symbol store in Artichoke Ruby.
 
-This crate depends on [`bstr`].
-
 ## Usage
 
 Add this to your `Cargo.toml`:
@@ -40,25 +38,11 @@ Add this to your `Cargo.toml`:
 intaglio = "0.1"
 ```
 
-Then intern bytestrings like:
+Then intern UTF-8 strings like:
 
 ```rust
 fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
     let mut table = intaglio::SymbolTable::new();
-    let name: &'static [u8] = b"abc";
-    let sym = table.intern(name)?;
-    let retrieved = table.get(sym);
-    assert_eq!(Some(name), retrieved);
-    assert_eq!(sym, table.intern(b"abc".to_vec())?);
-    Ok(())
-}
-```
-
-Or intern UTF-8 strings like:
-
-```rust
-fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
-    let mut table = intaglio::str::SymbolTable::new();
     let name: &'static str = "abc";
     let sym = table.intern(name)?;
     let retrieved = table.get(sym);
@@ -68,11 +52,33 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+Or intern bytestrings like:
+
+```rust
+fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
+    let mut table = intaglio::bytes::SymbolTable::new();
+    let name: &'static [u8] = b"abc";
+    let sym = table.intern(name)?;
+    let retrieved = table.get(sym);
+    assert_eq!(Some(name), retrieved);
+    assert_eq!(sym, table.intern(b"abc".to_vec())?);
+    Ok(())
+}
+```
+
 ## Implementation
 
 Intaglio interns owned and borrowed strings with no additional copying by
 leveraging `Cow` and `Box::leak`. This requires unsafe code in the `Drop`
 implementation of `SymbolTable`. CI runs `drop` tests under Miri.
+
+## Crate features
+
+All features are enabled by default.
+
+- **bytes** - Enables an additional symbol table implementation for interning
+  bytestrings (`Vec<u8>` and `&'static [u8]`). Disabling this drops the [`bstr`]
+  dependency.
 
 ## License
 

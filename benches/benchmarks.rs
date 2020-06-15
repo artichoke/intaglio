@@ -1,8 +1,9 @@
 use criterion::{criterion_group, criterion_main};
 
+#[cfg(feature = "bytes")]
 mod bytestring {
     use criterion::{BatchSize, Criterion, Throughput};
-    use intaglio::SymbolTable;
+    use intaglio::bytes::SymbolTable;
 
     pub fn bench_allocate(c: &mut Criterion) {
         let mut group = c.benchmark_group("SymbolTable constructors");
@@ -85,7 +86,7 @@ mod bytestring {
 
 mod utf8string {
     use criterion::{BatchSize, Criterion, Throughput};
-    use intaglio::str::SymbolTable;
+    use intaglio::SymbolTable;
 
     pub fn bench_allocate(c: &mut Criterion) {
         let mut group = c.benchmark_group("str::SymbolTable constructors");
@@ -166,6 +167,7 @@ mod utf8string {
     }
 }
 
+#[cfg(feature = "bytes")]
 criterion_group!(
     bytes,
     bytestring::bench_allocate,
@@ -176,4 +178,7 @@ criterion_group!(
     utf8string::bench_allocate,
     utf8string::bench_repeatedly_intern,
 );
+#[cfg(feature = "bytes")]
 criterion_main!(bytes, utf8);
+#[cfg(not(feature = "bytes"))]
+criterion_main!(utf8);
