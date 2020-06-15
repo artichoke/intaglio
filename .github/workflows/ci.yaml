@@ -44,6 +44,51 @@ jobs:
       - name: Test with no default features
         run: cargo test --no-default-features
 
+  build_x86:
+    name: Build 32-bit
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+    env:
+      RUSTFLAGS: -D warnings
+      RUST_BACKTRACE: 1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
+
+      - name: Install 32-bit platform support
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt install gcc-multilib
+
+      - name: Compile
+        run: cargo build --verbose --target ${{ matrix.target }}
+
+      - name: Compile tests
+        run: cargo test --no-run --target ${{ matrix.target }}
+
+      - name: Test
+        run: cargo test --target ${{ matrix.target }}
+
+      - name: Test with all features
+        run: cargo test --all-features --target ${{ matrix.target }}
+
+      - name: Test with no default features
+        run: cargo test --no-default-features --target ${{ matrix.target }}
+
   rust:
     name: Lint and format Rust
     runs-on: ubuntu-latest
