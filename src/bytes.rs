@@ -843,18 +843,49 @@ where
         Ok(id)
     }
 
+    /// Returns the `Symbol` identifier for `contents` if it has been interned
+    /// before, `None` otherwise.
+    ///
+    /// This method does not modify the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// assert!(!table.is_interned(b"abc"));
+    /// assert_eq!(None, table.check_interned(b"abc"));
+    ///
+    /// table.intern(b"abc".to_vec())?;
+    /// assert!(table.is_interned(b"abc"));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(b"abc"));
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn check_interned(&self, contents: &[u8]) -> Option<Symbol> {
+        self.map.get(contents.as_bstr()).copied()
+    }
+
     /// Returns `true` if the given byte string has been interned before.
     ///
     /// This method does not modify the symbol table.
     ///
+    /// # Examples
+    ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.is_interned(b"abc"));
+    /// assert_eq!(None, table.check_interned(b"abc"));
     ///
     /// table.intern(b"abc".to_vec())?;
     /// assert!(table.is_interned(b"abc"));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(b"abc"));
     /// # Ok(())
     /// # }
     /// ```
