@@ -93,10 +93,24 @@ pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SymbolOverflowError {
     max_capacity: usize,
-    source: TryFromIntError,
+    source: Option<TryFromIntError>,
+}
+
+impl Default for SymbolOverflowError {
+    fn default() -> Self {
+        Self {
+            max_capacity: u32::MAX as usize,
+            source: None,
+        }
+    }
 }
 
 impl SymbolOverflowError {
+    /// Construct a new `SymbolOverflowError` with no source.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Return the maximum capacity of the [`SymbolTable`] that returned this
     /// error.
     #[must_use]
@@ -109,7 +123,7 @@ impl From<TryFromIntError> for SymbolOverflowError {
     fn from(err: TryFromIntError) -> Self {
         Self {
             max_capacity: u32::MAX as usize,
-            source: err,
+            source: Some(err),
         }
     }
 }
@@ -122,7 +136,11 @@ impl fmt::Display for SymbolOverflowError {
 
 impl error::Error for SymbolOverflowError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        Some(&self.source)
+        if let Some(ref source) = self.source {
+            Some(source)
+        } else {
+            None
+        }
     }
 }
 
