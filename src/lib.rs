@@ -80,7 +80,8 @@ pub use crate::str::*;
 //
 // This const-evaluated expression will fail to compile if this invariant does
 // not hold.
-const _U32_FITS_IN_USIZE_ASSERTION: &[()] = &[(); size_of::<usize>() - size_of::<u32>()];
+const _U32_FITS_IN_USIZE_ASSERTION: [(); 0] =
+    [(); (size_of::<usize>() >= size_of::<u32>()) as usize - 1];
 
 /// Default capacity for new a [`SymbolTable`].
 pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
