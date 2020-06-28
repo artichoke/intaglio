@@ -107,6 +107,7 @@ impl Default for SymbolOverflowError {
 
 impl SymbolOverflowError {
     /// Construct a new `SymbolOverflowError` with no source.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
