@@ -3,7 +3,11 @@
 #![allow(clippy::cast_possible_truncation)] // see `_U32_FITS_IN_USIZE_ASSERTION`
 #![warn(missing_docs, intra_doc_link_resolution_failure)]
 #![warn(missing_debug_implementations)]
+#![warn(missing_copy_implementations)]
 #![warn(rust_2018_idioms)]
+#![warn(trivial_casts, trivial_numeric_casts)]
+#![warn(unused_qualifications)]
+#![warn(variant_size_differences)]
 
 //! This crate provides a library for interning strings.
 //!

@@ -126,7 +126,8 @@ impl Drop for Slice {
             // only occur while the `SymbolTable` is being dropped which
             // requires unique access and thus no outstanding borrows of this
             // reference.
-            let boxed = unsafe { Box::from_raw(slice as *const [u8] as *mut [u8]) };
+            let slice: *const [u8] = slice;
+            let boxed = unsafe { Box::from_raw(slice as *mut [u8]) };
             drop(boxed);
         }
     }
