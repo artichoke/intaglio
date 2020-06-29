@@ -11,6 +11,7 @@ keywords = ["bytestring", "intern", "interner", "symbol", "utf8"]
 categories = ["caching", "data-structures"]
 include = [
   "src/**/*.rs",
+  "benches/**/*.rs",
   "LICENSE",
   "README.md"
 ]
