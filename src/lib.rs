@@ -62,7 +62,7 @@
 //!   interning bytestrings (`Vec<u8>` and `&'static [u8]`). Disabling this
 //!   drops the `bstr` dependency.
 
-#![doc(html_root_url = "https://docs.rs/intaglio/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.0.0")]
 
 #[cfg(all(doctest, feature = "bytes"))]
 doc_comment::doctest!("../README.md");
