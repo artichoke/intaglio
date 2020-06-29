@@ -12,6 +12,7 @@ categories = ["caching", "data-structures"]
 include = [
   "src/**/*.rs",
   "benches/**/*.rs",
+  "tests/**/*.rs",
   "LICENSE",
   "README.md"
 ]
