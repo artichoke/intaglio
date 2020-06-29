@@ -1,6 +1,6 @@
 [package]
 name = "intaglio"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 edition = "2018"
 description = "UTF-8 string and bytestring interner and symbol table"
@@ -11,6 +11,8 @@ keywords = ["bytestring", "intern", "interner", "symbol", "utf8"]
 categories = ["caching", "data-structures"]
 include = [
   "src/**/*.rs",
+  "benches/**/*.rs",
+  "tests/**/*.rs",
   "LICENSE",
   "README.md"
 ]
