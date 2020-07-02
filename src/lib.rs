@@ -1,7 +1,7 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
-#![allow(clippy::cast_possible_truncation)] // see `_U32_FITS_IN_USIZE_ASSERTION`
+#![allow(clippy::cast_possible_truncation)]
 #![warn(missing_docs, intra_doc_link_resolution_failure)]
 #![warn(missing_debug_implementations)]
 #![warn(missing_copy_implementations)]
@@ -96,8 +96,7 @@ pub use crate::str::*;
 //
 // This const-evaluated expression will fail to compile if this invariant does
 // not hold.
-const _U32_FITS_IN_USIZE_ASSERTION: [(); 0] =
-    [(); (size_of::<usize>() >= size_of::<u32>()) as usize - 1];
+const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
 
 /// Default capacity for new a [`SymbolTable`].
 pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
