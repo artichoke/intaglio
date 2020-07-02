@@ -64,8 +64,19 @@
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.0.1")]
 
+// Ensure code blocks in README.md compile
+#[cfg(doctest)]
+macro_rules! readme {
+    ($x:expr) => {
+        #[doc = $x]
+        mod readme {}
+    };
+    () => {
+        readme!(include_str!("../README.md"));
+    };
+}
 #[cfg(all(doctest, feature = "bytes"))]
-doc_comment::doctest!("../README.md");
+readme!();
 
 use core::convert::TryFrom;
 use core::fmt;
