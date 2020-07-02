@@ -43,8 +43,6 @@ bstr = { version = "0.2", default-features = false, optional = true }
 [dev-dependencies]
 # Benchmarking support on stable Rust.
 criterion = "0.3"
-# Test that the examples in README.md compile.
-doc-comment = "0.3"
 # Property testing for interner getters and setters.
 quickcheck = { version = "0.9", default-features = false }
 quickcheck_macros = "0.9"
