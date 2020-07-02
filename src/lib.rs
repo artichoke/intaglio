@@ -1,5 +1,6 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
 #![allow(clippy::cast_possible_truncation)] // see `_U32_FITS_IN_USIZE_ASSERTION`
 #![warn(missing_docs, intra_doc_link_resolution_failure)]
 #![warn(missing_debug_implementations)]

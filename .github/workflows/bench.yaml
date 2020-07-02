@@ -29,10 +29,13 @@ jobs:
 
       - name: Compile
         run: cargo build --verbose
+        working-directory: benchmarks
 
       - name: Compile tests
         run: cargo bench --no-run
+        working-directory: benchmarks
 
       - name: Test
         if: github.ref == 'refs/heads/trunk'
         run: cargo bench
+        working-directory: benchmarks
