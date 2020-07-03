@@ -108,16 +108,12 @@ pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
 /// generated. Any subsequent inserts into the table will fail with this error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SymbolOverflowError {
-    max_capacity: usize,
     source: Option<TryFromIntError>,
 }
 
 impl Default for SymbolOverflowError {
     fn default() -> Self {
-        Self {
-            max_capacity: u32::MAX as usize,
-            source: None,
-        }
+        Self { source: None }
     }
 }
 
@@ -131,17 +127,15 @@ impl SymbolOverflowError {
     /// Return the maximum capacity of the [`SymbolTable`] that returned this
     /// error.
     #[must_use]
+    #[allow(clippy::unused_self)]
     pub fn max_capacity(self) -> usize {
-        self.max_capacity
+        u32::MAX as usize
     }
 }
 
 impl From<TryFromIntError> for SymbolOverflowError {
     fn from(err: TryFromIntError) -> Self {
-        Self {
-            max_capacity: u32::MAX as usize,
-            source: Some(err),
-        }
+        Self { source: Some(err) }
     }
 }
 
