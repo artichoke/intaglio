@@ -106,15 +106,9 @@ pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
 /// `SymbolTable` uses `u32` identifiers for symbols to save space. If more than
 /// `u32::MAX` symbols are stored in the table, no more identifiers can be
 /// generated. Any subsequent inserts into the table will fail with this error.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SymbolOverflowError {
     source: Option<TryFromIntError>,
-}
-
-impl Default for SymbolOverflowError {
-    fn default() -> Self {
-        Self { source: None }
-    }
 }
 
 impl SymbolOverflowError {
