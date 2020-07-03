@@ -239,14 +239,32 @@ impl From<Symbol> for u32 {
     }
 }
 
+impl From<&Symbol> for u32 {
+    fn from(sym: &Symbol) -> Self {
+        sym.0
+    }
+}
+
 impl From<Symbol> for u64 {
     fn from(sym: Symbol) -> Self {
         sym.0.into()
     }
 }
 
+impl From<&Symbol> for u64 {
+    fn from(sym: &Symbol) -> Self {
+        sym.0.into()
+    }
+}
+
 impl From<Symbol> for usize {
     fn from(sym: Symbol) -> Self {
+        sym.0 as usize
+    }
+}
+
+impl From<&Symbol> for usize {
+    fn from(sym: &Symbol) -> Self {
         sym.0 as usize
     }
 }
@@ -263,5 +281,23 @@ impl Symbol {
     #[must_use]
     pub fn new(sym: u32) -> Self {
         Self::from(sym)
+    }
+
+    /// Return the `u32` identifier from this `Symbol`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use intaglio::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// let sym = table.intern("intaglio")?;
+    /// assert_eq!(u32::from(sym), sym.id());
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn id(self) -> u32 {
+        self.0
     }
 }
