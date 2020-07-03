@@ -141,11 +141,8 @@ impl fmt::Display for SymbolOverflowError {
 
 impl error::Error for SymbolOverflowError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        if let Some(ref source) = self.source {
-            Some(source)
-        } else {
-            None
-        }
+        let source = self.source.as_ref()?;
+        Some(source)
     }
 }
 
