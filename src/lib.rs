@@ -106,19 +106,9 @@ pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
 /// `SymbolTable` uses `u32` identifiers for symbols to save space. If more than
 /// `u32::MAX` symbols are stored in the table, no more identifiers can be
 /// generated. Any subsequent inserts into the table will fail with this error.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SymbolOverflowError {
-    max_capacity: usize,
     source: Option<TryFromIntError>,
-}
-
-impl Default for SymbolOverflowError {
-    fn default() -> Self {
-        Self {
-            max_capacity: u32::MAX as usize,
-            source: None,
-        }
-    }
 }
 
 impl SymbolOverflowError {
@@ -131,17 +121,15 @@ impl SymbolOverflowError {
     /// Return the maximum capacity of the [`SymbolTable`] that returned this
     /// error.
     #[must_use]
+    #[allow(clippy::unused_self)]
     pub fn max_capacity(self) -> usize {
-        self.max_capacity
+        u32::MAX as usize
     }
 }
 
 impl From<TryFromIntError> for SymbolOverflowError {
     fn from(err: TryFromIntError) -> Self {
-        Self {
-            max_capacity: u32::MAX as usize,
-            source: Some(err),
-        }
+        Self { source: Some(err) }
     }
 }
 
@@ -153,11 +141,8 @@ impl fmt::Display for SymbolOverflowError {
 
 impl error::Error for SymbolOverflowError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        if let Some(ref source) = self.source {
-            Some(source)
-        } else {
-            None
-        }
+        let source = self.source.as_ref()?;
+        Some(source)
     }
 }
 
@@ -254,14 +239,32 @@ impl From<Symbol> for u32 {
     }
 }
 
+impl From<&Symbol> for u32 {
+    fn from(sym: &Symbol) -> Self {
+        sym.0
+    }
+}
+
 impl From<Symbol> for u64 {
     fn from(sym: Symbol) -> Self {
         sym.0.into()
     }
 }
 
+impl From<&Symbol> for u64 {
+    fn from(sym: &Symbol) -> Self {
+        sym.0.into()
+    }
+}
+
 impl From<Symbol> for usize {
     fn from(sym: Symbol) -> Self {
+        sym.0 as usize
+    }
+}
+
+impl From<&Symbol> for usize {
+    fn from(sym: &Symbol) -> Self {
         sym.0 as usize
     }
 }
@@ -278,5 +281,23 @@ impl Symbol {
     #[must_use]
     pub fn new(sym: u32) -> Self {
         Self::from(sym)
+    }
+
+    /// Return the `u32` identifier from this `Symbol`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use intaglio::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// let sym = table.intern("intaglio")?;
+    /// assert_eq!(u32::from(sym), sym.id());
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn id(self) -> u32 {
+        self.0
     }
 }
