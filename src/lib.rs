@@ -19,7 +19,7 @@
 //! For more specific details on the API for interning strings into a symbol
 //! table, please see the documentation for the [`SymbolTable`] type.
 //!
-//! # Example
+//! # Examples
 //!
 //! ```
 //! # use intaglio::SymbolTable;
@@ -280,7 +280,7 @@ impl Symbol {
     /// No runtime checks ensure that [`SymbolTable::get`] is called with a
     /// `Symbol` that the table itself issued.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use intaglio::Symbol;
@@ -294,7 +294,7 @@ impl Symbol {
 
     /// Return the `u32` identifier from this `Symbol`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use intaglio::SymbolTable;
