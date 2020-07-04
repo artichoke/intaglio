@@ -11,7 +11,6 @@
 //!
 //! ```
 //! # use intaglio::bytes::SymbolTable;
-//! # fn main() { example().unwrap(); }
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym = table.intern(&b"abc"[..])?;
@@ -19,6 +18,7 @@
 //! assert_eq!(Some(&b"abc"[..]), table.get(sym));
 //! # Ok(())
 //! # }
+//! # example().unwrap();
 //! ```
 //!
 //! # Example: symbol iterators
@@ -27,7 +27,6 @@
 //! # use std::collections::HashMap;
 //! # use intaglio::bytes::SymbolTable;
 //! # use intaglio::Symbol;
-//! # fn main() { example().unwrap(); }
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym = table.intern(&b"abc"[..])?;
@@ -44,6 +43,7 @@
 //! assert_eq!(map, iter.collect::<HashMap<_, _>>());
 //! # Ok(())
 //! # }
+//! # example().unwrap();
 //! ```
 //!
 //! # Performance
@@ -206,7 +206,6 @@ impl Borrow<[u8]> for &mut Slice {
 ///
 /// ```
 /// # use intaglio::bytes::SymbolTable;
-/// # fn main() { example().unwrap(); }
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
 /// let sym = table.intern(&b"abc"[..])?;
@@ -214,6 +213,7 @@ impl Borrow<[u8]> for &mut Slice {
 /// assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
+/// # example().unwrap();
 /// ```
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct AllSymbols<'a> {
@@ -304,7 +304,6 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 ///
 /// ```
 /// # use intaglio::bytes::SymbolTable;
-/// # fn main() { example().unwrap(); }
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
 /// let sym = table.intern(b"abc".to_vec())?;
@@ -312,6 +311,7 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 /// assert_eq!(vec![&b"abc"[..]], bytestrings.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
+/// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
 pub struct Bytestrings<'a>(slice::Iter<'a, Slice>);
@@ -387,7 +387,6 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 /// # use std::collections::HashMap;
 /// # use intaglio::bytes::SymbolTable;
 /// # use intaglio::Symbol;
-/// # fn main() { example().unwrap(); }
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
 /// let sym = table.intern(b"abc".to_vec())?;
@@ -397,6 +396,7 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
 /// # Ok(())
 /// # }
+/// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
 pub struct Iter<'a>(iter::Zip<AllSymbols<'a>, Bytestrings<'a>>);
@@ -458,7 +458,6 @@ impl<'a> IntoIterator for &'a SymbolTable {
 ///
 /// ```
 /// # use intaglio::bytes::SymbolTable;
-/// # fn main() { example().unwrap(); }
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
 /// let sym = table.intern(&b"abc"[..])?;
@@ -467,6 +466,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// assert!(table.is_interned(b"abc"));
 /// # Ok(())
 /// # }
+/// # example().unwrap();
 /// ```
 #[derive(Default, Debug)]
 pub struct SymbolTable<S = RandomState> {
@@ -574,7 +574,6 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert_eq!(0, table.len());
@@ -586,6 +585,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(2, table.len());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn len(&self) -> usize {
         self.vec.len()
@@ -597,7 +597,6 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.is_empty());
@@ -606,6 +605,7 @@ impl<S> SymbolTable<S> {
     /// assert!(!table.is_empty());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
@@ -618,7 +618,6 @@ impl<S> SymbolTable<S> {
     /// ```
     /// # use intaglio::bytes::SymbolTable;
     /// # use intaglio::Symbol;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.contains(Symbol::new(0)));
@@ -628,6 +627,7 @@ impl<S> SymbolTable<S> {
     /// assert!(table.contains(sym));
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     #[must_use]
     pub fn contains(&self, id: Symbol) -> bool {
@@ -646,7 +646,6 @@ impl<S> SymbolTable<S> {
     /// ```
     /// # use intaglio::bytes::SymbolTable;
     /// # use intaglio::Symbol;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.get(Symbol::new(0)).is_none());
@@ -656,6 +655,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(Some(&b"abc"[..]), table.get(sym));
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     #[must_use]
     pub fn get(&self, id: Symbol) -> Option<&[u8]> {
@@ -672,7 +672,6 @@ impl<S> SymbolTable<S> {
     /// # use std::collections::HashMap;
     /// # use intaglio::bytes::SymbolTable;
     /// # use intaglio::Symbol;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -689,11 +688,11 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -705,6 +704,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(table.len(), iter.count());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn iter(&self) -> Iter<'_> {
         Iter(self.all_symbols().zip(self.bytestrings()))
@@ -717,7 +717,6 @@ impl<S> SymbolTable<S> {
     /// ```
     /// # use intaglio::bytes::SymbolTable;
     /// # use intaglio::Symbol;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -731,11 +730,11 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(None, all_symbols.next());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -747,6 +746,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(table.len(), all_symbols.count());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn all_symbols(&self) -> AllSymbols<'_> {
         if self.len() == u32::MAX as usize {
@@ -769,7 +769,6 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -783,11 +782,11 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(None, bytestrings.next());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// table.intern(b"abc".to_vec())?;
@@ -799,6 +798,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(table.len(), bytestrings.count());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn bytestrings(&self) -> Bytestrings<'_> {
         Bytestrings(self.vec.iter())
@@ -845,7 +845,6 @@ where
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// let sym = table.intern(b"abc".to_vec())?;
@@ -857,6 +856,7 @@ where
     /// assert_eq!(Some(&b"abc"[..]), table.get(sym));
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn intern<T>(&mut self, contents: T) -> Result<Symbol, SymbolOverflowError>
     where
@@ -892,7 +892,6 @@ where
     /// ```
     /// # use intaglio::bytes::SymbolTable;
     /// # use intaglio::Symbol;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.is_interned(b"abc"));
@@ -903,6 +902,7 @@ where
     /// assert_eq!(Some(Symbol::new(0)), table.check_interned(b"abc"));
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     #[must_use]
     pub fn check_interned(&self, contents: &[u8]) -> Option<Symbol> {
@@ -918,7 +918,6 @@ where
     /// ```
     /// # use intaglio::bytes::SymbolTable;
     /// # use intaglio::Symbol;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.is_interned(b"abc"));
@@ -929,6 +928,7 @@ where
     /// assert_eq!(Some(Symbol::new(0)), table.check_interned(b"abc"));
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     #[must_use]
     pub fn is_interned(&self, contents: &[u8]) -> bool {
@@ -949,7 +949,6 @@ where
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(1);
     /// table.intern(b"abc".to_vec())?;
@@ -957,6 +956,7 @@ where
     /// assert!(table.capacity() >= 11);
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn reserve(&mut self, additional: usize) {
         self.vec.reserve(additional);
@@ -973,7 +973,6 @@ where
     ///
     /// ```
     /// # use intaglio::bytes::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
     /// table.intern(b"abc".to_vec());
@@ -983,6 +982,7 @@ where
     /// assert!(table.capacity() >= 3);
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     pub fn shrink_to_fit(&mut self) {
         self.vec.shrink_to_fit();

@@ -23,7 +23,6 @@
 //!
 //! ```
 //! # use intaglio::SymbolTable;
-//! # fn main() { example().unwrap(); }
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym_id = table.intern("abc")?;
@@ -32,6 +31,7 @@
 //! assert!(table.is_interned("abc"));
 //! # Ok(())
 //! # }
+//! # example().unwrap();
 //! ```
 //!
 //! # String interning
@@ -298,13 +298,13 @@ impl Symbol {
     ///
     /// ```
     /// # use intaglio::SymbolTable;
-    /// # fn main() { example().unwrap(); }
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// let sym = table.intern("intaglio")?;
     /// assert_eq!(u32::from(sym), sym.id());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     #[must_use]
     pub fn id(self) -> u32 {
