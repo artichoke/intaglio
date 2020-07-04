@@ -23,6 +23,8 @@
 //!
 //! ```
 //! # use intaglio::SymbolTable;
+//! # fn main() { example().unwrap(); }
+//! #
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym_id = table.intern("abc")?;
@@ -278,6 +280,14 @@ impl Symbol {
     /// `Symbol`s are not constrained to the `SymbolTable` which created them.
     /// No runtime checks ensure that [`SymbolTable::get`] is called with a
     /// `Symbol` that the table itself issued.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use intaglio::Symbol;
+    /// let sym = Symbol::new(263);
+    /// assert_eq!(263, sym.id());
+    /// ```
     #[must_use]
     pub fn new(sym: u32) -> Self {
         Self::from(sym)
@@ -289,6 +299,8 @@ impl Symbol {
     ///
     /// ```
     /// # use intaglio::SymbolTable;
+    /// # fn main() { example().unwrap(); }
+    /// #
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// let sym = table.intern("intaglio")?;
