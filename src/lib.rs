@@ -24,7 +24,6 @@
 //! ```
 //! # use intaglio::SymbolTable;
 //! # fn main() { example().unwrap(); }
-//! #
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
 //! let sym_id = table.intern("abc")?;
@@ -300,7 +299,6 @@ impl Symbol {
     /// ```
     /// # use intaglio::SymbolTable;
     /// # fn main() { example().unwrap(); }
-    /// #
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// let sym = table.intern("intaglio")?;
