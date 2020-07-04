@@ -19,7 +19,7 @@
 //! For more specific details on the API for interning strings into a symbol
 //! table, please see the documentation for the [`SymbolTable`] type.
 //!
-//! # Example
+//! # Examples
 //!
 //! ```
 //! # use intaglio::SymbolTable;
@@ -31,6 +31,7 @@
 //! assert!(table.is_interned("abc"));
 //! # Ok(())
 //! # }
+//! # example().unwrap();
 //! ```
 //!
 //! # String interning
@@ -278,6 +279,14 @@ impl Symbol {
     /// `Symbol`s are not constrained to the `SymbolTable` which created them.
     /// No runtime checks ensure that [`SymbolTable::get`] is called with a
     /// `Symbol` that the table itself issued.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::Symbol;
+    /// let sym = Symbol::new(263);
+    /// assert_eq!(263, sym.id());
+    /// ```
     #[must_use]
     pub fn new(sym: u32) -> Self {
         Self::from(sym)
@@ -285,7 +294,7 @@ impl Symbol {
 
     /// Return the `u32` identifier from this `Symbol`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use intaglio::SymbolTable;
@@ -295,6 +304,7 @@ impl Symbol {
     /// assert_eq!(u32::from(sym), sym.id());
     /// # Ok(())
     /// # }
+    /// # example().unwrap();
     /// ```
     #[must_use]
     pub fn id(self) -> u32 {
