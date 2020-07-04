@@ -832,11 +832,32 @@ where
     /// The returned `Symbol` allows retrieving of the underlying bytes.
     /// Equal bytestrings will be inserted into the symbol table exactly once.
     ///
+    /// This function only allocates if the underlying symbol table has no
+    /// remaining capacity.
+    ///
     /// # Errors
     ///
     /// If the symbol table would grow larger than `u32::MAX` interned
     /// bytestrings, the [`Symbol`] counter would overflow and a
     /// [`SymbolOverflowError`] is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::bytes::SymbolTable;
+    /// # fn main() { example().unwrap(); }
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// let sym = table.intern(b"abc".to_vec())?;
+    /// table.intern(b"xyz".to_vec())?;
+    /// table.intern(&b"123"[..])?;
+    /// table.intern(&b"789"[..])?;
+    ///
+    /// assert_eq!(4, table.len());
+    /// assert_eq!(Some(&b"abc"[..]), table.get(sym));
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn intern<T>(&mut self, contents: T) -> Result<Symbol, SymbolOverflowError>
     where
         T: Into<Cow<'static, [u8]>>,
