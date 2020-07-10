@@ -6,7 +6,6 @@ use core::convert::TryInto;
 use core::hash::{BuildHasher, Hash, Hasher};
 use core::iter::{self, FusedIterator};
 use core::marker::PhantomData;
-use core::mem;
 use core::ops::{Deref, Range, RangeInclusive};
 use core::slice;
 use std::borrow::Cow;
@@ -27,19 +26,31 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 enum Slice {
     /// True `'static` references.
     Static(&'static str),
-    /// `'static` references created by [`Box::leak`].
-    ///
-    /// These references can be deallocated by coercing the reference to a
-    /// pointer and reconstituting the `Box` with [`Box::from_raw`] on drop.
-    Leaked(&'static str),
+    /// Owned `'static` references.
+    Owned(Box<str>),
 }
 
 impl Slice {
-    /// Return a reference to the inner `'static` slice.
-    fn as_slice(&self) -> &'static str {
+    /// Return a reference to the inner slice.
+    fn as_slice(&self) -> &str {
         match self {
             Self::Static(global) => global,
-            Self::Leaked(leaked) => leaked,
+            Self::Owned(leaked) => &**leaked,
+        }
+    }
+
+    /// Return a reference to the inner slice.
+    ///
+    /// # Safety
+    ///
+    /// This returns a reference with an unbounded lifetime.
+    /// It is your responsibility to make sure it is not used
+    /// after this `Slice` is dropped.
+    unsafe fn as_static_slice(&self) -> &'static str {
+        match self {
+            Self::Static(global) => global,
+            #[allow(trivial_casts)]
+            Self::Owned(leaked) => &*(&**leaked as *const str),
         }
     }
 }
@@ -47,40 +58,6 @@ impl Slice {
 impl Default for Slice {
     fn default() -> Self {
         Self::Static(<_>::default())
-    }
-}
-
-impl Drop for Slice {
-    fn drop(&mut self) {
-        // If the slice was created via `Box::leak`, turn it back into a boxed
-        // slice and drop it to free the underlying bytes.
-        //
-        // Safety:
-        //
-        // Do not `mem::take(self)` to move out the leaked slice. This causes a
-        // double free reported by miri.
-        //
-        // Instead, replace the contents of the `Leaked` variant with a truly
-        // &'static str that can be safely dropped when it goes out of scope.
-        if let Slice::Leaked(mut slice) = self {
-            // Move the leaked &'static mut str out of the Leaked variant and
-            // replace with a truly static empty "".
-            let slice = mem::take(&mut slice);
-            // Safety:
-            //
-            // `slice` contained in `Slice::Leaked(_)` was created by
-            // `Box::leak` which returns `&'static mut str` which is uniquely
-            // owned by this enum.
-            //
-            // Copies of this reference are handed out by `SymbolTable::get`,
-            // but they have lifetime bound to the `SymbolTable`. This drop can
-            // only occur while the `SymbolTable` is being dropped which
-            // requires unique access and thus no outstanding borrows of this
-            // reference.
-            let slice: *const str = slice;
-            let boxed = unsafe { Box::from_raw(slice as *mut str) };
-            drop(boxed);
-        }
     }
 }
 
@@ -769,7 +746,7 @@ impl<S> SymbolTable<S> {
     /// resulting `'static` reference which is suitable for storing in the list
     /// of symbols.
     ///
-    /// The reference is wrapped in a `Slice::Leaked` which will convert the
+    /// The reference is wrapped in a `Slice::Owned` which will convert the
     /// reference back into a `Box` to be deallocated on `drop`.
     ///
     /// # Safety
@@ -779,8 +756,7 @@ impl<S> SymbolTable<S> {
     #[must_use]
     fn alloc(contents: String) -> Slice {
         let boxed_slice = contents.into_boxed_str();
-        let slice = Box::leak(boxed_slice);
-        Slice::Leaked(slice)
+        Slice::Owned(boxed_slice)
     }
 }
 
@@ -832,7 +808,7 @@ where
             Cow::Owned(contents) => Self::alloc(contents),
         };
         let id = self.map.len().try_into()?;
-        let slice = name.as_slice();
+        let slice = unsafe { name.as_static_slice() };
 
         self.map.insert(slice, id);
         self.vec.push(name);
