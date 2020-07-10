@@ -14,20 +14,39 @@ use std::collections::HashMap;
 
 use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 
-/// Wrapper around `&'static str` that supports deallocating references created
-/// via [`Box::leak`].
+/// Wrapper around `&'static str`.
 ///
 /// # Safety
 ///
 /// Must not be `Clone` or `Copy` because the Drop logic assumes this enum is the
-/// unique owner of a leaked boxed slice. The lack of `Clone` and `Copy` impls is
-/// necessary to prevent double frees.
+/// unique owner of `&'static` references handed out with `as_static_slice`.
 #[derive(Debug)]
 enum Slice {
     /// True `'static` references.
     Static(&'static str),
     /// Owned `'static` references.
     Owned(Box<str>),
+}
+
+impl From<&'static str> for Slice {
+    fn from(string: &'static str) -> Self {
+        Self::Static(string)
+    }
+}
+
+impl From<String> for Slice {
+    fn from(string: String) -> Self {
+        Self::Owned(string.into_boxed_str())
+    }
+}
+
+impl From<Cow<'static, str>> for Slice {
+    fn from(string: Cow<'static, str>) -> Self {
+        match string {
+            Cow::Borrowed(string) => string.into(),
+            Cow::Owned(string) => string.into(),
+        }
+    }
 }
 
 impl Slice {
@@ -39,13 +58,13 @@ impl Slice {
         }
     }
 
-    /// Return a reference to the inner slice.
+    /// Return a `'static` reference to the inner slice.
     ///
     /// # Safety
     ///
-    /// This returns a reference with an unbounded lifetime.
-    /// It is your responsibility to make sure it is not used
-    /// after this `Slice` is dropped.
+    /// This returns a reference with an unbounded lifetime. It is the caller's
+    /// responsibility to make sure it is not used after this `Slice` is
+    /// dropped.
     unsafe fn as_static_slice(&self) -> &'static str {
         match self {
             Self::Static(global) => global,
@@ -741,23 +760,6 @@ impl<S> SymbolTable<S> {
     pub fn strings(&self) -> Strings<'_> {
         Strings(self.vec.iter())
     }
-
-    /// Transform owned String into a leaked boxed slice and return the
-    /// resulting `'static` reference which is suitable for storing in the list
-    /// of symbols.
-    ///
-    /// The reference is wrapped in a `Slice::Owned` which will convert the
-    /// reference back into a `Box` to be deallocated on `drop`.
-    ///
-    /// # Safety
-    ///
-    /// This function is not marked unsafe because the only side effect is
-    /// leaking memory. Memory leaks are not unsafe.
-    #[must_use]
-    fn alloc(contents: String) -> Slice {
-        let boxed_slice = contents.into_boxed_str();
-        Slice::Owned(boxed_slice)
-    }
 }
 
 impl<S> SymbolTable<S>
@@ -803,10 +805,7 @@ where
         if let Some(&id) = self.map.get(contents.as_ref()) {
             return Ok(id);
         }
-        let name = match contents {
-            Cow::Borrowed(contents) => Slice::Static(contents),
-            Cow::Owned(contents) => Self::alloc(contents),
-        };
+        let name = Slice::from(contents);
         let id = self.map.len().try_into()?;
         let slice = unsafe { name.as_static_slice() };
 
