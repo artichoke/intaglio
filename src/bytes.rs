@@ -58,7 +58,6 @@ use core::convert::TryInto;
 use core::hash::{BuildHasher, Hash, Hasher};
 use core::iter::{self, FusedIterator};
 use core::marker::PhantomData;
-use core::mem;
 use core::ops::{Deref, Range, RangeInclusive};
 use core::slice;
 use std::borrow::Cow;
@@ -79,19 +78,31 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 enum Slice {
     /// True `'static` references.
     Static(&'static BStr),
-    /// `'static` references created by [`Box::leak`].
-    ///
-    /// These references can be deallocated by coercing the reference to a
-    /// pointer and reconstituting the `Box` with [`Box::from_raw`] on drop.
-    Leaked(&'static BStr),
+    /// Owned `'static` references.
+    Owned(Box<[u8]>),
 }
 
 impl Slice {
-    /// Return a reference to the inner `'static` byteslice.
-    fn as_slice(&self) -> &'static [u8] {
+    /// Return a reference to the inner byteslice.
+    fn as_slice(&self) -> &[u8] {
         match self {
             Self::Static(global) => global,
-            Self::Leaked(leaked) => leaked,
+            Self::Owned(leaked) => &**leaked,
+        }
+    }
+
+    /// Return a reference to the inner byteslice.
+    ///
+    /// # Safety
+    ///
+    /// This returns a reference with an unbounded lifetime.
+    /// It is your responsibility to make sure it is not used
+    /// after this `Slice` is dropped.
+    unsafe fn as_static_slice(&self) -> &'static [u8] {
+        match self {
+            Self::Static(global) => global,
+            #[allow(trivial_casts)]
+            Self::Owned(leaked) => &*(&**leaked as *const [u8]),
         }
     }
 }
@@ -99,40 +110,6 @@ impl Slice {
 impl Default for Slice {
     fn default() -> Self {
         Self::Static(<_>::default())
-    }
-}
-
-impl Drop for Slice {
-    fn drop(&mut self) {
-        // If the slice was created via `Box::leak`, turn it back into a boxed
-        // slice and drop it to free the underlying bytes.
-        //
-        // Safety:
-        //
-        // Do not `mem::take(self)` to move out the leaked slice. This causes a
-        // double free reported by miri.
-        //
-        // Instead, replace the contents of the `Leaked` variant with a truly
-        // &'static [u8] that can be safely dropped when it goes out of scope.
-        if let Slice::Leaked(mut slice) = self {
-            // Move the leaked &'static mut [u8] out of the leaked variant and
-            // replace with a truly static empty "".
-            let slice = mem::take(&mut slice).as_ref();
-            // Safety:
-            //
-            // `slice` contained in `Slice::Leaked(_)` was created by
-            // `Box::leak` which returns `&'static mut [u8]` which is uniquely
-            // owned by this enum.
-            //
-            // Copies of this reference are handed out by `SymbolTable::get`,
-            // but they have lifetime bound to the `SymbolTable`. This drop can
-            // only occur while the `SymbolTable` is being dropped which
-            // requires unique access and thus no outstanding borrows of this
-            // reference.
-            let slice: *const [u8] = slice;
-            let boxed = unsafe { Box::from_raw(slice as *mut [u8]) };
-            drop(boxed);
-        }
     }
 }
 
@@ -818,8 +795,7 @@ impl<S> SymbolTable<S> {
     #[must_use]
     fn alloc(contents: Vec<u8>) -> Slice {
         let boxed_slice = contents.into_boxed_slice();
-        let slice = Box::leak(boxed_slice);
-        Slice::Leaked(slice.as_bstr())
+        Slice::Owned(boxed_slice)
     }
 }
 
@@ -871,7 +847,7 @@ where
             Cow::Owned(contents) => Self::alloc(contents),
         };
         let id = self.map.len().try_into()?;
-        let slice = name.as_slice();
+        let slice = unsafe { name.as_static_slice() };
 
         self.map.insert(slice.as_bstr(), id);
         self.vec.push(name);
