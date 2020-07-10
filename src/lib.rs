@@ -52,9 +52,7 @@
 //! [`SymbolTable::shrink_to_fit`].
 //!
 //! [`SymbolTable::intern`] does not clone or copy interned strings. It takes
-//! ownership of the string contents with no additional allocations. Owned
-//! strings are leaked with [`Box::leak`] and recovered and deallocated when the
-//! table is dropped.
+//! ownership of the string contents with no additional allocations.
 //!
 //! # Crate features
 //!
