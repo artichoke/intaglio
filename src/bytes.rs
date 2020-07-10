@@ -55,6 +55,7 @@ use bstr::{BStr, ByteSlice};
 use core::borrow::Borrow;
 use core::cmp;
 use core::convert::TryInto;
+use core::fmt;
 use core::hash::{BuildHasher, Hash, Hasher};
 use core::iter::{self, FusedIterator};
 use core::marker::PhantomData;
@@ -72,7 +73,6 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 ///
 /// Must not be `Clone` or `Copy` because the Drop logic assumes this enum is the
 /// unique owner of `&'static` references handed out with `as_static_slice`.
-#[derive(Debug)]
 enum Slice {
     /// True `'static` references.
     Static(&'static [u8]),
@@ -129,6 +129,15 @@ impl Slice {
 impl Default for Slice {
     fn default() -> Self {
         Self::Static(<_>::default())
+    }
+}
+
+impl fmt::Debug for Slice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Static(_) => write!(f, "Static({:?})", self.as_bstr()),
+            Self::Owned(_) => write!(f, "Owned({:?})", self.as_bstr()),
+        }
     }
 }
 
