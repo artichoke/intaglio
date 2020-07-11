@@ -2,19 +2,20 @@
 
 use core::cmp;
 use core::convert::TryInto;
-use core::hash::{BuildHasher, Hash};
+use core::hash::BuildHasher;
 use core::iter::{self, FusedIterator};
 use core::marker::PhantomData;
-use core::ops::{Deref, Range, RangeInclusive};
+use core::ops::{Range, RangeInclusive};
 use core::slice;
 use std::borrow::Cow;
-use std::collections::hash_map::RandomState;
-use std::collections::HashMap;
+use std::collections::hash_map::{HashMap, RandomState};
 
 use crate::internal::Interned;
 use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 
 /// An iterator over all [`Symbol`]s in a [`SymbolTable`].
+///
+/// See the [`all_symbols`](SymbolTable::all_symbols) method in [`SymbolTable`].
 ///
 /// # Usage
 ///
@@ -114,6 +115,8 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 
 /// An iterator over all interned strings in a [`SymbolTable`].
 ///
+/// See the [`strings`](SymbolTable::strings) method in [`SymbolTable`].
+///
 /// # Usage
 ///
 /// ```
@@ -134,7 +137,7 @@ impl<'a> Iterator for Strings<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(Deref::deref)
+        self.0.next().map(Interned::as_slice)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -152,28 +155,28 @@ impl<'a> Iterator for Strings<'a> {
     where
         Self: Sized,
     {
-        self.0.last().map(Deref::deref)
+        self.0.last().map(Interned::as_slice)
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.0.nth(n).map(Deref::deref)
+        self.0.nth(n).map(Interned::as_slice)
     }
 
     fn collect<B: iter::FromIterator<Self::Item>>(self) -> B
     where
         Self: Sized,
     {
-        self.0.map(Deref::deref).collect()
+        self.0.map(Interned::as_slice).collect()
     }
 }
 
 impl<'a> DoubleEndedIterator for Strings<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(Deref::deref)
+        self.0.next_back().map(Interned::as_slice)
     }
 
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        self.0.nth_back(n).map(Deref::deref)
+        self.0.nth_back(n).map(Interned::as_slice)
     }
 
     fn rfold<B, F>(self, accum: B, f: F) -> B
@@ -181,7 +184,7 @@ impl<'a> DoubleEndedIterator for Strings<'a> {
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
-        self.0.map(Deref::deref).rfold(accum, f)
+        self.0.map(Interned::as_slice).rfold(accum, f)
     }
 }
 
@@ -194,6 +197,8 @@ impl<'a> ExactSizeIterator for Strings<'a> {
 impl<'a> FusedIterator for Strings<'a> {}
 
 /// An iterator over all symbols and interned strings in a [`SymbolTable`].
+///
+/// See the [`iter`](SymbolTable::iter) method in [`SymbolTable`].
 ///
 /// # Usage
 ///
