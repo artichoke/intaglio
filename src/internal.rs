@@ -11,7 +11,10 @@ use std::borrow::Cow;
 /// slice.
 pub struct Interned<T: 'static + ?Sized>(Slice<T>);
 
-impl<T> From<&'static T> for Interned<T> {
+impl<T> From<&'static T> for Interned<T>
+where
+    T: ?Sized,
+{
     #[inline]
     fn from(slice: &'static T) -> Self {
         Self(slice.into())
@@ -206,7 +209,10 @@ enum Slice<T: 'static + ?Sized> {
     Owned(Box<T>),
 }
 
-impl<T> From<&'static T> for Slice<T> {
+impl<T> From<&'static T> for Slice<T>
+where
+    T: ?Sized,
+{
     #[inline]
     fn from(slice: &'static T) -> Self {
         Self::Static(slice)
@@ -224,7 +230,7 @@ impl From<Cow<'static, str>> for Slice<str> {
     #[inline]
     fn from(string: Cow<'static, str>) -> Self {
         match string {
-            Cow::Borrowed(slice) => Self::Static(slice),
+            Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
     }
@@ -243,7 +249,7 @@ impl From<Cow<'static, [u8]>> for Slice<[u8]> {
     #[inline]
     fn from(bytes: Cow<'static, [u8]>) -> Self {
         match bytes {
-            Cow::Borrowed(slice) => Self::Static(slice),
+            Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
     }
