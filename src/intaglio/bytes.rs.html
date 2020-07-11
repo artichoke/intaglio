@@ -947,6 +947,8 @@
 <span id="947">947</span>
 <span id="948">948</span>
 <span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Intern arbitrary bytes.</span>
 <span class="doccomment">//!</span>
@@ -1270,8 +1272,10 @@
 
 <span class="doccomment">/// Byte string interner.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This symbol table is implemented by leaking bytestrings with a fast path for</span>
+<span class="doccomment">/// This symbol table is implemented by storing bytestrings with a fast path for</span>
 <span class="doccomment">/// `&amp;[u8]` that are already `&#39;static`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See module documentation for more.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Usage</span>
 <span class="doccomment">///</span>

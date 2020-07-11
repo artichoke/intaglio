@@ -890,6 +890,8 @@
 <span id="890">890</span>
 <span id="891">891</span>
 <span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Intaglio interner for UTF-8 [`String`]s.</span>
 
@@ -1162,8 +1164,10 @@
 
 <span class="doccomment">/// UTF-8 string interner.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This symbol table is implemented by leaking UTF-8 strings with a fast path for</span>
-<span class="doccomment">/// `&amp;str` that are already `&#39;static`.</span>
+<span class="doccomment">/// This symbol table is implemented by storing UTF-8 strings with a fast path</span>
+<span class="doccomment">/// for `&amp;str` that are already `&#39;static`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See crate documentation for more.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Usage</span>
 <span class="doccomment">///</span>
