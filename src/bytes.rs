@@ -320,8 +320,10 @@ impl<'a> IntoIterator for &'a SymbolTable {
 
 /// Byte string interner.
 ///
-/// This symbol table is implemented by leaking bytestrings with a fast path for
+/// This symbol table is implemented by storing bytestrings with a fast path for
 /// `&[u8]` that are already `'static`.
+///
+/// See module documentation for more.
 ///
 /// # Usage
 ///

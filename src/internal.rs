@@ -7,11 +7,14 @@ use core::hash::{Hash, Hasher};
 use core::ops::Deref;
 use std::borrow::Cow;
 
-/// Wrapper around `&'static [u8]` that does not allow mutable access to the
-/// slice.
+/// Wrapper around `&'static` slices that does not allow mutable access to the
+/// inner slice.
 pub struct Interned<T: 'static + ?Sized>(Slice<T>);
 
-impl<T> From<&'static T> for Interned<T> {
+impl<T> From<&'static T> for Interned<T>
+where
+    T: ?Sized,
+{
     #[inline]
     fn from(slice: &'static T) -> Self {
         Self(slice.into())
@@ -111,6 +114,7 @@ impl<T> PartialEq<Interned<T>> for Interned<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -120,18 +124,21 @@ impl<T> PartialEq<T> for Interned<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &T) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<String> for Interned<str> {
+    #[inline]
     fn eq(&self, other: &String) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<Interned<str>> for String {
+    #[inline]
     fn eq(&self, other: &Interned<str>) -> bool {
         self == other.as_slice()
     }
@@ -139,6 +146,7 @@ impl PartialEq<Interned<str>> for String {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Vec<u8>> for Interned<[u8]> {
+    #[inline]
     fn eq(&self, other: &Vec<u8>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -146,6 +154,7 @@ impl PartialEq<Vec<u8>> for Interned<[u8]> {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Interned<[u8]>> for Vec<u8> {
+    #[inline]
     fn eq(&self, other: &Interned<[u8]>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -157,6 +166,7 @@ impl<T> Hash for Interned<T>
 where
     T: ?Sized + Hash,
 {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
     }
@@ -166,6 +176,7 @@ impl<T> Borrow<T> for Interned<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -175,6 +186,7 @@ impl<T> Borrow<T> for &Interned<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -184,12 +196,13 @@ impl<T> AsRef<T> for Interned<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn as_ref(&self) -> &T {
         self.as_slice()
     }
 }
 
-/// Wrapper around `&'static [u8]`.
+/// Wrapper around `&'static` slices.
 ///
 /// # Safety
 ///
@@ -206,7 +219,10 @@ enum Slice<T: 'static + ?Sized> {
     Owned(Box<T>),
 }
 
-impl<T> From<&'static T> for Slice<T> {
+impl<T> From<&'static T> for Slice<T>
+where
+    T: ?Sized,
+{
     #[inline]
     fn from(slice: &'static T) -> Self {
         Self::Static(slice)
@@ -224,7 +240,7 @@ impl From<Cow<'static, str>> for Slice<str> {
     #[inline]
     fn from(string: Cow<'static, str>) -> Self {
         match string {
-            Cow::Borrowed(slice) => Self::Static(slice),
+            Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
     }
@@ -243,7 +259,7 @@ impl From<Cow<'static, [u8]>> for Slice<[u8]> {
     #[inline]
     fn from(bytes: Cow<'static, [u8]>) -> Self {
         match bytes {
-            Cow::Borrowed(slice) => Self::Static(slice),
+            Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
     }
@@ -325,6 +341,7 @@ impl<T> PartialEq<Slice<T>> for Slice<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -334,18 +351,21 @@ impl<T> PartialEq<T> for Slice<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &T) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<String> for Slice<str> {
+    #[inline]
     fn eq(&self, other: &String) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<Slice<str>> for String {
+    #[inline]
     fn eq(&self, other: &Slice<str>) -> bool {
         self == other.as_slice()
     }
@@ -353,6 +373,7 @@ impl PartialEq<Slice<str>> for String {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Vec<u8>> for Slice<[u8]> {
+    #[inline]
     fn eq(&self, other: &Vec<u8>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -360,6 +381,7 @@ impl PartialEq<Vec<u8>> for Slice<[u8]> {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Slice<[u8]>> for Vec<u8> {
+    #[inline]
     fn eq(&self, other: &Slice<[u8]>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -371,6 +393,7 @@ impl<T> Hash for Slice<T>
 where
     T: ?Sized + Hash,
 {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
     }
@@ -380,6 +403,7 @@ impl<T> Borrow<T> for Slice<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -389,6 +413,7 @@ impl<T> Borrow<T> for &Slice<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -398,6 +423,7 @@ impl<T> AsRef<T> for Slice<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn as_ref(&self) -> &T {
         self.as_slice()
     }
