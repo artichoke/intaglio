@@ -66,8 +66,8 @@ where
     /// # Safety
     ///
     /// This returns a reference with an unbounded lifetime. It is the caller's
-    /// responsibility to make sure it is not used after this `Slice` is
-    /// dropped.
+    /// responsibility to make sure it is not used after this `Interned` and its
+    /// inner `Slice` is dropped.
     #[inline]
     pub unsafe fn as_static_slice(&self) -> &'static T {
         self.0.as_static_slice()
