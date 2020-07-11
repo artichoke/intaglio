@@ -69,16 +69,14 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 ## Implementation
 
 Intaglio interns owned and borrowed strings with no additional copying by
-leveraging `Cow` and `Box::leak`. This requires unsafe code in the `Drop`
-implementation of `SymbolTable`. CI runs `drop` tests under Miri.
+leveraging `Cow` and a bit of unsafe code. CI runs `drop` tests under Miri.
 
 ## Crate features
 
 All features are enabled by default.
 
 - **bytes** - Enables an additional symbol table implementation for interning
-  bytestrings (`Vec<u8>` and `&'static [u8]`). Disabling this drops the [`bstr`]
-  dependency.
+  bytestrings (`Vec<u8>` and `&'static [u8]`).
 
 ## License
 
@@ -86,4 +84,3 @@ All features are enabled by default.
 
 [symbol]: https://ruby-doc.org/core-2.6.3/Symbol.html
 [artichoke]: https://github.com/artichoke/artichoke
-[`bstr`]: https://crates.io/crates/bstr

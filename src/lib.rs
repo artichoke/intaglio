@@ -52,17 +52,14 @@
 //! [`SymbolTable::shrink_to_fit`].
 //!
 //! [`SymbolTable::intern`] does not clone or copy interned strings. It takes
-//! ownership of the string contents with no additional allocations. Owned
-//! strings are leaked with [`Box::leak`] and recovered and deallocated when the
-//! table is dropped.
+//! ownership of the string contents with no additional allocations.
 //!
 //! # Crate features
 //!
 //! All features are enabled by default.
 //!
 //! - **bytes** - Enables an additional symbol table implementation for
-//!   interning bytestrings (`Vec<u8>` and `&'static [u8]`). Disabling this
-//!   drops the `bstr` dependency.
+//!   interning bytestrings (`Vec<u8>` and `&'static [u8]`).
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.1.0")]
 
@@ -88,6 +85,7 @@ use std::error;
 
 #[cfg(feature = "bytes")]
 pub mod bytes;
+mod internal;
 mod str;
 
 pub use crate::str::*;
