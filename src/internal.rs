@@ -7,8 +7,8 @@ use core::hash::{Hash, Hasher};
 use core::ops::Deref;
 use std::borrow::Cow;
 
-/// Wrapper around `&'static [u8]` that does not allow mutable access to the
-/// slice.
+/// Wrapper around `&'static` slices that does not allow mutable access to the
+/// inner slice.
 pub struct Interned<T: 'static + ?Sized>(Slice<T>);
 
 impl<T> From<&'static T> for Interned<T>
@@ -202,7 +202,7 @@ where
     }
 }
 
-/// Wrapper around `&'static [u8]`.
+/// Wrapper around `&'static` slices.
 ///
 /// # Safety
 ///
