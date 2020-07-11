@@ -269,8 +269,10 @@ impl<'a> IntoIterator for &'a SymbolTable {
 
 /// UTF-8 string interner.
 ///
-/// This symbol table is implemented by leaking UTF-8 strings with a fast path for
-/// `&str` that are already `'static`.
+/// This symbol table is implemented by storing UTF-8 strings with a fast path
+/// for `&str` that are already `'static`.
+///
+/// See crate documentation for more.
 ///
 /// # Usage
 ///
