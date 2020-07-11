@@ -59,8 +59,7 @@
 //! All features are enabled by default.
 //!
 //! - **bytes** - Enables an additional symbol table implementation for
-//!   interning bytestrings (`Vec<u8>` and `&'static [u8]`). Disabling this
-//!   drops the `bstr` dependency.
+//!   interning bytestrings (`Vec<u8>` and `&'static [u8]`).
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.1.0")]
 
@@ -86,6 +85,7 @@ use std::error;
 
 #[cfg(feature = "bytes")]
 pub mod bytes;
+mod internal;
 mod str;
 
 pub use crate::str::*;

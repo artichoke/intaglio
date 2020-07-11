@@ -76,8 +76,7 @@ leveraging `Cow` and a bit of unsafe code. CI runs `drop` tests under Miri.
 All features are enabled by default.
 
 - **bytes** - Enables an additional symbol table implementation for interning
-  bytestrings (`Vec<u8>` and `&'static [u8]`). Disabling this drops the [`bstr`]
-  dependency.
+  bytestrings (`Vec<u8>` and `&'static [u8]`).
 
 ## License
 
@@ -85,4 +84,3 @@ All features are enabled by default.
 
 [symbol]: https://ruby-doc.org/core-2.6.3/Symbol.html
 [artichoke]: https://github.com/artichoke/artichoke
-[`bstr`]: https://crates.io/crates/bstr

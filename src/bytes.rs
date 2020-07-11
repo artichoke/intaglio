@@ -1,11 +1,10 @@
 //! Intern arbitrary bytes.
 //!
 //! This module provides a nearly identical API to the one found in the
-//! top-level of this crate. There are two important differences:
+//! top-level of this crate. There is one important difference:
 //!
 //! 1. Interned contents are `&[u8]` instead of `&str`. Additionally, `Vec<u8>`
 //!    is used where `String` would have been used.
-//! 2. This module depends on an external crate: [`bstr`].
 //!
 //! # Example: intern bytestring
 //!
@@ -51,12 +50,9 @@
 //! In general, one should expect this crate's performance on `&[u8]` to be
 //! roughly similar to performance on `&str`.
 
-use bstr::{BStr, ByteSlice};
-use core::borrow::Borrow;
 use core::cmp;
 use core::convert::TryInto;
-use core::fmt;
-use core::hash::{BuildHasher, Hash, Hasher};
+use core::hash::{BuildHasher, Hash};
 use core::iter::{self, FusedIterator};
 use core::marker::PhantomData;
 use core::ops::{Deref, Range, RangeInclusive};
@@ -65,145 +61,8 @@ use std::borrow::Cow;
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
+use crate::internal::Interned;
 use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
-
-/// Wrapper around `&'static [u8]`.
-///
-/// # Safety
-///
-/// Must not be `Clone` or `Copy` because the Drop logic assumes this enum is the
-/// unique owner of `&'static` references handed out with `as_static_slice`.
-enum Slice {
-    /// True `'static` references.
-    Static(&'static [u8]),
-    /// Owned `'static` references.
-    Owned(Box<[u8]>),
-}
-
-impl From<&'static [u8]> for Slice {
-    fn from(bytes: &'static [u8]) -> Self {
-        Self::Static(bytes)
-    }
-}
-
-impl From<Vec<u8>> for Slice {
-    fn from(bytes: Vec<u8>) -> Self {
-        Self::Owned(bytes.into_boxed_slice())
-    }
-}
-
-impl From<Cow<'static, [u8]>> for Slice {
-    fn from(bytes: Cow<'static, [u8]>) -> Self {
-        match bytes {
-            Cow::Borrowed(bytes) => bytes.into(),
-            Cow::Owned(bytes) => bytes.into(),
-        }
-    }
-}
-
-impl Slice {
-    /// Return a reference to the inner byteslice.
-    fn as_slice(&self) -> &[u8] {
-        match self {
-            Self::Static(global) => global,
-            Self::Owned(leaked) => &**leaked,
-        }
-    }
-
-    /// Return a `'static` reference to the inner slice.
-    ///
-    /// # Safety
-    ///
-    /// This returns a reference with an unbounded lifetime. It is the caller's
-    /// responsibility to make sure it is not used after this `Slice` is
-    /// dropped.
-    unsafe fn as_static_slice(&self) -> &'static [u8] {
-        match self {
-            Self::Static(global) => global,
-            #[allow(trivial_casts)]
-            Self::Owned(leaked) => &*(&**leaked as *const [u8]),
-        }
-    }
-}
-
-impl Default for Slice {
-    fn default() -> Self {
-        Self::Static(<_>::default())
-    }
-}
-
-impl fmt::Debug for Slice {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Static(_) => write!(f, "Static({:?})", self.as_bstr()),
-            Self::Owned(_) => write!(f, "Owned({:?})", self.as_bstr()),
-        }
-    }
-}
-
-impl Deref for Slice {
-    type Target = [u8];
-
-    fn deref(&self) -> &Self::Target {
-        self.as_slice()
-    }
-}
-
-impl PartialEq<Slice> for Slice {
-    fn eq(&self, other: &Self) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-impl PartialEq<[u8]> for Slice {
-    fn eq(&self, other: &[u8]) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<Slice> for [u8] {
-    fn eq(&self, other: &Slice) -> bool {
-        self == other.as_slice()
-    }
-}
-
-impl PartialEq<Vec<u8>> for Slice {
-    fn eq(&self, other: &Vec<u8>) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-impl PartialEq<Slice> for Vec<u8> {
-    fn eq(&self, other: &Slice) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-impl Eq for Slice {}
-
-impl Hash for Slice {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_slice().hash(state);
-    }
-}
-
-impl Borrow<[u8]> for Slice {
-    fn borrow(&self) -> &[u8] {
-        self.as_slice()
-    }
-}
-
-impl Borrow<[u8]> for &Slice {
-    fn borrow(&self) -> &[u8] {
-        self.as_slice()
-    }
-}
-
-impl Borrow<[u8]> for &mut Slice {
-    fn borrow(&self) -> &[u8] {
-        self.as_slice()
-    }
-}
 
 /// An iterator over all [`Symbol`]s in a [`SymbolTable`].
 ///
@@ -319,7 +178,7 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
-pub struct Bytestrings<'a>(slice::Iter<'a, Slice>);
+pub struct Bytestrings<'a>(slice::Iter<'a, Interned<[u8]>>);
 
 impl<'a> Iterator for Bytestrings<'a> {
     type Item = &'a [u8];
@@ -475,8 +334,8 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// ```
 #[derive(Default, Debug)]
 pub struct SymbolTable<S = RandomState> {
-    map: HashMap<&'static BStr, Symbol, S>,
-    vec: Vec<Slice>,
+    map: HashMap<&'static [u8], Symbol, S>,
+    vec: Vec<Interned<[u8]>>,
 }
 
 impl SymbolTable<RandomState> {
@@ -850,14 +709,14 @@ where
         T: Into<Cow<'static, [u8]>>,
     {
         let contents = contents.into();
-        if let Some(&id) = self.map.get(contents.as_ref().as_bstr()) {
+        if let Some(&id) = self.map.get(contents.as_ref()) {
             return Ok(id);
         }
-        let name = Slice::from(contents);
+        let name = Interned::from(contents);
         let id = self.map.len().try_into()?;
         let slice = unsafe { name.as_static_slice() };
 
-        self.map.insert(slice.as_bstr(), id);
+        self.map.insert(slice, id);
         self.vec.push(name);
 
         debug_assert!(self.get(id) == Some(slice));
@@ -890,7 +749,7 @@ where
     /// ```
     #[must_use]
     pub fn check_interned(&self, contents: &[u8]) -> Option<Symbol> {
-        self.map.get(contents.as_bstr()).copied()
+        self.map.get(contents).copied()
     }
 
     /// Returns `true` if the given byte string has been interned before.
@@ -916,7 +775,7 @@ where
     /// ```
     #[must_use]
     pub fn is_interned(&self, contents: &[u8]) -> bool {
-        self.map.contains_key(contents.as_bstr())
+        self.map.contains_key(contents)
     }
 
     /// Reserves capacity for at least additional more elements to be inserted

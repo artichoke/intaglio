@@ -1,9 +1,8 @@
 //! Intaglio interner for UTF-8 [`String`]s.
 
-use core::borrow::Borrow;
 use core::cmp;
 use core::convert::TryInto;
-use core::hash::{BuildHasher, Hash, Hasher};
+use core::hash::{BuildHasher, Hash};
 use core::iter::{self, FusedIterator};
 use core::marker::PhantomData;
 use core::ops::{Deref, Range, RangeInclusive};
@@ -12,155 +11,8 @@ use std::borrow::Cow;
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
+use crate::internal::Interned;
 use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
-
-/// Wrapper around `&'static str`.
-///
-/// # Safety
-///
-/// Must not be `Clone` or `Copy` because the Drop logic assumes this enum is the
-/// unique owner of `&'static` references handed out with `as_static_slice`.
-#[derive(Debug)]
-enum Slice {
-    /// True `'static` references.
-    Static(&'static str),
-    /// Owned `'static` references.
-    Owned(Box<str>),
-}
-
-impl From<&'static str> for Slice {
-    fn from(string: &'static str) -> Self {
-        Self::Static(string)
-    }
-}
-
-impl From<String> for Slice {
-    fn from(string: String) -> Self {
-        Self::Owned(string.into_boxed_str())
-    }
-}
-
-impl From<Cow<'static, str>> for Slice {
-    fn from(string: Cow<'static, str>) -> Self {
-        match string {
-            Cow::Borrowed(string) => string.into(),
-            Cow::Owned(string) => string.into(),
-        }
-    }
-}
-
-impl Slice {
-    /// Return a reference to the inner slice.
-    fn as_slice(&self) -> &str {
-        match self {
-            Self::Static(global) => global,
-            Self::Owned(leaked) => &**leaked,
-        }
-    }
-
-    /// Return a `'static` reference to the inner slice.
-    ///
-    /// # Safety
-    ///
-    /// This returns a reference with an unbounded lifetime. It is the caller's
-    /// responsibility to make sure it is not used after this `Slice` is
-    /// dropped.
-    unsafe fn as_static_slice(&self) -> &'static str {
-        match self {
-            Self::Static(global) => global,
-            #[allow(trivial_casts)]
-            Self::Owned(leaked) => &*(&**leaked as *const str),
-        }
-    }
-}
-
-impl Default for Slice {
-    fn default() -> Self {
-        Self::Static(<_>::default())
-    }
-}
-
-impl Deref for Slice {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_slice()
-    }
-}
-
-impl PartialEq<Slice> for Slice {
-    fn eq(&self, other: &Self) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-impl PartialEq<str> for Slice {
-    fn eq(&self, other: &str) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<Slice> for str {
-    fn eq(&self, other: &Slice) -> bool {
-        self == other.as_slice()
-    }
-}
-
-impl PartialEq<String> for Slice {
-    fn eq(&self, other: &String) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<Slice> for String {
-    fn eq(&self, other: &Slice) -> bool {
-        self == other.as_slice()
-    }
-}
-
-impl Eq for Slice {}
-
-impl Hash for Slice {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_slice().hash(state);
-    }
-}
-
-impl Borrow<str> for Slice {
-    fn borrow(&self) -> &str {
-        self.as_slice()
-    }
-}
-
-impl Borrow<str> for &Slice {
-    fn borrow(&self) -> &str {
-        self.as_slice()
-    }
-}
-
-impl Borrow<str> for &mut Slice {
-    fn borrow(&self) -> &str {
-        self.as_slice()
-    }
-}
-
-impl Borrow<[u8]> for Slice {
-    fn borrow(&self) -> &[u8] {
-        self.as_slice().as_bytes()
-    }
-}
-
-impl Borrow<[u8]> for &Slice {
-    fn borrow(&self) -> &[u8] {
-        self.as_slice().as_bytes()
-    }
-}
-
-impl Borrow<[u8]> for &mut Slice {
-    fn borrow(&self) -> &[u8] {
-        self.as_slice().as_bytes()
-    }
-}
 
 /// An iterator over all [`Symbol`]s in a [`SymbolTable`].
 ///
@@ -276,7 +128,7 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
-pub struct Strings<'a>(slice::Iter<'a, Slice>);
+pub struct Strings<'a>(slice::Iter<'a, Interned<str>>);
 
 impl<'a> Iterator for Strings<'a> {
     type Item = &'a str;
@@ -432,7 +284,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 #[derive(Default, Debug)]
 pub struct SymbolTable<S = RandomState> {
     map: HashMap<&'static str, Symbol, S>,
-    vec: Vec<Slice>,
+    vec: Vec<Interned<str>>,
 }
 
 impl SymbolTable<RandomState> {
@@ -805,7 +657,7 @@ where
         if let Some(&id) = self.map.get(contents.as_ref()) {
             return Ok(id);
         }
-        let name = Slice::from(contents);
+        let name = Interned::from(contents);
         let id = self.map.len().try_into()?;
         let slice = unsafe { name.as_static_slice() };
 
