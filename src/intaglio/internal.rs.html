@@ -497,8 +497,8 @@
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This returns a reference with an unbounded lifetime. It is the caller&#39;s</span>
-    <span class="doccomment">/// responsibility to make sure it is not used after this `Slice` is</span>
-    <span class="doccomment">/// dropped.</span>
+    <span class="doccomment">/// responsibility to make sure it is not used after this `Interned` and its</span>
+    <span class="doccomment">/// inner `Slice` is dropped.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_static_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">T</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_static_slice</span>()
