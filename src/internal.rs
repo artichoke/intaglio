@@ -114,6 +114,7 @@ impl<T> PartialEq<Interned<T>> for Interned<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -123,18 +124,21 @@ impl<T> PartialEq<T> for Interned<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &T) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<String> for Interned<str> {
+    #[inline]
     fn eq(&self, other: &String) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<Interned<str>> for String {
+    #[inline]
     fn eq(&self, other: &Interned<str>) -> bool {
         self == other.as_slice()
     }
@@ -142,6 +146,7 @@ impl PartialEq<Interned<str>> for String {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Vec<u8>> for Interned<[u8]> {
+    #[inline]
     fn eq(&self, other: &Vec<u8>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -149,6 +154,7 @@ impl PartialEq<Vec<u8>> for Interned<[u8]> {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Interned<[u8]>> for Vec<u8> {
+    #[inline]
     fn eq(&self, other: &Interned<[u8]>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -160,6 +166,7 @@ impl<T> Hash for Interned<T>
 where
     T: ?Sized + Hash,
 {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
     }
@@ -169,6 +176,7 @@ impl<T> Borrow<T> for Interned<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -178,6 +186,7 @@ impl<T> Borrow<T> for &Interned<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -187,6 +196,7 @@ impl<T> AsRef<T> for Interned<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn as_ref(&self) -> &T {
         self.as_slice()
     }
@@ -331,6 +341,7 @@ impl<T> PartialEq<Slice<T>> for Slice<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -340,18 +351,21 @@ impl<T> PartialEq<T> for Slice<T>
 where
     T: ?Sized + PartialEq,
 {
+    #[inline]
     fn eq(&self, other: &T) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<String> for Slice<str> {
+    #[inline]
     fn eq(&self, other: &String) -> bool {
         self.as_slice() == other
     }
 }
 
 impl PartialEq<Slice<str>> for String {
+    #[inline]
     fn eq(&self, other: &Slice<str>) -> bool {
         self == other.as_slice()
     }
@@ -359,6 +373,7 @@ impl PartialEq<Slice<str>> for String {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Vec<u8>> for Slice<[u8]> {
+    #[inline]
     fn eq(&self, other: &Vec<u8>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -366,6 +381,7 @@ impl PartialEq<Vec<u8>> for Slice<[u8]> {
 
 #[cfg(feature = "bytes")]
 impl PartialEq<Slice<[u8]>> for Vec<u8> {
+    #[inline]
     fn eq(&self, other: &Slice<[u8]>) -> bool {
         self.as_slice() == other.as_slice()
     }
@@ -377,6 +393,7 @@ impl<T> Hash for Slice<T>
 where
     T: ?Sized + Hash,
 {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
     }
@@ -386,6 +403,7 @@ impl<T> Borrow<T> for Slice<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -395,6 +413,7 @@ impl<T> Borrow<T> for &Slice<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn borrow(&self) -> &T {
         self.as_slice()
     }
@@ -404,6 +423,7 @@ impl<T> AsRef<T> for Slice<T>
 where
     T: ?Sized,
 {
+    #[inline]
     fn as_ref(&self) -> &T {
         self.as_slice()
     }
