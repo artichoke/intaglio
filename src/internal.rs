@@ -87,14 +87,22 @@ where
 
 impl fmt::Debug for Interned<str> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.0)
+        if f.alternate() {
+            write!(f, "{:#?}", self.0)
+        } else {
+            write!(f, "{:?}", self.0)
+        }
     }
 }
 
 #[cfg(feature = "bytes")]
 impl fmt::Debug for Interned<[u8]> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.0)
+        if f.alternate() {
+            write!(f, "{:#?}", self.0)
+        } else {
+            write!(f, "{:?}", self.0)
+        }
     }
 }
 
@@ -307,20 +315,24 @@ where
 }
 
 impl fmt::Debug for Slice<str> {
+    /// Formats the string slice using the given formatter.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Static(_) => write!(f, "Static({:?})", self),
-            Self::Owned(_) => write!(f, "Owned({:?})", self),
-        }
+        write!(f, "{:?}", self.as_slice())
     }
 }
 
 #[cfg(feature = "bytes")]
 impl fmt::Debug for Slice<[u8]> {
+    /// Formats the byte slice using the given formatter.
+    ///
+    /// If alternate format is specified, e.g. `{:#?}`, the slice is assumed to
+    /// be conventionally UTF-8 and converted to a [`String`] lossily with
+    /// [`String::from_utf8_lossy`].
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Static(_) => write!(f, "Static({:?})", String::from_utf8_lossy(self.as_slice())),
-            Self::Owned(_) => write!(f, "Owned({:?})", String::from_utf8_lossy(self.as_slice())),
+        if f.alternate() {
+            write!(f, "{:?}", String::from_utf8_lossy(self.as_slice()))
+        } else {
+            write!(f, "{:?}", self.as_slice())
         }
     }
 }
