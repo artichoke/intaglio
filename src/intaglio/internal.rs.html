@@ -428,6 +428,18 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A Wrapper around interned strings that maintains the safety invariants of</span>
 <span class="doccomment">//! the `&#39;static` slices handed out to the interner.</span>
@@ -518,14 +530,22 @@
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Interned</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        } <span class="kw">else</span> {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Interned</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        } <span class="kw">else</span> {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        }
     }
 }
 
@@ -738,20 +758,24 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Slice</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Formats the string slice using the given formatter.</span>
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Static</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Static({:?})&quot;</span>, <span class="self">self</span>),
-            <span class="self">Self</span>::<span class="ident">Owned</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Owned({:?})&quot;</span>, <span class="self">self</span>),
-        }
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">as_slice</span>())
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Slice</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
+    <span class="doccomment">/// Formats the byte slice using the given formatter.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If alternate format is specified, e.g. `{:#?}`, the slice is assumed to</span>
+    <span class="doccomment">/// be conventionally UTF-8 and converted to a [`String`] lossily with</span>
+    <span class="doccomment">/// [`String::from_utf8_lossy`].</span>
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Static</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Static({:?})&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">as_slice</span>())),
-            <span class="self">Self</span>::<span class="ident">Owned</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Owned({:?})&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">as_slice</span>())),
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">as_slice</span>()))
+        } <span class="kw">else</span> {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">as_slice</span>())
         }
     }
 }
