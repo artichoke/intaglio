@@ -61,7 +61,7 @@ impl<'a, T> Looper<'a, T> {
 }
 
 #[cfg(target_os = "linux")]
-#[allow(clippy::identity_conversion)]
+#[allow(clippy::useless_conversion)]
 fn resident_memsize() -> i64 {
     let mut out = MaybeUninit::<libc::rusage>::uninit();
     assert!(unsafe { libc::getrusage(libc::RUSAGE_SELF, out.as_mut_ptr()) } == 0);
