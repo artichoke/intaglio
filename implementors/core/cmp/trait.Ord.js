@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["intaglio"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"struct\" href=\"intaglio/struct.Symbol.html\" title=\"struct intaglio::Symbol\">Symbol</a>","synthetic":false,"types":["intaglio::Symbol"]}];
+implementors["intaglio"] = [{"text":"impl Ord for Symbol","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
