@@ -5,14 +5,14 @@
     "description": "Area: CI build infrastructure."
   },
   {
-    "name": "A-crate-features",
-    "color": "f7e101",
-    "description": "Area: Compile-time features or attributes."
-  },
-  {
     "name": "A-bytestring-interner",
     "color": "f7e101",
     "description": "Area: Bytestring SymbolTable."
+  },
+  {
+    "name": "A-crate-features",
+    "color": "f7e101",
+    "description": "Area: Compile-time features or attributes."
   },
   {
     "name": "A-deps",
