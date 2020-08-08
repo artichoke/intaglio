@@ -62,7 +62,7 @@
 //! - **bytes** - Enables an additional symbol table implementation for
 //!   interning bytestrings (`Vec<u8>` and `&'static [u8]`).
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.1.0")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.1.1")]
 
 // Ensure code blocks in README.md compile
 #[cfg(doctest)]
