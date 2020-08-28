@@ -57,20 +57,14 @@ impl<'a> Iterator for AllSymbols<'a> {
         }
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         match self.range {
             Ok(range) => range.count(),
             Err(range) => range.count(),
         }
     }
 
-    fn last(self) -> Option<Self::Item>
-    where
-        Self: Sized,
-    {
+    fn last(self) -> Option<Self::Item> {
         match self.range {
             Ok(range) => range.last().map(Symbol::from),
             Err(range) => range.last().map(Symbol::from),
@@ -84,10 +78,7 @@ impl<'a> Iterator for AllSymbols<'a> {
         }
     }
 
-    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B
-    where
-        Self: Sized,
-    {
+    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B {
         match self.range {
             Ok(range) => range.map(Symbol::from).collect(),
             Err(range) => range.map(Symbol::from).collect(),
@@ -144,17 +135,11 @@ impl<'a> Iterator for Strings<'a> {
         self.0.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.0.count()
     }
 
-    fn last(self) -> Option<Self::Item>
-    where
-        Self: Sized,
-    {
+    fn last(self) -> Option<Self::Item> {
         self.0.last().map(Interned::as_slice)
     }
 
@@ -162,10 +147,7 @@ impl<'a> Iterator for Strings<'a> {
         self.0.nth(n).map(Interned::as_slice)
     }
 
-    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B
-    where
-        Self: Sized,
-    {
+    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B {
         self.0.map(Interned::as_slice).collect()
     }
 }
@@ -181,7 +163,6 @@ impl<'a> DoubleEndedIterator for Strings<'a> {
 
     fn rfold<B, F>(self, accum: B, f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.0.map(Interned::as_slice).rfold(accum, f)
@@ -230,17 +211,11 @@ impl<'a> Iterator for Iter<'a> {
         self.0.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.0.count()
     }
 
-    fn last(self) -> Option<Self::Item>
-    where
-        Self: Sized,
-    {
+    fn last(self) -> Option<Self::Item> {
         self.0.last()
     }
 
@@ -248,10 +223,7 @@ impl<'a> Iterator for Iter<'a> {
         self.0.nth(n)
     }
 
-    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B
-    where
-        Self: Sized,
-    {
+    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B {
         self.0.collect()
     }
 }
