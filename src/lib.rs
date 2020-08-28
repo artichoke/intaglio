@@ -107,45 +107,41 @@ pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
 /// `SymbolTable` uses `u32` identifiers for symbols to save space. If more than
 /// `u32::MAX` symbols are stored in the table, no more identifiers can be
 /// generated. Any subsequent inserts into the table will fail with this error.
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SymbolOverflowError {
-    source: Option<TryFromIntError>,
+    _private: (),
 }
 
 impl SymbolOverflowError {
     /// Construct a new `SymbolOverflowError` with no source.
     #[must_use]
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self { _private: () }
     }
 
     /// Return the maximum capacity of the [`SymbolTable`] that returned this
     /// error.
     #[must_use]
     #[allow(clippy::unused_self)]
-    pub fn max_capacity(self) -> usize {
+    pub const fn max_capacity(self) -> usize {
         u32::MAX as usize
     }
 }
 
 impl From<TryFromIntError> for SymbolOverflowError {
     fn from(err: TryFromIntError) -> Self {
-        Self { source: Some(err) }
+        let _ = err;
+        Self::new()
     }
 }
 
 impl fmt::Display for SymbolOverflowError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Symbol overflow")
+        f.write_str("Symbol overflow")
     }
 }
 
-impl error::Error for SymbolOverflowError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        let source = self.source.as_ref()?;
-        Some(source)
-    }
-}
+impl error::Error for SymbolOverflowError {}
 
 /// Identifier bound to an interned string.
 ///
