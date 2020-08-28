@@ -40,6 +40,11 @@
     "description": "Area: security vulnerabilities and unsoundness issues."
   },
   {
+    "name": "A-sym",
+    "color": "f7e101",
+    "description": "Area: Symbol representation and impls."
+  },
+  {
     "name": "A-utf8-string-interner",
     "color": "f7e101",
     "description": "Area: UTF-8 String SymbolTable."

@@ -78,14 +78,15 @@ macro_rules! readme {
 #[cfg(all(doctest, feature = "bytes"))]
 readme!();
 
-use core::convert::TryFrom;
 use core::fmt;
 use core::mem::size_of;
-use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, TryFromIntError};
+use core::num::TryFromIntError;
 use std::error;
 
 #[cfg(feature = "bytes")]
 pub mod bytes;
+mod convert;
+mod eq;
 mod internal;
 mod str;
 
@@ -160,114 +161,6 @@ impl error::Error for SymbolOverflowError {
 /// that the table itself issued.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Symbol(u32);
-
-impl From<u8> for Symbol {
-    fn from(sym: u8) -> Self {
-        Self(sym.into())
-    }
-}
-
-impl From<NonZeroU8> for Symbol {
-    fn from(sym: NonZeroU8) -> Self {
-        Self(sym.get().into())
-    }
-}
-
-impl From<u16> for Symbol {
-    fn from(sym: u16) -> Self {
-        Self(sym.into())
-    }
-}
-
-impl From<NonZeroU16> for Symbol {
-    fn from(sym: NonZeroU16) -> Self {
-        Self(sym.get().into())
-    }
-}
-
-impl From<u32> for Symbol {
-    fn from(sym: u32) -> Self {
-        Self(sym)
-    }
-}
-
-impl From<NonZeroU32> for Symbol {
-    fn from(sym: NonZeroU32) -> Self {
-        Self(sym.get())
-    }
-}
-
-impl TryFrom<u64> for Symbol {
-    type Error = SymbolOverflowError;
-
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value)?;
-        Ok(id.into())
-    }
-}
-
-impl TryFrom<NonZeroU64> for Symbol {
-    type Error = SymbolOverflowError;
-
-    fn try_from(value: NonZeroU64) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value.get())?;
-        Ok(id.into())
-    }
-}
-
-impl TryFrom<usize> for Symbol {
-    type Error = SymbolOverflowError;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value)?;
-        Ok(id.into())
-    }
-}
-
-impl TryFrom<NonZeroUsize> for Symbol {
-    type Error = SymbolOverflowError;
-
-    fn try_from(value: NonZeroUsize) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value.get())?;
-        Ok(id.into())
-    }
-}
-
-impl From<Symbol> for u32 {
-    fn from(sym: Symbol) -> Self {
-        sym.0
-    }
-}
-
-impl From<&Symbol> for u32 {
-    fn from(sym: &Symbol) -> Self {
-        sym.0
-    }
-}
-
-impl From<Symbol> for u64 {
-    fn from(sym: Symbol) -> Self {
-        sym.0.into()
-    }
-}
-
-impl From<&Symbol> for u64 {
-    fn from(sym: &Symbol) -> Self {
-        sym.0.into()
-    }
-}
-
-impl From<Symbol> for usize {
-    fn from(sym: Symbol) -> Self {
-        sym.0 as usize
-    }
-}
-
-impl From<&Symbol> for usize {
-    fn from(sym: &Symbol) -> Self {
-        sym.0 as usize
-    }
-}
 
 impl Symbol {
     /// Construct a new `Symbol` from the given `u32`.
