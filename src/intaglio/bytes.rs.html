@@ -922,34 +922,6 @@
 <span id="921">921</span>
 <span id="922">922</span>
 <span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
-<span id="932">932</span>
-<span id="933">933</span>
-<span id="934">934</span>
-<span id="935">935</span>
-<span id="936">936</span>
-<span id="937">937</span>
-<span id="938">938</span>
-<span id="939">939</span>
-<span id="940">940</span>
-<span id="941">941</span>
-<span id="942">942</span>
-<span id="943">943</span>
-<span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Intern arbitrary bytes.</span>
 <span class="doccomment">//!</span>
@@ -1060,20 +1032,14 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">range</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">range</span>) <span class="op">=&gt;</span> <span class="ident">range</span>.<span class="ident">count</span>(),
             <span class="prelude-val">Err</span>(<span class="ident">range</span>) <span class="op">=&gt;</span> <span class="ident">range</span>.<span class="ident">count</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">range</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">range</span>) <span class="op">=&gt;</span> <span class="ident">range</span>.<span class="ident">last</span>().<span class="ident">map</span>(<span class="ident">Symbol</span>::<span class="ident">from</span>),
             <span class="prelude-val">Err</span>(<span class="ident">range</span>) <span class="op">=&gt;</span> <span class="ident">range</span>.<span class="ident">last</span>().<span class="ident">map</span>(<span class="ident">Symbol</span>::<span class="ident">from</span>),
@@ -1087,10 +1053,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">B</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">B</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">range</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">range</span>) <span class="op">=&gt;</span> <span class="ident">range</span>.<span class="ident">map</span>(<span class="ident">Symbol</span>::<span class="ident">from</span>).<span class="ident">collect</span>(),
             <span class="prelude-val">Err</span>(<span class="ident">range</span>) <span class="op">=&gt;</span> <span class="ident">range</span>.<span class="ident">map</span>(<span class="ident">Symbol</span>::<span class="ident">from</span>).<span class="ident">collect</span>(),
@@ -1147,17 +1110,11 @@
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">size_hint</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">count</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">last</span>().<span class="ident">map</span>(<span class="ident">Interned</span>::<span class="ident">as_slice</span>)
     }
 
@@ -1165,10 +1122,7 @@
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nth</span>(<span class="ident">n</span>).<span class="ident">map</span>(<span class="ident">Interned</span>::<span class="ident">as_slice</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">B</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">B</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">map</span>(<span class="ident">Interned</span>::<span class="ident">as_slice</span>).<span class="ident">collect</span>()
     }
 }
@@ -1184,7 +1138,6 @@
 
     <span class="kw">fn</span> <span class="ident">rfold</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">accum</span>: <span class="ident">B</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">B</span>
     <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">B</span>, <span class="self">Self</span>::<span class="ident">Item</span>) <span class="op">-&gt;</span> <span class="ident">B</span>,
     {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">map</span>(<span class="ident">Interned</span>::<span class="ident">as_slice</span>).<span class="ident">rfold</span>(<span class="ident">accum</span>, <span class="ident">f</span>)
@@ -1234,17 +1187,11 @@
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">size_hint</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">count</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">last</span>()
     }
 
@@ -1252,10 +1199,7 @@
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nth</span>(<span class="ident">n</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">B</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">B</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">collect</span>()
     }
 }
