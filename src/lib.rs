@@ -114,6 +114,7 @@ pub struct SymbolOverflowError {
 
 impl SymbolOverflowError {
     /// Construct a new `SymbolOverflowError` with no source.
+    #[inline]
     #[must_use]
     pub const fn new() -> Self {
         Self { _private: () }
@@ -121,6 +122,7 @@ impl SymbolOverflowError {
 
     /// Return the maximum capacity of the [`SymbolTable`] that returned this
     /// error.
+    #[inline]
     #[must_use]
     #[allow(clippy::unused_self)]
     pub const fn max_capacity(self) -> usize {
@@ -129,6 +131,7 @@ impl SymbolOverflowError {
 }
 
 impl From<TryFromIntError> for SymbolOverflowError {
+    #[inline]
     fn from(err: TryFromIntError) -> Self {
         let _ = err;
         Self::new()
@@ -175,9 +178,10 @@ impl Symbol {
     /// let sym = Symbol::new(263);
     /// assert_eq!(263, sym.id());
     /// ```
+    #[inline]
     #[must_use]
-    pub fn new(sym: u32) -> Self {
-        Self::from(sym)
+    pub const fn new(sym: u32) -> Self {
+        Self(sym)
     }
 
     /// Return the `u32` identifier from this `Symbol`.
@@ -194,8 +198,9 @@ impl Symbol {
     /// # }
     /// # example().unwrap();
     /// ```
+    #[inline]
     #[must_use]
-    pub fn id(self) -> u32 {
+    pub const fn id(self) -> u32 {
         self.0
     }
 }

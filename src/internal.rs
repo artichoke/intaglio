@@ -57,7 +57,7 @@ where
 {
     /// Return a reference to the inner slice.
     #[inline]
-    pub fn as_slice(&self) -> &T {
+    pub const fn as_slice(&self) -> &T {
         self.0.as_slice()
     }
 
@@ -279,7 +279,7 @@ where
 {
     /// Return a reference to the inner slice.
     #[inline]
-    fn as_slice(&self) -> &T {
+    const fn as_slice(&self) -> &T {
         match self {
             Self::Static(slice) => slice,
             Self::Owned(owned) => &**owned,
