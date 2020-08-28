@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["intaglio"] = [{"text":"impl&lt;'a&gt; Hash for AllSymbols&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Hash for AllSymbols&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Hash for Symbol","synthetic":false,"types":[]}];
+implementors["intaglio"] = [{"text":"impl&lt;'a&gt; Hash for AllSymbols&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Hash for AllSymbols&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Hash for SymbolOverflowError","synthetic":false,"types":[]},{"text":"impl Hash for Symbol","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
