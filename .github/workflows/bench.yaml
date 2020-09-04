@@ -1,5 +1,6 @@
+---
 name: Bench
-on:
+"on":
   push:
     branches:
       - trunk
