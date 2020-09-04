@@ -18,7 +18,7 @@ is used where <code>String</code> would have been used.</li>
 <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">intern</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;abc&quot;</span>[..])<span class="question-mark">?</span>;
 <span class="comment">// Retrieve set of `Symbol`s.</span>
 <span class="kw">let</span> <span class="ident">all_symbols</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">all_symbols</span>();
-<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">sym</span>], <span class="ident">all_symbols</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">sym</span>], <span class="ident">all_symbols</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>());
 
 <span class="ident">table</span>.<span class="ident">intern</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;xyz&quot;</span>[..])<span class="question-mark">?</span>;
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
@@ -26,7 +26,7 @@ is used where <code>String</code> would have been used.</li>
 <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="number">1</span>), <span class="kw-2">&amp;</span><span class="string">b&quot;xyz&quot;</span>[..]);
 <span class="comment">// Retrieve symbol to byte content mappings.</span>
 <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">iter</span>();
-<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>, <span class="ident">iter</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;&gt;</span>());</pre></div>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>, <span class="ident">iter</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>());</pre></div>
 <h1 id="performance" class="section-header"><a href="#performance">Performance</a></h1>
 <p>In general, one should expect this crate's performance on <code>&amp;[u8]</code> to be
 roughly similar to performance on <code>&amp;str</code>.</p>
