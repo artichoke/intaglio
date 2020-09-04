@@ -1,5 +1,6 @@
+---
 name: Miri
-on:
+"on":
   push:
     branches:
       - trunk
