@@ -4,7 +4,7 @@
 bimap in that symbols can resolve an underlying string and a string slice
 can retrieve its associated symbol.</p>
 <p>For more specific details on the API for interning strings into a symbol
-table, please see the documentation for the <a href="../intaglio/struct.SymbolTable.html" title="`SymbolTable`"><code>SymbolTable</code></a> type.</p>
+table, please see the documentation for the <a href="../intaglio/struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a> type.</p>
 <h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">SymbolTable</span>::<span class="ident">new</span>();
@@ -16,15 +16,15 @@ table, please see the documentation for the <a href="../intaglio/struct.SymbolTa
 <p>Intaglio <code>SymbolTable</code>s store at most one copy of a string. All requests to
 intern a string that is already present in the table, regardless of whether
 the string is an owned <code>String</code> or borrowed <code>&amp;'static str</code>, will return the
-same immutable <a href="../intaglio/struct.Symbol.html" title="`Symbol`"><code>Symbol</code></a>.</p>
-<p><a href="../intaglio/struct.Symbol.html" title="`Symbol`"><code>Symbol</code></a>s are <code>u32</code> indexes into a <code>SymbolTable</code> that are cheap to
+same immutable <a href="../intaglio/struct.Symbol.html" title="Symbol"><code>Symbol</code></a>.</p>
+<p><a href="../intaglio/struct.Symbol.html" title="Symbol"><code>Symbol</code></a>s are <code>u32</code> indexes into a <code>SymbolTable</code> that are cheap to
 compare, copy, store, and send.</p>
 <h1 id="allocations" class="section-header"><a href="#allocations">Allocations</a></h1>
 <p><code>SymbolTable</code> exposes several constructors for tuning the initial allocated
 size of the table. It also exposes several APIs for tuning the table's
-memory usage such as <a href="../intaglio/struct.SymbolTable.html#method.reserve" title="`SymbolTable::reserve`"><code>SymbolTable::reserve</code></a> and
-<a href="../intaglio/struct.SymbolTable.html#method.shrink_to_fit" title="`SymbolTable::shrink_to_fit`"><code>SymbolTable::shrink_to_fit</code></a>.</p>
-<p><a href="../intaglio/struct.SymbolTable.html#method.intern" title="`SymbolTable::intern`"><code>SymbolTable::intern</code></a> does not clone or copy interned strings. It takes
+memory usage such as <a href="../intaglio/struct.SymbolTable.html#method.reserve" title="SymbolTable::reserve"><code>SymbolTable::reserve</code></a> and
+<a href="../intaglio/struct.SymbolTable.html#method.shrink_to_fit" title="SymbolTable::shrink_to_fit"><code>SymbolTable::shrink_to_fit</code></a>.</p>
+<p><a href="../intaglio/struct.SymbolTable.html#method.intern" title="SymbolTable::intern"><code>SymbolTable::intern</code></a> does not clone or copy interned strings. It takes
 ownership of the string contents with no additional allocations.</p>
 <h1 id="crate-features" class="section-header"><a href="#crate-features">Crate features</a></h1>
 <p>All features are enabled by default.</p>
@@ -35,12 +35,12 @@ interning bytestrings (<code>Vec&lt;u8&gt;</code> and <code>&amp;'static [u8]</c
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table><tr class='module-item'><td><a class="mod" href="bytes/index.html" title='intaglio::bytes mod'>bytes</a></td><td class='docblock-short'><p>Intern arbitrary bytes.</p>
 </td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
-<table><tr class='module-item'><td><a class="struct" href="struct.AllSymbols.html" title='intaglio::AllSymbols struct'>AllSymbols</a></td><td class='docblock-short'><p>An iterator over all <a href="../intaglio/struct.Symbol.html" title="`Symbol`"><code>Symbol</code></a>s in a <a href="../intaglio/struct.SymbolTable.html" title="`SymbolTable`"><code>SymbolTable</code></a>.</p>
-</td></tr><tr class='module-item'><td><a class="struct" href="struct.Iter.html" title='intaglio::Iter struct'>Iter</a></td><td class='docblock-short'><p>An iterator over all symbols and interned strings in a <a href="../intaglio/struct.SymbolTable.html" title="`SymbolTable`"><code>SymbolTable</code></a>.</p>
-</td></tr><tr class='module-item'><td><a class="struct" href="struct.Strings.html" title='intaglio::Strings struct'>Strings</a></td><td class='docblock-short'><p>An iterator over all interned strings in a <a href="../intaglio/struct.SymbolTable.html" title="`SymbolTable`"><code>SymbolTable</code></a>.</p>
+<table><tr class='module-item'><td><a class="struct" href="struct.AllSymbols.html" title='intaglio::AllSymbols struct'>AllSymbols</a></td><td class='docblock-short'><p>An iterator over all <a href="../intaglio/struct.Symbol.html" title="Symbol"><code>Symbol</code></a>s in a <a href="../intaglio/struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a>.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Iter.html" title='intaglio::Iter struct'>Iter</a></td><td class='docblock-short'><p>An iterator over all symbols and interned strings in a <a href="../intaglio/struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a>.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Strings.html" title='intaglio::Strings struct'>Strings</a></td><td class='docblock-short'><p>An iterator over all interned strings in a <a href="../intaglio/struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a>.</p>
 </td></tr><tr class='module-item'><td><a class="struct" href="struct.Symbol.html" title='intaglio::Symbol struct'>Symbol</a></td><td class='docblock-short'><p>Identifier bound to an interned string.</p>
-</td></tr><tr class='module-item'><td><a class="struct" href="struct.SymbolOverflowError.html" title='intaglio::SymbolOverflowError struct'>SymbolOverflowError</a></td><td class='docblock-short'><p>Error returned when a <a href="../intaglio/struct.SymbolTable.html" title="`SymbolTable`"><code>SymbolTable</code></a> or symbol identifier overflows.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.SymbolOverflowError.html" title='intaglio::SymbolOverflowError struct'>SymbolOverflowError</a></td><td class='docblock-short'><p>Error returned when a <a href="../intaglio/struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a> or symbol identifier overflows.</p>
 </td></tr><tr class='module-item'><td><a class="struct" href="struct.SymbolTable.html" title='intaglio::SymbolTable struct'>SymbolTable</a></td><td class='docblock-short'><p>UTF-8 string interner.</p>
 </td></tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
-<table><tr class='module-item'><td><a class="constant" href="constant.DEFAULT_SYMBOL_TABLE_CAPACITY.html" title='intaglio::DEFAULT_SYMBOL_TABLE_CAPACITY constant'>DEFAULT_SYMBOL_TABLE_CAPACITY</a></td><td class='docblock-short'><p>Default capacity for new a <a href="../intaglio/struct.SymbolTable.html" title="`SymbolTable`"><code>SymbolTable</code></a>.</p>
+<table><tr class='module-item'><td><a class="constant" href="constant.DEFAULT_SYMBOL_TABLE_CAPACITY.html" title='intaglio::DEFAULT_SYMBOL_TABLE_CAPACITY constant'>DEFAULT_SYMBOL_TABLE_CAPACITY</a></td><td class='docblock-short'><p>Default capacity for new a <a href="../intaglio/struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a>.</p>
 </td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "intaglio";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
