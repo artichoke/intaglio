@@ -33,4 +33,4 @@ jobs:
         run: cargo miri setup
 
       - name: Test unsafe code with Miri
-        run: cargo miri test -- -- drop
+        run: cargo miri test drop
