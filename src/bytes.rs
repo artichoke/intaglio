@@ -50,11 +50,11 @@
 //! In general, one should expect this crate's performance on `&[u8]` to be
 //! roughly similar to performance on `&str`.
 
-use core::cmp;
 use core::convert::TryInto;
 use core::hash::BuildHasher;
-use core::iter::{self, FusedIterator};
+use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
+use core::mem::ManuallyDrop;
 use core::ops::{Range, RangeInclusive};
 use core::slice;
 use std::borrow::Cow;
@@ -129,7 +129,7 @@ impl<'a> Iterator for AllSymbols<'a> {
         }
     }
 
-    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B {
+    fn collect<B: FromIterator<Self::Item>>(self) -> B {
         match self.range {
             Ok(range) => range.map(Symbol::from).collect(),
             Err(range) => range.map(Symbol::from).collect(),
@@ -199,7 +199,7 @@ impl<'a> Iterator for Bytestrings<'a> {
         self.0.nth(n).map(Interned::as_slice)
     }
 
-    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B {
+    fn collect<B: FromIterator<Self::Item>>(self) -> B {
         self.0.map(Interned::as_slice).collect()
     }
 }
@@ -252,7 +252,7 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 /// ```
 #[derive(Debug, Clone)]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
-pub struct Iter<'a>(iter::Zip<AllSymbols<'a>, Bytestrings<'a>>);
+pub struct Iter<'a>(Zip<AllSymbols<'a>, Bytestrings<'a>>);
 
 impl<'a> Iterator for Iter<'a> {
     type Item = (Symbol, &'a [u8]);
@@ -277,7 +277,7 @@ impl<'a> Iterator for Iter<'a> {
         self.0.nth(n)
     }
 
-    fn collect<B: iter::FromIterator<Self::Item>>(self) -> B {
+    fn collect<B: FromIterator<Self::Item>>(self) -> B {
         self.0.collect()
     }
 }
@@ -317,8 +317,26 @@ impl<'a> IntoIterator for &'a SymbolTable {
 #[derive(Default, Debug)]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub struct SymbolTable<S = RandomState> {
-    map: HashMap<&'static [u8], Symbol, S>,
-    vec: Vec<Interned<[u8]>>,
+    map: ManuallyDrop<HashMap<&'static [u8], Symbol, S>>,
+    vec: ManuallyDrop<Vec<Interned<[u8]>>>,
+}
+
+impl<S> Drop for SymbolTable<S> {
+    fn drop(&mut self) {
+        // Safety:
+        //
+        // `Interned` requires that the `'static` references it gives out are
+        // dropped before the owning buffer stored in the `Interned`.
+        //
+        // `ManuallyDrop::drop` is only invoked in this `Drop::drop` impl;
+        // because mutable references to `map` and `vec` fields are not given
+        // out by `SymbolTable`, `map` and `vec` are guaranteed to be
+        // initialized.
+        unsafe {
+            ManuallyDrop::drop(&mut self.map);
+            ManuallyDrop::drop(&mut self.vec);
+        }
+    }
 }
 
 impl SymbolTable<RandomState> {
@@ -356,8 +374,8 @@ impl SymbolTable<RandomState> {
     pub fn with_capacity(capacity: usize) -> Self {
         let capacity = capacity.next_power_of_two();
         Self {
-            map: HashMap::with_capacity(capacity),
-            vec: Vec::with_capacity(capacity),
+            map: ManuallyDrop::new(HashMap::with_capacity(capacity)),
+            vec: ManuallyDrop::new(Vec::with_capacity(capacity)),
         }
     }
 }
@@ -396,8 +414,8 @@ impl<S> SymbolTable<S> {
     /// ```
     pub fn with_capacity_and_hasher(capacity: usize, hash_builder: S) -> Self {
         Self {
-            vec: Vec::with_capacity(capacity),
-            map: HashMap::with_capacity_and_hasher(capacity, hash_builder),
+            map: ManuallyDrop::new(HashMap::with_capacity_and_hasher(capacity, hash_builder)),
+            vec: ManuallyDrop::new(Vec::with_capacity(capacity)),
         }
     }
 
@@ -412,7 +430,7 @@ impl<S> SymbolTable<S> {
     /// assert!(table.capacity() >= 10);
     /// ```
     pub fn capacity(&self) -> usize {
-        cmp::min(self.vec.capacity(), self.map.capacity())
+        usize::min(self.vec.capacity(), self.map.capacity())
     }
 
     /// Returns the number of interned bytestrings in the table.
@@ -698,6 +716,19 @@ where
         }
         let name = Interned::from(contents);
         let id = self.map.len().try_into()?;
+        // Safety:
+        //
+        // This expression creates a reference with a `'static` lifetime
+        // from an owned and interned buffer. This is permissible because:
+        //
+        // - `Interned` is an internal implementation detail of `SymbolTable`.
+        // - `SymbolTable` never give out `'static` references to underlying
+        //   byte contents.
+        // - All slice references given out by the `SymbolTable` have the same
+        //   lifetime as the `SymbolTable`.
+        // - The `map` field of `SymbolTable`, which contains the `'static`
+        //   references, is dropped before the owned buffers stored in this
+        //   `Interned`.
         let slice = unsafe { name.as_static_slice() };
 
         self.map.insert(slice, id);
@@ -786,8 +817,8 @@ where
     /// # example().unwrap();
     /// ```
     pub fn reserve(&mut self, additional: usize) {
-        self.vec.reserve(additional);
         self.map.reserve(additional);
+        self.vec.reserve(additional);
     }
 
     /// Shrinks the capacity of the symbol table as much as possible.
@@ -812,8 +843,8 @@ where
     /// # example().unwrap();
     /// ```
     pub fn shrink_to_fit(&mut self) {
-        self.vec.shrink_to_fit();
         self.map.shrink_to_fit();
+        self.vec.shrink_to_fit();
     }
 }
 

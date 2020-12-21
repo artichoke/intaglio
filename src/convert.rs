@@ -1,4 +1,5 @@
 use core::convert::TryFrom;
+use core::mem::size_of;
 use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
 
 use crate::{Symbol, SymbolOverflowError};
@@ -185,7 +186,9 @@ impl From<Symbol> for usize {
     #[inline]
     fn from(sym: Symbol) -> Self {
         // This conversion relies on size_of::<usize>() >= size_of::<u32>(),
-        // which is ensured with a const assertion in `lib.rs`.
+        // which is ensured with a const assertion.
+        const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
+
         sym.id() as usize
     }
 }
@@ -214,6 +217,10 @@ impl From<&Symbol> for u64 {
 impl From<&Symbol> for usize {
     #[inline]
     fn from(sym: &Symbol) -> Self {
+        // This conversion relies on size_of::<usize>() >= size_of::<u32>(),
+        // which is ensured with a const assertion.
+        const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
+
         sym.id() as usize
     }
 }

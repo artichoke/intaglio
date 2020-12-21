@@ -297,8 +297,25 @@ where
     unsafe fn as_static_slice(&self) -> &'static T {
         match self {
             Self::Static(slice) => slice,
-            #[allow(trivial_casts)]
-            Self::Owned(owned) => &*(&**owned as *const T),
+            Self::Owned(owned) => {
+                // Coerce the `Box<T>` to a pointer.
+                let ptr: *const T = &**owned;
+                // Coerce the pointer to a `&'static T`.
+                //
+                // Safety:
+                //
+                // This expression creates a reference with a `'static` lifetime
+                // from an owned buffer. This is permissible because:
+                //
+                // - `Slice` is an internal implementation detail of
+                //   `SymbolTable` and `bytes::SymbolTable`.
+                // - `SymbolTable` and `bytes::SymbolTable` never give out
+                //   `'static` references to underlying byte contents.
+                // - The `map` field of `SymbolTable` and `bytes::SymbolTable`,
+                //   which contains the `'static` references, is dropped before
+                //   the owned buffers stored in this `Slice`.
+                &*ptr
+            }
         }
     }
 }
