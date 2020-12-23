@@ -95,7 +95,7 @@ jobs:
 
       - name: Install 32-bit platform support
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt install gcc-multilib
+        run: sudo apt-get update && sudo apt install gcc-multilib
 
       - name: Compile
         run: cargo build --verbose --target ${{ matrix.target }}
