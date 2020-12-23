@@ -32,7 +32,3 @@ quickcheck_macros = "0.9"
 # Check that crate versions are properly updated in documentation and code when
 # bumping the version.
 version-sync = "0.9"
-
-[target.'cfg(target_os = "linux")'.dev-dependencies]
-# `libc::getrusage` is used to check for memory leaks on Linux in CI.
-libc = "0.2"
