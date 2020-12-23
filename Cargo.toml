@@ -1,6 +1,6 @@
 [package]
 name = "intaglio"
-version = "1.1.1"
+version = "1.2.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 edition = "2018"
 description = "UTF-8 string and bytestring interner and symbol table"
