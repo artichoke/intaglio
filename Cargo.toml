@@ -23,7 +23,7 @@ bytes = []
 [dev-dependencies]
 # Property testing for interner getters and setters.
 quickcheck = { version = "0.9", default-features = false }
-quickcheck_macros = "0.9"
+quickcheck_macros = "1.0"
 # Check that crate versions are properly updated in documentation and code when
 # bumping the version.
 version-sync = "0.9"
