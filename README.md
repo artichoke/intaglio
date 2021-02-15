@@ -69,7 +69,8 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 ## Implementation
 
 Intaglio interns owned and borrowed strings with no additional copying by
-leveraging `Cow` and a bit of unsafe code. CI runs `drop` tests under Miri.
+leveraging `Cow` and a bit of unsafe code. CI runs `drop` tests under Miri and
+LeakSanitizer.
 
 ## Crate features
 
