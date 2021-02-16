@@ -9,7 +9,6 @@ unlicensed = "deny"
 allow = [
   "Apache-2.0",
   "MIT",
-  "Zlib",
 ]
 deny = []
 copyleft = "deny"
