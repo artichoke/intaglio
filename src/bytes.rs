@@ -683,6 +683,7 @@ where
     /// # }
     /// # example().unwrap();
     /// ```
+    #[allow(clippy::missing_panics_doc)] // clippy in 1.51.0 gives a false positive on `debug_assert!`.
     pub fn intern<T>(&mut self, contents: T) -> Result<Symbol, SymbolOverflowError>
     where
         T: Into<Cow<'static, [u8]>>,
