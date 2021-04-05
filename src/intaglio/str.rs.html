@@ -867,6 +867,7 @@
 <span id="864">864</span>
 <span id="865">865</span>
 <span id="866">866</span>
+<span id="867">867</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Intaglio interner for UTF-8 [`String`]s.</span>
 
@@ -1498,6 +1499,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # example().unwrap();</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_panics_doc</span>)]</span> <span class="comment">// clippy in 1.51.0 gives a false positive on `debug_assert!`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intern</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">contents</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Symbol</span>, <span class="ident">SymbolOverflowError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -1513,8 +1515,8 @@
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">slice</span>, <span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">name</span>);
 
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">slice</span>));
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">intern</span>(<span class="ident">slice</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">id</span>));
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">slice</span>));
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">intern</span>(<span class="ident">slice</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">id</span>));
 
         <span class="prelude-val">Ok</span>(<span class="ident">id</span>)
     }
@@ -1672,11 +1674,11 @@
         <span class="comment">// intern an owned value</span>
         <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>();
         <span class="comment">// retrieve bytes</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="string">&quot;abc&quot;</span>, <span class="ident">table</span>.<span class="ident">get</span>(<span class="ident">sym</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;abc&quot;</span>, <span class="ident">table</span>.<span class="ident">get</span>(<span class="ident">sym</span>).<span class="ident">unwrap</span>());
         <span class="comment">// intern owned value again</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>());
         <span class="comment">// intern borrowed value</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>).<span class="ident">unwrap</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1685,11 +1687,11 @@
         <span class="comment">// intern a borrowed value</span>
         <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>).<span class="ident">unwrap</span>();
         <span class="comment">// retrieve bytes</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="string">&quot;abc&quot;</span>, <span class="ident">table</span>.<span class="ident">get</span>(<span class="ident">sym</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;abc&quot;</span>, <span class="ident">table</span>.<span class="ident">get</span>(<span class="ident">sym</span>).<span class="ident">unwrap</span>());
         <span class="comment">// intern owned value</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>());
         <span class="comment">// intern borrowed value again</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">sym</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>).<span class="ident">unwrap</span>());
     }
 
     <span class="attribute">#[<span class="ident">quickcheck</span>]</span>
