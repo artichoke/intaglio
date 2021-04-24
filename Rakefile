@@ -53,7 +53,7 @@ namespace :format do
 
   desc 'Format text, YAML, and Markdown sources with prettier'
   task :text do
-    sh "npx prettier --write '**/*'"
+    sh 'npx prettier --write "**/*"'
   end
 end
 
@@ -68,7 +68,7 @@ namespace :fmt do
 
   desc 'Format text, YAML, and Markdown sources with prettier'
   task :text do
-    sh "npx prettier --write '**/*'"
+    sh 'npx prettier --write "**/*"'
   end
 end
 
