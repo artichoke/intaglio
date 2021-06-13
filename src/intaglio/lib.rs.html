@@ -206,6 +206,13 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
 </pre><pre class="rust">
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::all</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::pedantic</span>)]</span>
@@ -219,6 +226,12 @@
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">trivial_casts</span>, <span class="ident">trivial_numeric_casts</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">unused_qualifications</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">variant_size_differences</span>)]</span>
+<span class="comment">// Enable feature callouts in generated documentation:</span>
+<span class="comment">// https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html</span>
+<span class="comment">//</span>
+<span class="comment">// This approach is borrowed from tokio.</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>))]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_alias</span>))]</span>
 
 <span class="doccomment">//! This crate provides a library for interning strings.</span>
 <span class="doccomment">//!</span>
@@ -293,6 +306,7 @@
 <span class="kw">use</span> <span class="ident">std::error</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bytes</span>;
 <span class="kw">mod</span> <span class="ident">convert</span>;
 <span class="kw">mod</span> <span class="ident">eq</span>;
