@@ -81,6 +81,7 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub struct AllSymbols<'a> {
     // this Result is being used as an Either type.
     range: Result<Range<u32>, RangeInclusive<u32>>,
@@ -172,6 +173,7 @@ impl<'a> FusedIterator for AllSymbols<'a> {}
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub struct Bytestrings<'a>(slice::Iter<'a, Interned<[u8]>>);
 
 impl<'a> Iterator for Bytestrings<'a> {
@@ -249,6 +251,7 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub struct Iter<'a>(iter::Zip<AllSymbols<'a>, Bytestrings<'a>>);
 
 impl<'a> Iterator for Iter<'a> {
@@ -312,6 +315,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// # example().unwrap();
 /// ```
 #[derive(Default, Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub struct SymbolTable<S = RandomState> {
     map: HashMap<&'static [u8], Symbol, S>,
     vec: Vec<Interned<[u8]>>,
