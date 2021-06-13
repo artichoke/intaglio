@@ -4,7 +4,10 @@
 use core::iter;
 use intaglio::SymbolTable;
 
+#[cfg(not(miri))]
 const ITERATIONS: usize = 100_000;
+#[cfg(miri)]
+const ITERATIONS: usize = 25;
 
 #[test]
 fn dealloc_owned_data_str() {
