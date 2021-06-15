@@ -32,4 +32,4 @@ jobs:
         run: cargo miri setup
 
       - name: Test unsafe code with Miri
-        run: cargo miri test drop
+        run: cargo miri test --test leak_drop_symbol_table --test leak_drop_symbol_table_bytes

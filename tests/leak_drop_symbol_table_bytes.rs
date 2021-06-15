@@ -5,7 +5,10 @@
 use core::iter;
 use intaglio::bytes::SymbolTable;
 
+#[cfg(not(miri))]
 const ITERATIONS: usize = 100_000;
+#[cfg(miri)]
+const ITERATIONS: usize = 25;
 
 #[test]
 fn dealloc_owned_data_bytes() {
