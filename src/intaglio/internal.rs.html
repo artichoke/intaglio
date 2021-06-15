@@ -442,6 +442,23 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
 </pre><pre class="rust">
 <span class="doccomment">//! A Wrapper around interned strings that maintains the safety invariants of</span>
 <span class="doccomment">//! the `&#39;static` slices handed out to the interner.</span>
@@ -742,8 +759,25 @@
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_static_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">T</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span><span class="ident">::Static</span>(<span class="ident">slice</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">slice</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">trivial_casts</span>)]</span>
-            <span class="self">Self</span><span class="ident">::Owned</span>(<span class="ident">owned</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">owned</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>),
+            <span class="self">Self</span><span class="ident">::Owned</span>(<span class="ident">owned</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Coerce the `Box&lt;T&gt;` to a pointer.</span>
+                <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">owned</span>;
+                <span class="comment">// Coerce the pointer to a `&amp;&#39;static T`.</span>
+                <span class="comment">//</span>
+                <span class="comment">// Safety:</span>
+                <span class="comment">//</span>
+                <span class="comment">// This expression creates a reference with a `&#39;static` lifetime</span>
+                <span class="comment">// from an owned buffer. This is permissible because:</span>
+                <span class="comment">//</span>
+                <span class="comment">// - `Slice` is an internal implementation detail of</span>
+                <span class="comment">//   `SymbolTable` and `bytes::SymbolTable`.</span>
+                <span class="comment">// - `SymbolTable` and `bytes::SymbolTable` never give out</span>
+                <span class="comment">//   `&#39;static` references to underlying byte contents.</span>
+                <span class="comment">// - The `map` field of `SymbolTable` and `bytes::SymbolTable`,</span>
+                <span class="comment">//   which contains the `&#39;static` references, is dropped before</span>
+                <span class="comment">//   the owned buffers stored in this `Slice`.</span>
+                <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">ptr</span>
+            }
         }
     }
 }
