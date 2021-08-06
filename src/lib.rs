@@ -165,6 +165,7 @@ impl error::Error for SymbolOverflowError {}
 /// `Symbol`s are not constrained to the `SymbolTable` which created them.  No
 /// runtime checks ensure that [`SymbolTable::get`] is called with a `Symbol`
 /// that the table itself issued.
+#[repr(transparent)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Symbol(u32);
 
