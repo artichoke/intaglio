@@ -68,7 +68,7 @@
 //! - **bytes** - Enables an additional symbol table implementation for
 //!   interning bytestrings (`Vec<u8>` and `&'static [u8]`).
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.2.2")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.3.0")]
 
 // Ensure code blocks in README.md compile
 #[cfg(doctest)]
@@ -165,6 +165,7 @@ impl error::Error for SymbolOverflowError {}
 /// `Symbol`s are not constrained to the `SymbolTable` which created them.  No
 /// runtime checks ensure that [`SymbolTable::get`] is called with a `Symbol`
 /// that the table itself issued.
+#[repr(transparent)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Symbol(u32);
 
