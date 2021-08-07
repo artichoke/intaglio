@@ -312,7 +312,7 @@
 <span class="kw">mod</span> <span class="ident">internal</span>;
 <span class="kw">mod</span> <span class="ident">str</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::str</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::str</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// To prevent overflows when indexing into the backing `Vec`, `intaglio`</span>
 <span class="comment">// requires `usize` to be at least as big as `u32`.</span>
@@ -356,7 +356,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">TryFromIntError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">err</span>;
-        <span class="self">Self</span><span class="ident">::new</span>()
+        <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
 
