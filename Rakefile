@@ -2,6 +2,7 @@
 
 require 'open-uri'
 require 'shellwords'
+require 'bundler/audit/task'
 require 'rubocop/rake_task'
 
 task default: %i[format lint]
@@ -90,6 +91,8 @@ desc 'Run Intaglio unit tests'
 task :test do
   sh 'cargo test --workspace'
 end
+
+Bundler::Audit::Task.new
 
 namespace :release do
   link_check_files = FileList.new('**/*.md') do |f|
