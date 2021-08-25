@@ -5,12 +5,11 @@ can retrieve its associated symbol.</p>
 <p>For more specific details on the API for interning strings into a symbol
 table, please see the documentation for the <a href="struct.SymbolTable.html" title="SymbolTable"><code>SymbolTable</code></a> type.</p>
 <h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">SymbolTable::new</span>();
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">SymbolTable::new</span>();
 <span class="kw">let</span> <span class="ident">sym_id</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>)<span class="question-mark">?</span>;
 <span class="macro">assert_eq!</span>(<span class="ident">sym_id</span>, <span class="ident">table</span>.<span class="ident">intern</span>(<span class="string">&quot;abc&quot;</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>);
 <span class="macro">assert!</span>(<span class="ident">table</span>.<span class="ident">contains</span>(<span class="ident">sym_id</span>));
-<span class="macro">assert!</span>(<span class="ident">table</span>.<span class="ident">is_interned</span>(<span class="string">&quot;abc&quot;</span>));</pre></div>
+<span class="macro">assert!</span>(<span class="ident">table</span>.<span class="ident">is_interned</span>(<span class="string">&quot;abc&quot;</span>));</code></pre></div>
 <h1 id="string-interning" class="section-header"><a href="#string-interning">String interning</a></h1>
 <p>Intaglio <code>SymbolTable</code>s store at most one copy of a string. All requests to
 intern a string that is already present in the table, regardless of whether
