@@ -69,7 +69,7 @@
 //! - **bytes** - Enables an additional symbol table implementation for
 //!   interning byte strings (`Vec<u8>` and `&'static [u8]`).
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.4.0")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.4.1")]
 
 // Ensure code blocks in README.md compile
 #[cfg(doctest)]
@@ -107,7 +107,8 @@ pub use crate::str::*;
 // not hold.
 const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
 
-/// Default capacity for new a [`SymbolTable`].
+/// Default capacity for a new [`SymbolTable`] created with
+/// [`SymbolTable::new`].
 pub const DEFAULT_SYMBOL_TABLE_CAPACITY: usize = 4096;
 
 /// Error returned when a [`SymbolTable`] or symbol identifier overflows.
