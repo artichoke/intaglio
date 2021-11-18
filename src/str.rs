@@ -784,6 +784,33 @@ where
         self.map.shrink_to_fit();
         self.vec.shrink_to_fit();
     }
+
+    /// Shrinks the capacity of the symbol table with a lower bound.
+    ///
+    /// The capacity will remain at least as large as both the length and the
+    /// supplied value.
+    ///
+    /// If the current capacity is less than the lower limit, this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::with_capacity(10);
+    /// table.intern("abc")?;
+    /// table.intern("xyz")?;
+    /// table.intern("123")?;
+    /// table.shrink_to(5);
+    /// assert!(table.capacity() >= 5);
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        self.map.shrink_to(min_capacity);
+        self.vec.shrink_to(min_capacity);
+    }
 }
 
 #[cfg(test)]
