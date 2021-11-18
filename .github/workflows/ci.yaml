@@ -112,6 +112,38 @@ jobs:
       - name: Test with no default features
         run: cargo test --no-default-features --target ${{ matrix.target }}
 
+  build-msrv:
+    name: Build (1.56.0)
+    runs-on: ubuntu-latest
+    env:
+      CARGO_INCREMENTAL: 0
+      RUSTFLAGS: -D warnings
+      RUST_BACKTRACE: 1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: "1.56.0"
+          profile: minimal
+
+      - name: Compile
+        run: cargo build --verbose
+
+      - name: Compile tests
+        run: cargo test --no-run
+
+      - name: Test
+        run: cargo test
+
+      - name: Test with all features
+        run: cargo test --all-features
+
+      - name: Test with no default features
+        run: cargo test --no-default-features
+
   rust:
     name: Lint and format Rust
     runs-on: ubuntu-latest

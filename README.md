@@ -79,6 +79,11 @@ All features are enabled by default.
 - **bytes** - Enables an additional symbol table implementation for interning
   bytestrings (`Vec<u8>` and `&'static [u8]`).
 
+### Minimum Supported Rust Version
+
+This crate requires at least Rust 1.56.0. This version can be bumped in minor
+releases.
+
 ## License
 
 `intaglio` is licensed under the [MIT License](LICENSE) (c) Ryan Lopopolo.
