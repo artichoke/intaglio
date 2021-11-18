@@ -70,7 +70,11 @@ where
     /// inner `Slice` is dropped.
     #[inline]
     pub unsafe fn as_static_slice(&self) -> &'static T {
-        self.0.as_static_slice()
+        // Safety:
+        //
+        // `Interned::as_static_slice`'s caller upheld safety invariants are the
+        // same as `Slice::as_static_slice`'s caller upheld safety invariants.
+        unsafe { self.0.as_static_slice() }
     }
 }
 
@@ -314,7 +318,7 @@ where
                 // - The `map` field of `SymbolTable` and `bytes::SymbolTable`,
                 //   which contains the `'static` references, is dropped before
                 //   the owned buffers stored in this `Slice`.
-                &*ptr
+                unsafe { &*ptr }
             }
         }
     }
