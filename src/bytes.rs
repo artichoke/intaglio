@@ -6,7 +6,7 @@
 //! 1. Interned contents are `&[u8]` instead of `&str`. Additionally, `Vec<u8>`
 //!    is used where `String` would have been used.
 //!
-//! # Example: intern bytestring
+//! # Example: intern byte string
 //!
 //! ```
 //! # use intaglio::bytes::SymbolTable;
@@ -155,7 +155,7 @@ impl<'a> DoubleEndedIterator for AllSymbols<'a> {
 
 impl<'a> FusedIterator for AllSymbols<'a> {}
 
-/// An iterator over all interned bytestrings in a [`SymbolTable`].
+/// An iterator over all interned byte strings in a [`SymbolTable`].
 ///
 /// See the [`bytestrings`](SymbolTable::bytestrings) method in [`SymbolTable`].
 ///
@@ -229,7 +229,7 @@ impl<'a> ExactSizeIterator for Bytestrings<'a> {
 
 impl<'a> FusedIterator for Bytestrings<'a> {}
 
-/// An iterator over all symbols and interned bytestrings in a [`SymbolTable`].
+/// An iterator over all symbols and interned byte strings in a [`SymbolTable`].
 ///
 /// See the [`iter`](SymbolTable::iter) method in [`SymbolTable`].
 ///
@@ -295,7 +295,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 
 /// Byte string interner.
 ///
-/// This symbol table is implemented by storing bytestrings with a fast path for
+/// This symbol table is implemented by storing byte strings with a fast path for
 /// `&[u8]` that are already `'static`.
 ///
 /// See module documentation for more.
@@ -358,7 +358,7 @@ impl SymbolTable<RandomState> {
 
     /// Constructs a new, empty `SymbolTable` with the specified capacity.
     ///
-    /// The symbol table will be able to hold at least `capacity` bytestrings
+    /// The symbol table will be able to hold at least `capacity` byte strings
     /// without reallocating. If `capacity` is 0, the symbol table will not
     /// allocate.
     ///
@@ -419,7 +419,7 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns the number of bytestrings the table can hold without
+    /// Returns the number of byte strings the table can hold without
     /// reallocating.
     ///
     /// # Examples
@@ -433,7 +433,7 @@ impl<S> SymbolTable<S> {
         usize::min(self.vec.capacity(), self.map.capacity())
     }
 
-    /// Returns the number of interned bytestrings in the table.
+    /// Returns the number of interned byte strings in the table.
     ///
     /// # Examples
     ///
@@ -444,7 +444,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(0, table.len());
     ///
     /// table.intern(b"abc".to_vec())?;
-    /// // only uniquely interned bytestrings grow the symbol table.
+    /// // only uniquely interned byte strings grow the symbol table.
     /// table.intern(b"abc".to_vec())?;
     /// table.intern(b"xyz".to_vec())?;
     /// assert_eq!(2, table.len());
@@ -456,7 +456,7 @@ impl<S> SymbolTable<S> {
         self.vec.len()
     }
 
-    /// Returns `true` if the symbol table contains no interned bytestrings.
+    /// Returns `true` if the symbol table contains no interned byte strings.
     ///
     /// # Examples
     ///
@@ -528,7 +528,7 @@ impl<S> SymbolTable<S> {
         Some(bytes.as_slice())
     }
 
-    /// Returns an iterator over all [`Symbol`]s and bytestrings in the
+    /// Returns an iterator over all [`Symbol`]s and byte strings in the
     /// [`SymbolTable`].
     ///
     /// # Examples
@@ -628,7 +628,7 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns an iterator over all bytestrings in the [`SymbolTable`].
+    /// Returns an iterator over all byte strings in the [`SymbolTable`].
     ///
     /// # Examples
     ///
@@ -674,10 +674,10 @@ impl<S> SymbolTable<S>
 where
     S: BuildHasher,
 {
-    /// Intern a bytestring for the lifetime of the symbol table.
+    /// Intern a byte string for the lifetime of the symbol table.
     ///
     /// The returned `Symbol` allows retrieving of the underlying bytes.
-    /// Equal bytestrings will be inserted into the symbol table exactly once.
+    /// Equal byte strings will be inserted into the symbol table exactly once.
     ///
     /// This function only allocates if the underlying symbol table has no
     /// remaining capacity.
@@ -685,7 +685,7 @@ where
     /// # Errors
     ///
     /// If the symbol table would grow larger than `u32::MAX` interned
-    /// bytestrings, the [`Symbol`] counter would overflow and a
+    /// byte strings, the [`Symbol`] counter would overflow and a
     /// [`SymbolOverflowError`] is returned.
     ///
     /// # Examples
@@ -971,13 +971,13 @@ mod tests {
     }
 
     #[quickcheck]
-    fn empty_table_does_not_report_any_interned_bytestrings(bytes: Vec<u8>) -> bool {
+    fn empty_table_does_not_report_any_interned_byte_strings(bytes: Vec<u8>) -> bool {
         let table = SymbolTable::new();
         !table.is_interned(bytes.as_slice())
     }
 
     #[quickcheck]
-    fn table_reports_interned_bytestrings_as_interned(bytes: Vec<u8>) -> bool {
+    fn table_reports_interned_byte_strings_as_interned(bytes: Vec<u8>) -> bool {
         let mut table = SymbolTable::new();
         table.intern(bytes.clone()).unwrap();
         table.is_interned(bytes.as_slice())

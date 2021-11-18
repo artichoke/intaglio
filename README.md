@@ -8,9 +8,9 @@
 [![API](https://docs.rs/intaglio/badge.svg)](https://docs.rs/intaglio)
 [![API trunk](https://img.shields.io/badge/docs-trunk-blue.svg)](https://artichoke.github.io/intaglio/intaglio/)
 
-UTF-8 string and bytestring interner and symbol table. Used to implement storage
-for the [Ruby `Symbol`][symbol] table and the constant name table in [Artichoke
-Ruby][artichoke].
+UTF-8 string and byte string interner and symbol table. Used to implement
+storage for the [Ruby `Symbol`][symbol] table and the constant name table in
+[Artichoke Ruby][artichoke].
 
 > Symbol objects represent names and some strings inside the Ruby interpreter.
 > They are generated using the `:name` and `:"string"` literals syntax, and by
@@ -18,11 +18,11 @@ Ruby][artichoke].
 > given name or string for the duration of a program's execution, regardless of
 > the context or meaning of that name.
 
-Intaglio is a UTF-8 and bytestring interner, which means it stores a single copy
-of an immutable `&str` or `&[u8]` that can be referred to by a stable `u32`
+Intaglio is a UTF-8 and byte string interner, which means it stores a single
+copy of an immutable `&str` or `&[u8]` that can be referred to by a stable `u32`
 token.
 
-Interned strings and bytestrings are cheap to compare and copy because they are
+Interned strings and byte strings are cheap to compare and copy because they are
 represented as a `u32` integer.
 
 _Intaglio_ is an alternate name for an _engraved gem_, a gemstone that has been
@@ -52,7 +52,7 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Or intern bytestrings like:
+Or intern byte strings like:
 
 ```rust
 fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
@@ -77,7 +77,7 @@ LeakSanitizer.
 All features are enabled by default.
 
 - **bytes** - Enables an additional symbol table implementation for interning
-  bytestrings (`Vec<u8>` and `&'static [u8]`).
+  byte strings (`Vec<u8>` and `&'static [u8]`).
 
 ### Minimum Supported Rust Version
 

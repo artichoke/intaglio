@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "https://github.com/artichoke/intaglio"
 documentation = "https://docs.rs/intaglio"
 homepage = "https://github.com/artichoke/intaglio"
-description = "UTF-8 string and bytestring interner and symbol table"
+description = "UTF-8 string and byte string interner and symbol table"
 keywords = ["bytestring", "intern", "interner", "symbol", "utf8"]
 categories = ["caching", "data-structures"]
 include = ["src/**/*", "tests/**/*", "LICENSE", "README.md"]
@@ -18,7 +18,7 @@ include = ["src/**/*", "tests/**/*", "LICENSE", "README.md"]
 # All features are enabled by default.
 default = ["bytes"]
 # `bytes` feature enables an additional symbol table implementation for
-# interning bytestrings (`Vec<u8>` and `&'static [u8]`).
+# interning byte strings (`Vec<u8>` and `&'static [u8]`).
 bytes = []
 
 [dependencies]

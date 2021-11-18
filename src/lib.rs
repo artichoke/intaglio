@@ -67,7 +67,7 @@
 //! All features are enabled by default.
 //!
 //! - **bytes** - Enables an additional symbol table implementation for
-//!   interning bytestrings (`Vec<u8>` and `&'static [u8]`).
+//!   interning byte strings (`Vec<u8>` and `&'static [u8]`).
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.4.0")]
 

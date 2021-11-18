@@ -303,7 +303,7 @@ impl SymbolTable<RandomState> {
 
     /// Constructs a new, empty `SymbolTable` with the specified capacity.
     ///
-    /// The symbol table will be able to hold at least `capacity` bytestrings
+    /// The symbol table will be able to hold at least `capacity` strings
     /// without reallocating. If `capacity` is 0, the symbol table will not
     /// allocate.
     ///
@@ -364,8 +364,7 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns the number of bytestrings the table can hold without
-    /// reallocating.
+    /// Returns the number of strings the table can hold without reallocating.
     ///
     /// # Examples
     ///
@@ -378,7 +377,7 @@ impl<S> SymbolTable<S> {
         usize::min(self.vec.capacity(), self.map.capacity())
     }
 
-    /// Returns the number of interned bytestrings in the table.
+    /// Returns the number of interned strings in the table.
     ///
     /// # Examples
     ///
@@ -389,7 +388,7 @@ impl<S> SymbolTable<S> {
     /// assert_eq!(0, table.len());
     ///
     /// table.intern("abc")?;
-    /// // only uniquely interned bytestrings grow the symbol table.
+    /// // only uniquely interned strings grow the symbol table.
     /// table.intern("abc")?;
     /// table.intern("xyz")?;
     /// assert_eq!(2, table.len());
@@ -401,7 +400,7 @@ impl<S> SymbolTable<S> {
         self.vec.len()
     }
 
-    /// Returns `true` if the symbol table contains no interned bytestrings.
+    /// Returns `true` if the symbol table contains no interned strings.
     ///
     /// # Examples
     ///
@@ -443,7 +442,7 @@ impl<S> SymbolTable<S> {
         self.get(id).is_some()
     }
 
-    /// Returns a reference to the byte string associated with the given symbol.
+    /// Returns a reference to the string associated with the given symbol.
     ///
     /// If the given symbol does not exist in the underlying symbol table,
     /// `None` is returned.
@@ -471,7 +470,7 @@ impl<S> SymbolTable<S> {
         Some(bytes.as_slice())
     }
 
-    /// Returns an iterator over all [`Symbol`]s and bytestrings in the
+    /// Returns an iterator over all [`Symbol`]s and strings in the
     /// [`SymbolTable`].
     ///
     /// # Examples
@@ -615,10 +614,10 @@ impl<S> SymbolTable<S>
 where
     S: BuildHasher,
 {
-    /// Intern a bytestring for the lifetime of the symbol table.
+    /// Intern a string for the lifetime of the symbol table.
     ///
-    /// The returned `Symbol` allows retrieving of the underlying bytes.
-    /// Equal bytestrings will be inserted into the symbol table exactly once.
+    /// The returned `Symbol` allows retrieving of the underlying string.
+    /// Equal strings will be inserted into the symbol table exactly once.
     ///
     /// This function only allocates if the underlying symbol table has no
     /// remaining capacity.
@@ -626,7 +625,7 @@ where
     /// # Errors
     ///
     /// If the symbol table would grow larger than `u32::MAX` interned
-    /// bytestrings, the [`Symbol`] counter would overflow and a
+    /// strings, the [`Symbol`] counter would overflow and a
     /// [`SymbolOverflowError`] is returned.
     ///
     /// # Examples
@@ -663,7 +662,7 @@ where
         //
         // - `Interned` is an internal implementation detail of `SymbolTable`.
         // - `SymbolTable` never give out `'static` references to underlying
-        //   byte contents.
+        //   string contents.
         // - All slice references given out by the `SymbolTable` have the same
         //   lifetime as the `SymbolTable`.
         // - The `map` field of `SymbolTable`, which contains the `'static`
@@ -706,7 +705,7 @@ where
         self.map.get(contents).copied()
     }
 
-    /// Returns `true` if the given byte string has been interned before.
+    /// Returns `true` if the given string has been interned before.
     ///
     /// This method does not modify the symbol table.
     ///
@@ -859,7 +858,7 @@ mod tests {
         let mut table = SymbolTable::new();
         // intern an owned value
         let sym = table.intern("abc".to_string()).unwrap();
-        // retrieve bytes
+        // retrieve string
         assert_eq!("abc", table.get(sym).unwrap());
         // intern owned value again
         assert_eq!(sym, table.intern("abc".to_string()).unwrap());
@@ -872,7 +871,7 @@ mod tests {
         let mut table = SymbolTable::new();
         // intern a borrowed value
         let sym = table.intern("abc").unwrap();
-        // retrieve bytes
+        // retrieve string
         assert_eq!("abc", table.get(sym).unwrap());
         // intern owned value
         assert_eq!(sym, table.intern("abc".to_string()).unwrap());
@@ -892,8 +891,8 @@ mod tests {
     fn intern_get_roundtrip(string: String) -> bool {
         let mut table = SymbolTable::new();
         let sym = table.intern(string.clone()).unwrap();
-        let retrieved_bytes = table.get(sym).unwrap();
-        string == retrieved_bytes
+        let retrieved_str = table.get(sym).unwrap();
+        string == retrieved_str
     }
 
     #[quickcheck]
@@ -910,13 +909,13 @@ mod tests {
     }
 
     #[quickcheck]
-    fn empty_table_does_not_report_any_interned_bytestrings(string: String) -> bool {
+    fn empty_table_does_not_report_any_interned_strings(string: String) -> bool {
         let table = SymbolTable::new();
         !table.is_interned(string.as_str())
     }
 
     #[quickcheck]
-    fn table_reports_interned_bytestrings_as_interned(string: String) -> bool {
+    fn table_reports_interned_strings_as_interned(string: String) -> bool {
         let mut table = SymbolTable::new();
         table.intern(string.clone()).unwrap();
         table.is_interned(string.as_str())
