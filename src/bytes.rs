@@ -340,8 +340,10 @@ impl<S> Drop for SymbolTable<S> {
 }
 
 impl SymbolTable<RandomState> {
-    /// Constructs a new, empty `SymbolTable` with
-    /// [default capacity](DEFAULT_SYMBOL_TABLE_CAPACITY).
+    /// Constructs a new, empty `SymbolTable` with [default capacity].
+    ///
+    /// This function will always allocate. To construct a symbol table without
+    /// allocating, call [`SymbolTable::with_capacity(0)`]
     ///
     /// # Examples
     ///
@@ -351,6 +353,9 @@ impl SymbolTable<RandomState> {
     /// assert_eq!(0, table.len());
     /// assert!(table.capacity() >= 4096);
     /// ```
+    ///
+    /// [default capacity]: DEFAULT_SYMBOL_TABLE_CAPACITY
+    /// [`SymbolTable::with_capacity(0)`]: Self::with_capacity
     #[must_use]
     pub fn new() -> Self {
         Self::with_capacity(DEFAULT_SYMBOL_TABLE_CAPACITY)
