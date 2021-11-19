@@ -343,7 +343,7 @@ impl SymbolTable<RandomState> {
     /// Constructs a new, empty `SymbolTable` with [default capacity].
     ///
     /// This function will always allocate. To construct a symbol table without
-    /// allocating, call [`SymbolTable::with_capacity(0)`]
+    /// allocating, call [`SymbolTable::with_capacity(0)`].
     ///
     /// # Examples
     ///
