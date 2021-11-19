@@ -218,7 +218,7 @@ where
 ///
 /// # Safety
 ///
-/// Even though `Box` is a "unique owner" of the data in the `Owned` varint, it
+/// Even though `Box` is a "unique owner" of the data in the `Owned` variant, it
 /// should not be mutably dereferenced, because `as_static_slice` promises the
 /// slice to be valid as long as the `Slice` is not dropped.
 ///

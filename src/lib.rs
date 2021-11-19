@@ -173,8 +173,8 @@ pub struct Symbol(u32);
 impl Symbol {
     /// Construct a new `Symbol` from the given `u32`.
     ///
-    /// `Symbol`s constructed outside of a [`SymbolTable`] may fail to
-    /// resolve to an underlying string using [`SymbolTable::get`].
+    /// `Symbol`s constructed outside a [`SymbolTable`] may fail to resolve to
+    /// an underlying string using [`SymbolTable::get`].
     ///
     /// `Symbol`s are not constrained to the `SymbolTable` which created them.
     /// No runtime checks ensure that [`SymbolTable::get`] is called with a
