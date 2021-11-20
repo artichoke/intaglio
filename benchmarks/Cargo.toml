@@ -3,6 +3,7 @@ name = "benchmarks"
 version = "0.1.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 edition = "2018"
+publish = false
 
 [workspace]
 members = ["."]
