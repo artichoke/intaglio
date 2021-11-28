@@ -1,20 +1,21 @@
-//! Intern arbitrary bytes.
+//! Intern C strings.
 //!
 //! This module provides a nearly identical API to the one found in the
 //! top-level of this crate. There is one important difference:
 //!
-//! 1. Interned contents are `&[u8]` instead of `&str`. Additionally, `Vec<u8>`
-//!    is used where `String` would have been used.
+//! 1. Interned contents are [`&CStr`](CStr) instead of `&str`. Additionally,
+//!    [`CString`] is used where `String` would have been used.
 //!
-//! # Example: intern byte string
+//! # Example: intern C string
 //!
 //! ```
-//! # use intaglio::bytes::SymbolTable;
+//! # use std::ffi::{CStr, CString};
+//! # use intaglio::cstr::SymbolTable;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym = table.intern(&b"abc"[..])?;
-//! assert_eq!(sym, table.intern(b"abc".to_vec())?);
-//! assert_eq!(Some(&b"abc"[..]), table.get(sym));
+//! let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
+//! assert_eq!(sym, table.intern(CString::new(b"abc")?)?);
+//! assert_eq!(Some(&b"abc\0"[..]), table.get(sym).map(CStr::to_bytes));
 //! # Ok(())
 //! # }
 //! # example().unwrap();
@@ -24,20 +25,21 @@
 //!
 //! ```
 //! # use std::collections::HashMap;
-//! # use intaglio::bytes::SymbolTable;
+//! # use std::ffi::CStr;
+//! # use intaglio::cstr::SymbolTable;
 //! # use intaglio::Symbol;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym = table.intern(&b"abc"[..])?;
+//! let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
 //! // Retrieve set of `Symbol`s.
 //! let all_symbols = table.all_symbols();
 //! assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 //!
-//! table.intern(&b"xyz"[..])?;
+//! table.intern(CStr::from_bytes_with_nul(b"xyz\0")?)?;
 //! let mut map = HashMap::new();
-//! map.insert(Symbol::new(0), &b"abc"[..]);
-//! map.insert(Symbol::new(1), &b"xyz"[..]);
-//! // Retrieve symbol to byte content mappings.
+//! map.insert(Symbol::new(0), CStr:::from_bytes_with_nul(b"abc\0")?);
+//! map.insert(Symbol::new(1), CStr:::from_bytes_with_nul(b"xyz\0")?);
+//! // Retrieve symbol to C string content mappings.
 //! let iter = table.iter();
 //! assert_eq!(map, iter.collect::<HashMap<_, _>>());
 //! # Ok(())
@@ -47,7 +49,7 @@
 //!
 //! # Performance
 //!
-//! In general, one should expect this crate's performance on `&[u8]` to be
+//! In general, one should expect this crate's performance on `&CStr` to be
 //! roughly similar to performance on `&str`.
 
 use core::convert::TryInto;
@@ -59,6 +61,7 @@ use core::ops::{Range, RangeInclusive};
 use core::slice;
 use std::borrow::Cow;
 use std::collections::hash_map::{HashMap, RandomState};
+use std::ffi::CStr;
 
 use crate::internal::Interned;
 use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
@@ -70,10 +73,11 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// # Usage
 ///
 /// ```
-/// # use intaglio::bytes::SymbolTable;
+/// # use std::ffi::CStr;
+/// # use intaglio::cstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(&b"abc"[..])?;
+/// let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
 /// let all_symbols = table.all_symbols();
 /// assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 /// # Ok(())
@@ -81,7 +85,7 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
 pub struct AllSymbols<'a> {
     // this Result is being used as an Either type.
     range: Result<Range<u32>, RangeInclusive<u32>>,
@@ -155,29 +159,30 @@ impl<'a> DoubleEndedIterator for AllSymbols<'a> {
 
 impl<'a> FusedIterator for AllSymbols<'a> {}
 
-/// An iterator over all interned byte strings in a [`SymbolTable`].
+/// An iterator over all interned C strings in a [`SymbolTable`].
 ///
-/// See the [`bytestrings`](SymbolTable::bytestrings) method in [`SymbolTable`].
+/// See the [`c_strings`](SymbolTable::c_strings) method in [`SymbolTable`].
 ///
 /// # Usage
 ///
 /// ```
-/// # use intaglio::bytes::SymbolTable;
+/// # use std::ffi::{CStr, CString};
+/// # use intaglio::cstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(b"abc".to_vec())?;
-/// let bytestrings = table.bytestrings();
-/// assert_eq!(vec![&b"abc"[..]], bytestrings.collect::<Vec<_>>());
+/// let sym = table.intern(CString::new(b"abc")?)?;
+/// let c_strings = table.c_strings();
+/// assert_eq!(vec![CStr::from_bytes_with_nul(b"abc\0")?], c_strings.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
-pub struct Bytestrings<'a>(slice::Iter<'a, Interned<[u8]>>);
+#[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
+pub struct CStrings<'a>(slice::Iter<'a, Interned<CStr>>);
 
-impl<'a> Iterator for Bytestrings<'a> {
-    type Item = &'a [u8];
+impl<'a> Iterator for CStrings<'a> {
+    type Item = &'a CStr;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next().map(Interned::as_slice)
@@ -204,7 +209,7 @@ impl<'a> Iterator for Bytestrings<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Bytestrings<'a> {
+impl<'a> DoubleEndedIterator for CStrings<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().map(Interned::as_slice)
     }
@@ -221,15 +226,15 @@ impl<'a> DoubleEndedIterator for Bytestrings<'a> {
     }
 }
 
-impl<'a> ExactSizeIterator for Bytestrings<'a> {
+impl<'a> ExactSizeIterator for CStrings<'a> {
     fn len(&self) -> usize {
         self.0.len()
     }
 }
 
-impl<'a> FusedIterator for Bytestrings<'a> {}
+impl<'a> FusedIterator for CStrings<'a> {}
 
-/// An iterator over all symbols and interned byte strings in a [`SymbolTable`].
+/// An iterator over all symbols and interned C strings in a [`SymbolTable`].
 ///
 /// See the [`iter`](SymbolTable::iter) method in [`SymbolTable`].
 ///
@@ -237,25 +242,26 @@ impl<'a> FusedIterator for Bytestrings<'a> {}
 ///
 /// ```
 /// # use std::collections::HashMap;
-/// # use intaglio::bytes::SymbolTable;
+/// # use std::ffi::{CStr, CString};
+/// # use intaglio::cstr::SymbolTable;
 /// # use intaglio::Symbol;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(b"abc".to_vec())?;
+/// let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
-/// map.insert(Symbol::new(0), &b"abc"[..]);
+/// map.insert(Symbol::new(0), CStr::from_bytes_with_nul(b"abc\0")?);
 /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
 /// # Ok(())
 /// # }
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
-pub struct Iter<'a>(Zip<AllSymbols<'a>, Bytestrings<'a>>);
+#[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
+pub struct Iter<'a>(Zip<AllSymbols<'a>, CStrings<'a>>);
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (Symbol, &'a [u8]);
+    type Item = (Symbol, &'a CStr);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
@@ -285,7 +291,7 @@ impl<'a> Iterator for Iter<'a> {
 impl<'a> FusedIterator for Iter<'a> {}
 
 impl<'a> IntoIterator for &'a SymbolTable {
-    type Item = (Symbol, &'a [u8]);
+    type Item = (Symbol, &'a CStr);
     type IntoIter = Iter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -293,32 +299,33 @@ impl<'a> IntoIterator for &'a SymbolTable {
     }
 }
 
-/// Byte string interner.
+/// C string interner.
 ///
-/// This symbol table is implemented by storing byte strings with a fast path for
-/// `&[u8]` that are already `'static`.
+/// This symbol table is implemented by storing [`CString`]s with a fast path
+/// for `&CStr` that are already `'static`.
 ///
 /// See module documentation for more.
 ///
 /// # Usage
 ///
 /// ```
-/// # use intaglio::bytes::SymbolTable;
+/// # use std::ffi::{CStr, CString};
+/// # use intaglio::cstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(&b"abc"[..])?;
-/// assert_eq!(sym, table.intern(b"abc".to_vec())?);
+/// let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
+/// assert_eq!(sym, table.intern(CString::new(b"abc")?)?);
 /// assert!(table.contains(sym));
-/// assert!(table.is_interned(b"abc"));
+/// assert!(table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
 /// # Ok(())
 /// # }
 /// # example().unwrap();
 /// ```
 #[derive(Default, Debug)]
-#[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
 pub struct SymbolTable<S = RandomState> {
-    map: ManuallyDrop<HashMap<&'static [u8], Symbol, S>>,
-    vec: ManuallyDrop<Vec<Interned<[u8]>>>,
+    map: ManuallyDrop<HashMap<&'static CStr, Symbol, S>>,
+    vec: ManuallyDrop<Vec<Interned<CStr>>>,
 }
 
 impl<S> Drop for SymbolTable<S> {
@@ -348,7 +355,7 @@ impl SymbolTable<RandomState> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::cstr::SymbolTable;
     /// let table = SymbolTable::new();
     /// assert_eq!(0, table.len());
     /// assert!(table.capacity() >= 4096);
@@ -363,14 +370,14 @@ impl SymbolTable<RandomState> {
 
     /// Constructs a new, empty `SymbolTable` with the specified capacity.
     ///
-    /// The symbol table will be able to hold at least `capacity` byte strings
+    /// The symbol table will be able to hold at least `capacity` C strings
     /// without reallocating. If `capacity` is 0, the symbol table will not
     /// allocate.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::cstr::SymbolTable;
     /// let table = SymbolTable::with_capacity(10);
     /// assert_eq!(0, table.len());
     /// assert!(table.capacity() >= 10);
@@ -394,7 +401,7 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use std::collections::hash_map::RandomState;
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::cstr::SymbolTable;
     /// let hash_builder = RandomState::new();
     /// let table = SymbolTable::with_hasher(hash_builder);
     /// assert_eq!(0, table.len());
@@ -411,7 +418,7 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use std::collections::hash_map::RandomState;
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::cstr::SymbolTable;
     /// let hash_builder = RandomState::new();
     /// let table = SymbolTable::with_capacity_and_hasher(10, hash_builder);
     /// assert_eq!(0, table.len());
@@ -424,13 +431,12 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns the number of byte strings the table can hold without
-    /// reallocating.
+    /// Returns the number of C strings the table can hold without reallocating.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::cstr::SymbolTable;
     /// let table = SymbolTable::with_capacity(10);
     /// assert!(table.capacity() >= 10);
     /// ```
@@ -438,20 +444,21 @@ impl<S> SymbolTable<S> {
         usize::min(self.vec.capacity(), self.map.capacity())
     }
 
-    /// Returns the number of interned byte strings in the table.
+    /// Returns the number of interned C strings in the table.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert_eq!(0, table.len());
     ///
-    /// table.intern(b"abc".to_vec())?;
-    /// // only uniquely interned byte strings grow the symbol table.
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// // only uniquely interned C strings grow the symbol table.
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
     /// assert_eq!(2, table.len());
     /// # Ok(())
     /// # }
@@ -461,17 +468,18 @@ impl<S> SymbolTable<S> {
         self.vec.len()
     }
 
-    /// Returns `true` if the symbol table contains no interned byte strings.
+    /// Returns `true` if the symbol table contains no interned C strings.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.is_empty());
     ///
-    /// table.intern(b"abc".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
     /// assert!(!table.is_empty());
     /// # Ok(())
     /// # }
@@ -486,13 +494,14 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.contains(Symbol::new(0)));
     ///
-    /// let sym = table.intern(b"abc".to_vec())?;
+    /// let sym = table.intern(CString::new(b"abc")?)?;
     /// assert!(table.contains(Symbol::new(0)));
     /// assert!(table.contains(sym));
     /// # Ok(())
@@ -504,7 +513,7 @@ impl<S> SymbolTable<S> {
         self.get(id).is_some()
     }
 
-    /// Returns a reference to the byte string associated with the given symbol.
+    /// Returns a reference to the C string associated with the given symbol.
     ///
     /// If the given symbol does not exist in the underlying symbol table,
     /// `None` is returned.
@@ -514,47 +523,49 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.get(Symbol::new(0)).is_none());
     ///
-    /// let sym = table.intern(b"abc".to_vec())?;
-    /// assert_eq!(Some(&b"abc"[..]), table.get(Symbol::new(0)));
-    /// assert_eq!(Some(&b"abc"[..]), table.get(sym));
+    /// let sym = table.intern(CString::new(b"abc")?)?;
+    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"abc\0")?), table.get(Symbol::new(0)));
+    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"abc\0")?), table.get(sym));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     #[must_use]
-    pub fn get(&self, id: Symbol) -> Option<&[u8]> {
-        let bytes = self.vec.get(usize::from(id))?;
-        Some(bytes.as_slice())
+    pub fn get(&self, id: Symbol) -> Option<&CStr> {
+        let cstr = self.vec.get(usize::from(id))?;
+        Some(cstr.as_slice())
     }
 
-    /// Returns an iterator over all [`Symbol`]s and byte strings in the
+    /// Returns an iterator over all [`Symbol`]s and C strings in the
     /// [`SymbolTable`].
     ///
     /// # Examples
     ///
     /// ```
     /// # use std::collections::HashMap;
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::{CStr, CString};
+    /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
-    /// table.intern(b"789".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CString::new(b"123")?)?;
+    /// table.intern(CString::new(b"789")?)?;
     ///
     /// let iter = table.iter();
     /// let mut map = HashMap::new();
-    /// map.insert(Symbol::new(0), &b"abc"[..]);
-    /// map.insert(Symbol::new(1), &b"xyz"[..]);
-    /// map.insert(Symbol::new(2), &b"123"[..]);
-    /// map.insert(Symbol::new(3), &b"789"[..]);
+    /// map.insert(Symbol::new(0), CStr::from_bytes_with_nul(b"abc\0")?);
+    /// map.insert(Symbol::new(1), CStr::from_bytes_with_nul(b"xyz\0")?);
+    /// map.insert(Symbol::new(2), CStr::from_bytes_with_nul(b"123\0")?);
+    /// map.insert(Symbol::new(3), CStr::from_bytes_with_nul(b"789\0")?);
     /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
     /// # Ok(())
     /// # }
@@ -562,13 +573,14 @@ impl<S> SymbolTable<S> {
     /// ```
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
-    /// table.intern(b"789".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CString::new(b"123")?)?;
+    /// table.intern(CString::new(b"789")?)?;
     ///
     /// let iter = table.iter();
     /// assert_eq!(table.len(), iter.count());
@@ -577,7 +589,7 @@ impl<S> SymbolTable<S> {
     /// # example().unwrap();
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter(self.all_symbols().zip(self.bytestrings()))
+        Iter(self.all_symbols().zip(self.c_strings()))
     }
 
     /// Returns an iterator over all [`Symbol`]s in the [`SymbolTable`].
@@ -585,14 +597,15 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
-    /// table.intern(b"789".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CString::new(b"123")?)?;
+    /// table.intern(CString::new(b"789")?)?;
     ///
     /// let mut all_symbols = table.all_symbols();
     /// assert_eq!(Some(Symbol::new(0)), all_symbols.next());
@@ -604,13 +617,14 @@ impl<S> SymbolTable<S> {
     /// ```
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
-    /// table.intern(b"789".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CString::new(b"123")?)?;
+    /// table.intern(CString::new(b"789")?)?;
     ///
     /// let all_symbols = table.all_symbols();
     /// assert_eq!(table.len(), all_symbols.count());
@@ -633,45 +647,47 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns an iterator over all byte strings in the [`SymbolTable`].
+    /// Returns an iterator over all C strings in the [`SymbolTable`].
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::{CStr, CString};
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
-    /// table.intern(b"789".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CString::new(b"123")?)?;
+    /// table.intern(CString::new(b"789")?)?;
     ///
-    /// let mut bytestrings = table.bytestrings();
-    /// assert_eq!(Some(&b"abc"[..]), bytestrings.next());
-    /// assert_eq!(Some(&b"xyz"[..]), bytestrings.nth_back(2));
-    /// assert_eq!(None, bytestrings.next());
+    /// let mut c_strings = table.c_strings();
+    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"abc\0")?), c_strings.next());
+    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"xyz\0")?), c_strings.nth_back(2));
+    /// assert_eq!(None, c_strings.next());
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
-    /// table.intern(b"789".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CString::new(b"123")?)?;
+    /// table.intern(CString::new(b"789")?)?;
     ///
-    /// let  bytestrings = table.bytestrings();
-    /// assert_eq!(table.len(), bytestrings.count());
+    /// let  c_strings = table.c_strings();
+    /// assert_eq!(table.len(), c_strings.count());
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
-    pub fn bytestrings(&self) -> Bytestrings<'_> {
-        Bytestrings(self.vec.iter())
+    pub fn c_strings(&self) -> CStrings<'_> {
+        CStrings(self.vec.iter())
     }
 }
 
@@ -679,40 +695,41 @@ impl<S> SymbolTable<S>
 where
     S: BuildHasher,
 {
-    /// Intern a byte string for the lifetime of the symbol table.
+    /// Intern a C string for the lifetime of the symbol table.
     ///
-    /// The returned `Symbol` allows retrieving of the underlying bytes.
-    /// Equal byte strings will be inserted into the symbol table exactly once.
+    /// The returned `Symbol` allows retrieving of the underlying [`CStr`].
+    /// Equal C strings will be inserted into the symbol table exactly once.
     ///
     /// This function only allocates if the underlying symbol table has no
     /// remaining capacity.
     ///
     /// # Errors
     ///
-    /// If the symbol table would grow larger than `u32::MAX` interned
-    /// byte strings, the [`Symbol`] counter would overflow and a
+    /// If the symbol table would grow larger than `u32::MAX` interned C
+    /// strings, the [`Symbol`] counter would overflow and a
     /// [`SymbolOverflowError`] is returned.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::{CStr, CString};
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// let sym = table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(&b"123"[..])?;
-    /// table.intern(&b"789"[..])?;
+    /// let sym = table.intern(CString::new(b"abc")?)?;
+    /// table.intern(CString::new(b"xyz")?)?;
+    /// table.intern(CStr::from_bytes_with_nul(b"123\0")?)?;
+    /// table.intern(CStr::from_bytes_with_nul(b"789\0")?)?;
     ///
     /// assert_eq!(4, table.len());
-    /// assert_eq!(Some(&b"abc"[..]), table.get(sym));
+    /// assert_eq!(Some(&b"abc\0"[..]), table.get(sym).map(CStr::to_bytes));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     pub fn intern<T>(&mut self, contents: T) -> Result<Symbol, SymbolOverflowError>
     where
-        T: Into<Cow<'static, [u8]>>,
+        T: Into<Cow<'static, CStr>>,
     {
         let contents = contents.into();
         if let Some(&id) = self.map.get(contents.as_ref()) {
@@ -727,7 +744,7 @@ where
         //
         // - `Interned` is an internal implementation detail of `SymbolTable`.
         // - `SymbolTable` never give out `'static` references to underlying
-        //   byte contents.
+        //   C string byte contents.
         // - All slice references given out by the `SymbolTable` have the same
         //   lifetime as the `SymbolTable`.
         // - The `map` field of `SymbolTable`, which contains the `'static`
@@ -752,16 +769,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
-    /// # use intaglio::Symbol;
+    /// # use std::ffi::{CStr, CString};
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.is_interned(b"abc"));
-    /// assert_eq!(None, table.check_interned(b"abc"));
+    /// assert!(!table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// assert_eq!(None, table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
     ///
-    /// table.intern(b"abc".to_vec())?;
-    /// assert!(table.is_interned(b"abc"));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(b"abc"));
+    /// table.intern(CString::new(b"abc")?)?;
+    /// assert!(table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -771,23 +788,23 @@ where
         self.map.get(contents).copied()
     }
 
-    /// Returns `true` if the given byte string has been interned before.
+    /// Returns `true` if the given C string has been interned before.
     ///
     /// This method does not modify the symbol table.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
-    /// # use intaglio::Symbol;
+    /// # use std::ffi::{CStr, CString};
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.is_interned(b"abc"));
-    /// assert_eq!(None, table.check_interned(b"abc"));
+    /// assert!(!table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// assert_eq!(None, table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
     ///
-    /// table.intern(b"abc".to_vec())?;
-    /// assert!(table.is_interned(b"abc"));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(b"abc"));
+    /// table.intern(CString::new(b"abc")?)?;
+    /// assert!(table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -810,10 +827,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(1);
-    /// table.intern(b"abc".to_vec())?;
+    /// table.intern(CString::new(b"abc")?)?;
     /// table.reserve(10);
     /// assert!(table.capacity() >= 11);
     /// # Ok(())
@@ -834,12 +852,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
-    /// table.intern(b"abc".to_vec());
-    /// table.intern(b"xyz".to_vec());
-    /// table.intern(b"123".to_vec());
+    /// table.intern(CString::new(b"abc")?);
+    /// table.intern(CString::new(b"xyz")?);
+    /// table.intern(CString::new(b"123")?);
     /// table.shrink_to_fit();
     /// assert!(table.capacity() >= 3);
     /// # Ok(())
@@ -861,12 +880,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::bytes::SymbolTable;
+    /// # use std::ffi::CString;
+    /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
-    /// table.intern(b"abc".to_vec())?;
-    /// table.intern(b"xyz".to_vec())?;
-    /// table.intern(b"123".to_vec())?;
+    /// table.intern(CString::new(b"abc")?);
+    /// table.intern(CString::new(b"xyz")?);
+    /// table.intern(CString::new(b"123")?);
     /// table.shrink_to(5);
     /// assert!(table.capacity() >= 5);
     /// # Ok(())
@@ -882,9 +902,11 @@ where
 #[cfg(test)]
 #[allow(clippy::needless_pass_by_value)]
 mod tests {
+    use std::ffi::{CStr, CString};
+
     use quickcheck_macros::quickcheck;
 
-    use crate::bytes::SymbolTable;
+    use crate::cstr::SymbolTable;
 
     #[test]
     fn alloc_drop_new() {
@@ -901,22 +923,32 @@ mod tests {
     #[test]
     fn drop_with_true_static_data() {
         let mut table = SymbolTable::new();
-        table.intern(&b"1"[..]).unwrap();
-        table.intern(&b"2"[..]).unwrap();
-        table.intern(&b"3"[..]).unwrap();
-        table.intern(&b"4"[..]).unwrap();
-        table.intern(&b"5"[..]).unwrap();
+        table
+            .intern(CStr::from_bytes_with_nul(b"1\0").unwrap())
+            .unwrap();
+        table
+            .intern(CStr::from_bytes_with_nul(b"2\0").unwrap())
+            .unwrap();
+        table
+            .intern(CStr::from_bytes_with_nul(b"3\0").unwrap())
+            .unwrap();
+        table
+            .intern(CStr::from_bytes_with_nul(b"4\0").unwrap())
+            .unwrap();
+        table
+            .intern(CStr::from_bytes_with_nul(b"5\0").unwrap())
+            .unwrap();
         drop(table);
     }
 
     #[test]
     fn drop_with_owned_data() {
         let mut table = SymbolTable::new();
-        table.intern(b"1".to_vec()).unwrap();
-        table.intern(b"2".to_vec()).unwrap();
-        table.intern(b"3".to_vec()).unwrap();
-        table.intern(b"4".to_vec()).unwrap();
-        table.intern(b"5".to_vec()).unwrap();
+        table.intern(CString::new(b"1").unwrap()).unwrap();
+        table.intern(CString::new(b"2").unwrap()).unwrap();
+        table.intern(CString::new(b"3").unwrap()).unwrap();
+        table.intern(CString::new(b"4").unwrap()).unwrap();
+        table.intern(CString::new(b"5").unwrap()).unwrap();
         drop(table);
     }
 
@@ -924,48 +956,60 @@ mod tests {
     fn set_owned_value_and_get_with_owned_and_borrowed() {
         let mut table = SymbolTable::new();
         // intern an owned value
-        let sym = table.intern(b"abc".to_vec()).unwrap();
-        // retrieve bytes
-        assert_eq!(&b"abc"[..], table.get(sym).unwrap());
+        let sym = table.intern(CString::new(b"abc").unwrap()).unwrap();
+        // retrieve C string bytes
+        assert_eq!(&b"abc\0"[..], table.get(sym).unwrap().to_bytes());
         // intern owned value again
-        assert_eq!(sym, table.intern(b"abc".to_vec()).unwrap());
+        assert_eq!(sym, table.intern(CString::new(b"abc").unwrap()).unwrap());
         // intern borrowed value
-        assert_eq!(sym, table.intern(&b"abc"[..]).unwrap());
+        assert_eq!(
+            sym,
+            table
+                .intern(CStr::from_bytes_with_nul(b"abc\0").unwrap())
+                .unwrap()
+        );
     }
 
     #[test]
     fn set_borrowed_value_and_get_with_owned_and_borrowed() {
         let mut table = SymbolTable::new();
         // intern a borrowed value
-        let sym = table.intern(&b"abc"[..]).unwrap();
-        // retrieve bytes
-        assert_eq!(&b"abc"[..], table.get(sym).unwrap());
+        let sym = table
+            .intern(CStr::from_bytes_with_nul(b"abc\0").unwrap())
+            .unwrap();
+        // retrieve C string bytes
+        assert_eq!(&b"abc\0"[..], table.get(sym).unwrap().to_bytes());
         // intern owned value
-        assert_eq!(sym, table.intern(b"abc".to_vec()).unwrap());
+        assert_eq!(sym, table.intern(CString::new(b"abc").unwrap()).unwrap());
         // intern borrowed value again
-        assert_eq!(sym, table.intern(&b"abc"[..]).unwrap());
+        assert_eq!(
+            sym,
+            table
+                .intern(CStr::from_bytes_with_nul(b"abc\0").unwrap())
+                .unwrap()
+        );
     }
 
     #[quickcheck]
-    fn intern_twice_symbol_equality(bytes: Vec<u8>) -> bool {
+    fn intern_twice_symbol_equality(cstring: CString) -> bool {
         let mut table = SymbolTable::new();
-        let sym = table.intern(bytes.clone()).unwrap();
-        let sym_again = table.intern(bytes).unwrap();
+        let sym = table.intern(cstring.clone()).unwrap();
+        let sym_again = table.intern(cstring).unwrap();
         sym == sym_again
     }
 
     #[quickcheck]
-    fn intern_get_roundtrip(bytes: Vec<u8>) -> bool {
+    fn intern_get_roundtrip(cstring: CString) -> bool {
         let mut table = SymbolTable::new();
-        let sym = table.intern(bytes.clone()).unwrap();
-        let retrieved_bytes = table.get(sym).unwrap();
-        bytes == retrieved_bytes
+        let sym = table.intern(cstring.clone()).unwrap();
+        let retrieved_c_string = table.get(sym).unwrap();
+        cstring == retrieved_c_string
     }
 
     #[quickcheck]
-    fn table_contains_sym(bytes: Vec<u8>) -> bool {
+    fn table_contains_sym(cstring: CString) -> bool {
         let mut table = SymbolTable::new();
-        let sym = table.intern(bytes).unwrap();
+        let sym = table.intern(cstring).unwrap();
         table.contains(sym)
     }
 
@@ -976,15 +1020,15 @@ mod tests {
     }
 
     #[quickcheck]
-    fn empty_table_does_not_report_any_interned_byte_strings(bytes: Vec<u8>) -> bool {
+    fn empty_table_does_not_report_any_interned_c_strings(cstring: CString) -> bool {
         let table = SymbolTable::new();
-        !table.is_interned(bytes.as_slice())
+        !table.is_interned(cstring.as_c_str())
     }
 
     #[quickcheck]
-    fn table_reports_interned_byte_strings_as_interned(bytes: Vec<u8>) -> bool {
+    fn table_reports_interned_c_strings_as_interned(cstring: CString) -> bool {
         let mut table = SymbolTable::new();
-        table.intern(bytes.clone()).unwrap();
-        table.is_interned(bytes.as_slice())
+        table.intern(cstring.clone()).unwrap();
+        table.is_interned(cstring.as_c_str())
     }
 }
