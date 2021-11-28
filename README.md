@@ -95,7 +95,7 @@ All features are enabled by default.
 - **bytes** - Enables an additional symbol table implementation for interning
   byte strings (`Vec<u8>` and `&'static [u8]`).
 - **cstr** - Enables an additional symbol table implementation for interning C
-    strings (`CString` and `&'static CStr`).
+  strings (`CString` and `&'static CStr`).
 
 ### Minimum Supported Rust Version
 

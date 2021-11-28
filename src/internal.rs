@@ -424,7 +424,7 @@ impl fmt::Debug for Slice<[u8]> {
 
 #[cfg(feature = "cstr")]
 impl fmt::Debug for Slice<CStr> {
-    /// Formats the CStr slice using the given formatter.
+    /// Formats the `CStr` slice using the given formatter.
     ///
     /// If alternate format is specified, e.g. `{:#?}`, the slice is assumed to
     /// be conventionally UTF-8 and converted to a [`String`] lossily with
