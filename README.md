@@ -69,13 +69,15 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 Or intern C strings like:
 
 ```rust
+use std::ffi::{CStr, CString};
+
 fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
     let mut table = intaglio::cstr::SymbolTable::new();
     let name: &'static CStr = CStr::from_bytes_with_nul(b"abc\0")?;
     let sym = table.intern(name)?;
     let retrieved = table.get(sym);
     assert_eq!(Some(name), retrieved);
-    assert_eq!(sym, table.intern(CString::new(b"abc")?)?);
+    assert_eq!(sym, table.intern(CString::new(*b"abc")?)?);
     Ok(())
 }
 ```

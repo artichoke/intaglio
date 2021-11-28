@@ -54,7 +54,7 @@ impl From<Cow<'static, [u8]>> for Interned<[u8]> {
 }
 
 #[cfg(feature = "cstr")]
-impl From<CString> for Interned<[u8]> {
+impl From<CString> for Interned<CStr> {
     #[inline]
     fn from(owned: CString) -> Self {
         Self(owned.into())
@@ -62,7 +62,7 @@ impl From<CString> for Interned<[u8]> {
 }
 
 #[cfg(feature = "cstr")]
-impl From<Cow<'static, CStr>> for Interned<[u8]> {
+impl From<Cow<'static, CStr>> for Interned<CStr> {
     #[inline]
     fn from(cstr: Cow<'static, CStr>) -> Self {
         Self(cstr.into())
