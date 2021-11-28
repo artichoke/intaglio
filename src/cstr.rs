@@ -3,7 +3,7 @@
 //! This module provides a nearly identical API to the one found in the
 //! top-level of this crate. There is one important difference:
 //!
-//! 1. Interned contents are [`&CStr`](CStr) instead of `&str`. Additionally,
+//! 1. Interned contents are [`&CStr`] instead of `&str`. Additionally,
 //!    [`CString`] is used where `String` would have been used.
 //!
 //! # Example: intern C string
@@ -51,6 +51,9 @@
 //!
 //! In general, one should expect this crate's performance on `&CStr` to be
 //! roughly similar to performance on `&str`.
+//!
+//! [`CString`]: std::ffi::CString
+//! [`&CStr`]: std::ffi::CStr
 
 use core::convert::TryInto;
 use core::hash::BuildHasher;
@@ -302,7 +305,7 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// C string interner.
 ///
 /// This symbol table is implemented by storing [`CString`]s with a fast path
-/// for `&CStr` that are already `'static`.
+/// for [`&CStr`] that are already `'static`.
 ///
 /// See module documentation for more.
 ///
@@ -321,6 +324,9 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// # }
 /// # example().unwrap();
 /// ```
+///
+/// [`CString`]: std::ffi::CString
+/// [`&CStr`]: std::ffi::CStr
 #[derive(Default, Debug)]
 #[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
 pub struct SymbolTable<S = RandomState> {
