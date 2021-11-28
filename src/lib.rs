@@ -20,9 +20,9 @@
 
 //! This crate provides a library for interning strings.
 //!
-//! The primary API is a symbol table. Its API is similar to a
-//! bimap in that symbols can resolve an underlying string and a string slice
-//! can retrieve its associated symbol.
+//! The primary API is a symbol table. Its API is similar to a bimap in that
+//! symbols can resolve an underlying string and a string slice can retrieve
+//! its associated symbol.
 //!
 //! For more specific details on the API for interning strings into a symbol
 //! table, please see the documentation for the [`SymbolTable`] type.
@@ -56,18 +56,33 @@
 //!
 //! `SymbolTable` exposes several constructors for tuning the initial allocated
 //! size of the table. It also exposes several APIs for tuning the table's
-//! memory usage such as [`SymbolTable::reserve`] and
-//! [`SymbolTable::shrink_to_fit`].
+//! memory usage such as [`SymbolTable::reserve`] and [`SymbolTable::shrink_to_fit`].
 //!
 //! [`SymbolTable::intern`] does not clone or copy interned strings. It takes
 //! ownership of the string contents with no additional allocations.
+//!
+//! # Types of Interners
+//!
+//! Intaglio includes multiple symbol tables which differ in the types of strings
+//! they allow you to intern.
+//!
+//! - [`SymbolTable`] interns UTF-8 strings: [`String`] and [`&str`](prim@str).
+//! - [`bytes::SymbolTable`] interns binary strings: [`Vec<u8>`] and `&[u8]`.
+//! - [`cstr::SymbolTable`] interns C strings: [`CString`] and [`&CStr`].
 //!
 //! # Crate features
 //!
 //! All features are enabled by default.
 //!
-//! - **bytes** - Enables an additional symbol table implementation for
-//!   interning byte strings (`Vec<u8>` and `&'static [u8]`).
+//! - **bytes** - Enables an additional symbol table implementation for interning
+//!   byte strings ([`Vec<u8>`] and `&'static [u8]`).
+//! - **cstr** - Enables an additional symbol table implementation for interning
+//!   C strings ([`CString`] and [`&'static CStr`]).
+//!
+//! [`Vec<u8>`]: std::vec::Vec
+//! [`CString`]: std::ffi::CString
+//! [`&CStr`]: std::ffi::CStr
+//! [`&'static CStr`]: std::ffi::CStr
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.4.2")]
 
@@ -94,6 +109,9 @@ use std::error;
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub mod bytes;
 mod convert;
+#[cfg(feature = "cstr")]
+#[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
+pub mod cstr;
 mod eq;
 mod internal;
 mod str;
