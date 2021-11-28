@@ -94,6 +94,9 @@ use std::error;
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub mod bytes;
 mod convert;
+#[cfg(feature = "cstr")]
+#[cfg_attr(docsrs, doc(cfg(feature = "cstr")))]
+pub mod cstr;
 mod eq;
 mod internal;
 mod str;

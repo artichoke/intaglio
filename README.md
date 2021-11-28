@@ -66,6 +66,20 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+Or intern C strings like:
+
+```rust
+fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
+    let mut table = intaglio::cstr::SymbolTable::new();
+    let name: &'static CStr = CStr::from_bytes_with_nul(b"abc\0")?;
+    let sym = table.intern(name)?;
+    let retrieved = table.get(sym);
+    assert_eq!(Some(name), retrieved);
+    assert_eq!(sym, table.intern(CString::new(b"abc")?)?);
+    Ok(())
+}
+```
+
 ## Implementation
 
 Intaglio interns owned and borrowed strings with no additional copying by
@@ -78,6 +92,8 @@ All features are enabled by default.
 
 - **bytes** - Enables an additional symbol table implementation for interning
   byte strings (`Vec<u8>` and `&'static [u8]`).
+- **cstr** - Enables an additional symbol table implementation for interning C
+    strings (`CString` and `&'static CStr`).
 
 ### Minimum Supported Rust Version
 
