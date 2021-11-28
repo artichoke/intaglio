@@ -6,6 +6,8 @@ use core::fmt;
 use core::hash::{Hash, Hasher};
 use core::ops::Deref;
 use std::borrow::Cow;
+#[cfg(feature = "cstr")]
+use std::ffi::{CStr, CString};
 
 /// Wrapper around `&'static` slices that does not allow mutable access to the
 /// inner slice.
@@ -48,6 +50,22 @@ impl From<Cow<'static, [u8]>> for Interned<[u8]> {
     #[inline]
     fn from(bytes: Cow<'static, [u8]>) -> Self {
         Self(bytes.into())
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl From<CString> for Interned<[u8]> {
+    #[inline]
+    fn from(owned: CString) -> Self {
+        Self(owned.into())
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl From<Cow<'static, CStr>> for Interned<[u8]> {
+    #[inline]
+    fn from(cstr: Cow<'static, CStr>) -> Self {
+        Self(cstr.into())
     }
 }
 
@@ -101,6 +119,17 @@ impl fmt::Debug for Interned<str> {
 
 #[cfg(feature = "bytes")]
 impl fmt::Debug for Interned<[u8]> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "{:#?}", self.0)
+        } else {
+            write!(f, "{:?}", self.0)
+        }
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl fmt::Debug for Interned<CStr> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
             write!(f, "{:#?}", self.0)
@@ -169,6 +198,22 @@ impl PartialEq<Interned<[u8]>> for Vec<u8> {
     #[inline]
     fn eq(&self, other: &Interned<[u8]>) -> bool {
         self.as_slice() == other.as_slice()
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl PartialEq<CString> for Interned<CStr> {
+    #[inline]
+    fn eq(&self, other: &CString) -> bool {
+        self.as_slice() == other.as_c_str()
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl PartialEq<Interned<CStr>> for CString {
+    #[inline]
+    fn eq(&self, other: &Interned<CStr>) -> bool {
+        self.as_c_str() == other.as_slice()
     }
 }
 
@@ -277,6 +322,25 @@ impl From<Cow<'static, [u8]>> for Slice<[u8]> {
     }
 }
 
+#[cfg(feature = "cstr")]
+impl From<CString> for Slice<CStr> {
+    #[inline]
+    fn from(owned: CString) -> Self {
+        Self::Owned(owned.into_boxed_c_str())
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl From<Cow<'static, CStr>> for Slice<CStr> {
+    #[inline]
+    fn from(bytes: Cow<'static, CStr>) -> Self {
+        match bytes {
+            Cow::Borrowed(slice) => slice.into(),
+            Cow::Owned(owned) => owned.into(),
+        }
+    }
+}
+
 impl<T> Slice<T>
 where
     T: ?Sized,
@@ -358,6 +422,26 @@ impl fmt::Debug for Slice<[u8]> {
     }
 }
 
+#[cfg(feature = "cstr")]
+impl fmt::Debug for Slice<CStr> {
+    /// Formats the CStr slice using the given formatter.
+    ///
+    /// If alternate format is specified, e.g. `{:#?}`, the slice is assumed to
+    /// be conventionally UTF-8 and converted to a [`String`] lossily with
+    /// [`String::from_utf8_lossy`].
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            write!(
+                f,
+                "{:?}",
+                String::from_utf8_lossy(self.as_slice().to_bytes())
+            )
+        } else {
+            write!(f, "{:?}", self.as_slice())
+        }
+    }
+}
+
 impl<T> Deref for Slice<T>
 where
     T: ?Sized,
@@ -417,6 +501,22 @@ impl PartialEq<Slice<[u8]>> for Vec<u8> {
     #[inline]
     fn eq(&self, other: &Slice<[u8]>) -> bool {
         self.as_slice() == other.as_slice()
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl PartialEq<CString> for Slice<CStr> {
+    #[inline]
+    fn eq(&self, other: &CString) -> bool {
+        self.as_slice() == other.as_c_str()
+    }
+}
+
+#[cfg(feature = "cstr")]
+impl PartialEq<Slice<CStr>> for CString {
+    #[inline]
+    fn eq(&self, other: &Slice<CStr>) -> bool {
+        self.as_c_str() == other.as_slice()
     }
 }
 
