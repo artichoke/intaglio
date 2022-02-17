@@ -761,8 +761,8 @@ where
         self.map.insert(slice, id);
         self.vec.push(name);
 
-        debug_assert!(self.get(id) == Some(slice));
-        debug_assert!(self.intern(slice) == Ok(id));
+        debug_assert_eq!(self.get(id), Some(slice));
+        debug_assert_eq!(self.intern(slice), Ok(id));
 
         Ok(id)
     }
