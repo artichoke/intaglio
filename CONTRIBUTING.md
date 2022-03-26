@@ -76,6 +76,33 @@ Intaglio requires a recent Ruby and [bundler] for development tasks. The
 [`.ruby-version`](.ruby-version) file in this repository specifies the preferred
 Ruby toolchain.
 
+If you use [RVM], you can install Ruby dependencies by running:
+
+```sh
+rvm install "$(cat .ruby-version)"
+gem install bundler
+```
+
+If you use [rbenv] and [ruby-build], you can install Ruby dependencies by
+running:
+
+```sh
+rbenv install "$(cat .ruby-version)"
+gem install bundler
+rbenv rehash
+```
+
+The [`Gemfile`](Gemfile) in this repository specifies several dev dependencies.
+You can install these dependencies by running:
+
+```sh
+bundle install
+```
+
+[rvm]: https://rvm.io/
+[rbenv]: https://github.com/rbenv/rbenv
+[ruby-build]: https://github.com/rbenv/ruby-build
+
 Intaglio uses [`rake`](Rakefile) as a task runner. You can see the available
 tasks by running:
 
