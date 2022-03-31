@@ -5,7 +5,7 @@ use intaglio::cstr::SymbolTable;
 #[test]
 fn dealloc_owned_data() {
     let mut table = SymbolTable::with_capacity(0);
-    for sym in crate::byte_symbols_no_nul() {
+    for sym in crate::vectors::byte_symbols_no_nul() {
         let symbol = CString::new(sym).unwrap();
 
         let sym_id = table.intern(symbol.clone()).unwrap();
