@@ -90,7 +90,7 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(docsrs, doc(cfg(feature = "path")))]
 pub struct AllSymbols<'a> {
-    range: Range<usize>,
+    range: Range<u32>,
     // Hold a shared reference to the underlying `SymbolTable` to ensure the
     // table is not modified while we are iterating which would make the results
     // not match the real state.
@@ -101,9 +101,7 @@ impl<'a> Iterator for AllSymbols<'a> {
     type Item = Symbol;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let next = self.range.next()?;
-        debug_assert!(u32::try_from(next).is_ok());
-        Some((next as u32).into())
+        self.range.next().map(Symbol::from)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -115,33 +113,25 @@ impl<'a> Iterator for AllSymbols<'a> {
     }
 
     fn last(self) -> Option<Self::Item> {
-        let last = self.range.last()?;
-        debug_assert!(u32::try_from(last).is_ok());
-        Some((last as u32).into())
+        self.range.last().map(Symbol::from)
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let nth = self.range.nth(n)?;
-        debug_assert!(u32::try_from(nth).is_ok());
-        Some((nth as u32).into())
+        self.range.nth(n).map(Symbol::from)
     }
 
     fn collect<B: FromIterator<Self::Item>>(self) -> B {
-        self.range.map(|sym| Symbol::from(sym as u32)).collect()
+        self.range.map(Symbol::from).collect()
     }
 }
 
 impl<'a> DoubleEndedIterator for AllSymbols<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let next = self.range.next_back()?;
-        debug_assert!(u32::try_from(next).is_ok());
-        Some((next as u32).into())
+        self.range.next_back().map(Symbol::from)
     }
 
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        let nth = self.range.nth_back(n)?;
-        debug_assert!(u32::try_from(nth).is_ok());
-        Some((nth as u32).into())
+        self.range.nth_back(n).map(Symbol::from)
     }
 }
 
@@ -624,8 +614,14 @@ impl<S> SymbolTable<S> {
     /// # example().unwrap();
     /// ```
     pub fn all_symbols(&self) -> AllSymbols<'_> {
+        let len = self.len();
+        debug_assert!(
+            u32::try_from(len).is_ok(),
+            "Interner can hold at most u32::MAX symbols"
+        );
+        let len = len as u32;
         AllSymbols {
-            range: 0..self.len(),
+            range: 0_u32..len,
             phantom: PhantomData,
         }
     }
