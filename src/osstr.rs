@@ -37,8 +37,8 @@
 //!
 //! table.intern(OsStr::new("xyz"))?;
 //! let mut map = HashMap::new();
-//! map.insert(Symbol::new(0), OsStr::new("abc"));
-//! map.insert(Symbol::new(1), OsStr::new("xyz"));
+//! map.insert(Symbol::try_from(0_u32)?, OsStr::new("abc"));
+//! map.insert(Symbol::try_from(1_u32)?, OsStr::new("xyz"));
 //! // Retrieve symbol to platform string content mappings.
 //! let iter = table.iter();
 //! assert_eq!(map, iter.collect::<HashMap<_, _>>());
@@ -266,7 +266,7 @@ impl<'a> FusedIterator for OsStrings<'a> {}
 /// let sym = table.intern(OsStr::new("abc"))?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
-/// map.insert(Symbol::new(0), OsStr::new("abc"));
+/// map.insert(Symbol::try_from(0_u32)?, OsStr::new("abc"));
 /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
 /// # Ok(())
 /// # }
@@ -521,10 +521,10 @@ impl<S> SymbolTable<S> {
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.contains(Symbol::new(0)));
+    /// assert!(!table.contains(Symbol::try_from(0_u32)?));
     ///
     /// let sym = table.intern(OsString::from("abc"))?;
-    /// assert!(table.contains(Symbol::new(0)));
+    /// assert!(table.contains(Symbol::try_from(0_u32)?));
     /// assert!(table.contains(sym));
     /// # Ok(())
     /// # }
@@ -550,10 +550,10 @@ impl<S> SymbolTable<S> {
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(table.get(Symbol::new(0)).is_none());
+    /// assert!(table.get(Symbol::try_from(0_u32)?).is_none());
     ///
     /// let sym = table.intern(OsString::from("abc"))?;
-    /// assert_eq!(Some(OsStr::new("abc")), table.get(Symbol::new(0)));
+    /// assert_eq!(Some(OsStr::new("abc")), table.get(Symbol::try_from(0_u32)?));
     /// assert_eq!(Some(OsStr::new("abc")), table.get(sym));
     /// # Ok(())
     /// # }
@@ -584,10 +584,10 @@ impl<S> SymbolTable<S> {
     ///
     /// let iter = table.iter();
     /// let mut map = HashMap::new();
-    /// map.insert(Symbol::new(0), OsStr::new("abc"));
-    /// map.insert(Symbol::new(1), OsStr::new("xyz"));
-    /// map.insert(Symbol::new(2), OsStr::new("123"));
-    /// map.insert(Symbol::new(3), OsStr::new("789"));
+    /// map.insert(Symbol::try_from(0_u32)?, OsStr::new("abc"));
+    /// map.insert(Symbol::try_from(1_u32)?, OsStr::new("xyz"));
+    /// map.insert(Symbol::try_from(2_u32)?, OsStr::new("123"));
+    /// map.insert(Symbol::try_from(3_u32)?, OsStr::new("789"));
     /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
     /// # Ok(())
     /// # }
@@ -630,8 +630,8 @@ impl<S> SymbolTable<S> {
     /// table.intern(OsString::from("789"))?;
     ///
     /// let mut all_symbols = table.all_symbols();
-    /// assert_eq!(Some(Symbol::new(0)), all_symbols.next());
-    /// assert_eq!(Some(Symbol::new(1)), all_symbols.nth_back(2));
+    /// assert_eq!(Some(Symbol::try_from(0_u32)?), all_symbols.next());
+    /// assert_eq!(Some(Symbol::try_from(1_u32)?), all_symbols.nth_back(2));
     /// assert_eq!(None, all_symbols.next());
     /// # Ok(())
     /// # }
@@ -811,7 +811,7 @@ where
     ///
     /// table.intern(OsString::from("abc"))?;
     /// assert!(table.is_interned(OsStr::new("abc")));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(OsStr::new("abc")));
+    /// assert_eq!(Some(Symbol::try_from(0_u32)?), table.check_interned(OsStr::new("abc")));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -838,7 +838,7 @@ where
     ///
     /// table.intern(OsString::from("abc"))?;
     /// assert!(table.is_interned(OsStr::new("abc")));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(OsStr::new("abc")));
+    /// assert_eq!(Some(Symbol::try_from(0_u32)?), table.check_interned(OsStr::new("abc")));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
