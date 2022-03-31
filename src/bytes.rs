@@ -55,7 +55,7 @@ use core::hash::BuildHasher;
 use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
-use core::ops::{Range, RangeInclusive};
+use core::ops::Range;
 use core::slice;
 use std::borrow::Cow;
 use std::collections::hash_map::{HashMap, RandomState};
@@ -83,8 +83,7 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub struct AllSymbols<'a> {
-    // this Result is being used as an Either type.
-    range: Result<Range<u32>, RangeInclusive<u32>>,
+    range: Range<usize>,
     // Hold a shared reference to the underlying `SymbolTable` to ensure the
     // table is not modified while we are iterating which would make the results
     // not match the real state.
@@ -95,61 +94,47 @@ impl<'a> Iterator for AllSymbols<'a> {
     type Item = Symbol;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.range {
-            Ok(ref mut range) => range.next().map(Symbol::from),
-            Err(ref mut range) => range.next().map(Symbol::from),
-        }
+        let next = self.range.next()?;
+        debug_assert!(u32::try_from(next).is_ok());
+        Some((next as u32).into())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        match self.range {
-            Ok(ref range) => range.size_hint(),
-            Err(ref range) => range.size_hint(),
-        }
+        self.range.size_hint()
     }
 
     fn count(self) -> usize {
-        match self.range {
-            Ok(range) => range.count(),
-            Err(range) => range.count(),
-        }
+        self.range.count()
     }
 
     fn last(self) -> Option<Self::Item> {
-        match self.range {
-            Ok(range) => range.last().map(Symbol::from),
-            Err(range) => range.last().map(Symbol::from),
-        }
+        let last = self.range.last()?;
+        debug_assert!(u32::try_from(last).is_ok());
+        Some((last as u32).into())
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        match self.range {
-            Ok(ref mut range) => range.nth(n).map(Symbol::from),
-            Err(ref mut range) => range.nth(n).map(Symbol::from),
-        }
+        let nth = self.range.nth(n)?;
+        debug_assert!(u32::try_from(nth).is_ok());
+        Some((nth as u32).into())
     }
 
     fn collect<B: FromIterator<Self::Item>>(self) -> B {
-        match self.range {
-            Ok(range) => range.map(Symbol::from).collect(),
-            Err(range) => range.map(Symbol::from).collect(),
-        }
+        self.range.map(|sym| Symbol::from(sym as u32)).collect()
     }
 }
 
 impl<'a> DoubleEndedIterator for AllSymbols<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        match self.range {
-            Ok(ref mut range) => range.next_back().map(Symbol::from),
-            Err(ref mut range) => range.next_back().map(Symbol::from),
-        }
+        let next = self.range.next_back()?;
+        debug_assert!(u32::try_from(next).is_ok());
+        Some((next as u32).into())
     }
 
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        match self.range {
-            Ok(ref mut range) => range.nth_back(n).map(Symbol::from),
-            Err(ref mut range) => range.nth_back(n).map(Symbol::from),
-        }
+        let nth = self.range.nth_back(n)?;
+        debug_assert!(u32::try_from(nth).is_ok());
+        Some((nth as u32).into())
     }
 }
 
@@ -619,17 +604,9 @@ impl<S> SymbolTable<S> {
     /// # example().unwrap();
     /// ```
     pub fn all_symbols(&self) -> AllSymbols<'_> {
-        if self.len() == u32::MAX as usize {
-            AllSymbols {
-                range: Err(0..=u32::MAX),
-                phantom: PhantomData,
-            }
-        } else {
-            let upper_bound = self.len() as u32;
-            AllSymbols {
-                range: Ok(0..upper_bound),
-                phantom: PhantomData,
-            }
+        AllSymbols {
+            range: 0..self.len(),
+            phantom: PhantomData,
         }
     }
 
