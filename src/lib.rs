@@ -69,6 +69,7 @@
 //! - [`SymbolTable`] interns UTF-8 strings: [`String`] and [`&str`](prim@str).
 //! - [`bytes::SymbolTable`] interns binary strings: [`Vec<u8>`] and `&[u8]`.
 //! - [`cstr::SymbolTable`] interns C strings: [`CString`] and [`&CStr`].
+//! - [`path::SymbolTable`] interns path strings: [`PathBuf`] and [`&Path`].
 //!
 //! # Crate features
 //!
@@ -78,16 +79,21 @@
 //!   byte strings ([`Vec<u8>`] and `&'static [u8]`).
 //! - **cstr** - Enables an additional symbol table implementation for interning
 //!   C strings ([`CString`] and [`&'static CStr`]).
+//! - **path** - Enables an additional symbol table implementation for interning
+//!   path strings ([`PathBuf`] and [`&'static Path`]).
 //!
 //! [`Vec<u8>`]: std::vec::Vec
 //! [`CString`]: std::ffi::CString
 //! [`&CStr`]: std::ffi::CStr
 //! [`&'static CStr`]: std::ffi::CStr
+//! [`PathBuf`]: std::path::PathBuf
+//! [`&Path`]: std::path::Path
+//! [`&'static Path`]: std::path::Path
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.4.2")]
 
 // Ensure code blocks in README.md compile
-#[cfg(all(doctest, feature = "bytes", feature = "cstr"))]
+#[cfg(all(doctest, feature = "bytes", feature = "cstr", feature = "path"))]
 #[doc = include_str!("../README.md")]
 mod readme {}
 
@@ -105,6 +111,9 @@ mod convert;
 pub mod cstr;
 mod eq;
 mod internal;
+#[cfg(feature = "path")]
+#[cfg_attr(docsrs, doc(cfg(feature = "path")))]
+pub mod path;
 mod str;
 
 pub use crate::str::*;
