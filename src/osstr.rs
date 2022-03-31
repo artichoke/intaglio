@@ -1,21 +1,21 @@
-//! Intern path strings.
+//! Intern platform strings.
 //!
 //! This module provides a nearly identical API to the one found in the
 //! top-level of this crate. There is one important difference:
 //!
-//! 1. Interned contents are [`&Path`] instead of `&str`. Additionally,
-//!    [`PathBuf`] is used where `String` would have been used.
+//! 1. Interned contents are [`&OsStr`] instead of `&str`. Additionally,
+//!    [`OsString`] is used where `String` would have been used.
 //!
-//! # Example: intern path string
+//! # Example: intern platform string
 //!
 //! ```
-//! # use std::path::{Path, PathBuf};
-//! # use intaglio::path::SymbolTable;
+//! # use std::ffi::{OsStr, OsString};
+//! # use intaglio::osstr::SymbolTable;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym = table.intern(Path::new("abc"))?;
-//! assert_eq!(sym, table.intern(PathBuf::from("abc"))?);
-//! assert_eq!(Some(Path::new("abc")), table.get(sym));
+//! let sym = table.intern(OsStr::new("abc"))?;
+//! assert_eq!(sym, table.intern(OsString::from("abc"))?);
+//! assert_eq!(Some(OsStr::new("abc")), table.get(sym));
 //! # Ok(())
 //! # }
 //! # example().unwrap();
@@ -25,21 +25,21 @@
 //!
 //! ```
 //! # use std::collections::HashMap;
-//! # use std::path::Path;
-//! # use intaglio::path::SymbolTable;
+//! # use std::ffi::OsStr;
+//! # use intaglio::osstr::SymbolTable;
 //! # use intaglio::Symbol;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym = table.intern(Path::new("abc"))?;
+//! let sym = table.intern(OsStr::new("abc"))?;
 //! // Retrieve set of `Symbol`s.
 //! let all_symbols = table.all_symbols();
 //! assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 //!
-//! table.intern(Path::new("xyz"))?;
+//! table.intern(OsStr::new("xyz"))?;
 //! let mut map = HashMap::new();
-//! map.insert(Symbol::new(0), Path::new("abc"));
-//! map.insert(Symbol::new(1), Path::new("xyz"));
-//! // Retrieve symbol to path string content mappings.
+//! map.insert(Symbol::new(0), OsStr::new("abc"));
+//! map.insert(Symbol::new(1), OsStr::new("xyz"));
+//! // Retrieve symbol to platform string content mappings.
 //! let iter = table.iter();
 //! assert_eq!(map, iter.collect::<HashMap<_, _>>());
 //! # Ok(())
@@ -49,11 +49,11 @@
 //!
 //! # Performance
 //!
-//! In general, one should expect this crate's performance on `&Path` to be
+//! In general, one should expect this crate's performance on `&OsStr` to be
 //! roughly similar to performance on `&str`.
 //!
-//! [`PathBuf`]: std::path::PathBuf
-//! [`&Path`]: std::path::Path
+//! [`OsString`]: std::ffi::OsString
+//! [`&OsStr`]: std::ffi::OsStr
 
 use core::convert::TryInto;
 use core::hash::BuildHasher;
@@ -64,7 +64,7 @@ use core::ops::{Range, RangeInclusive};
 use core::slice;
 use std::borrow::Cow;
 use std::collections::hash_map::{HashMap, RandomState};
-use std::path::Path;
+use std::ffi::OsStr;
 
 use crate::internal::Interned;
 use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
@@ -76,11 +76,11 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// # Usage
 ///
 /// ```
-/// # use std::path::Path;
-/// # use intaglio::path::SymbolTable;
+/// # use std::ffi::OsStr;
+/// # use intaglio::osstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(Path::new("abc"))?;
+/// let sym = table.intern(OsStr::new("abc"))?;
 /// let all_symbols = table.all_symbols();
 /// assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 /// # Ok(())
@@ -88,7 +88,7 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-#[cfg_attr(docsrs, doc(cfg(feature = "path")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "osstr")))]
 pub struct AllSymbols<'a> {
     // this Result is being used as an Either type.
     range: Result<Range<u32>, RangeInclusive<u32>>,
@@ -162,30 +162,30 @@ impl<'a> DoubleEndedIterator for AllSymbols<'a> {
 
 impl<'a> FusedIterator for AllSymbols<'a> {}
 
-/// An iterator over all interned path strings in a [`SymbolTable`].
+/// An iterator over all interned platform strings in a [`SymbolTable`].
 ///
-/// See the [`paths`](SymbolTable::paths) method in [`SymbolTable`].
+/// See the [`os_strings`](SymbolTable::os_strings) method in [`SymbolTable`].
 ///
 /// # Usage
 ///
 /// ```
-/// # use std::path::{Path, PathBuf};
-/// # use intaglio::path::SymbolTable;
+/// # use std::ffi::{OsStr, OsString};
+/// # use intaglio::osstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(PathBuf::from("abc"))?;
-/// let paths = table.paths();
-/// assert_eq!(vec![Path::new("abc")], paths.collect::<Vec<_>>());
+/// let sym = table.intern(OsString::from("abc"))?;
+/// let os_strings = table.os_strings();
+/// assert_eq!(vec![OsStr::new("abc")], os_strings.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(docsrs, doc(cfg(feature = "path")))]
-pub struct Paths<'a>(slice::Iter<'a, Interned<Path>>);
+#[cfg_attr(docsrs, doc(cfg(feature = "osstr")))]
+pub struct OsStrings<'a>(slice::Iter<'a, Interned<OsStr>>);
 
-impl<'a> Iterator for Paths<'a> {
-    type Item = &'a Path;
+impl<'a> Iterator for OsStrings<'a> {
+    type Item = &'a OsStr;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next().map(Interned::as_slice)
@@ -212,7 +212,7 @@ impl<'a> Iterator for Paths<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Paths<'a> {
+impl<'a> DoubleEndedIterator for OsStrings<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().map(Interned::as_slice)
     }
@@ -229,15 +229,15 @@ impl<'a> DoubleEndedIterator for Paths<'a> {
     }
 }
 
-impl<'a> ExactSizeIterator for Paths<'a> {
+impl<'a> ExactSizeIterator for OsStrings<'a> {
     fn len(&self) -> usize {
         self.0.len()
     }
 }
 
-impl<'a> FusedIterator for Paths<'a> {}
+impl<'a> FusedIterator for OsStrings<'a> {}
 
-/// An iterator over all symbols and interned path strings in a [`SymbolTable`].
+/// An iterator over all symbols and interned platform strings in a [`SymbolTable`].
 ///
 /// See the [`iter`](SymbolTable::iter) method in [`SymbolTable`].
 ///
@@ -245,26 +245,26 @@ impl<'a> FusedIterator for Paths<'a> {}
 ///
 /// ```
 /// # use std::collections::HashMap;
-/// # use std::path::{Path, PathBuf};
-/// # use intaglio::path::SymbolTable;
+/// # use std::ffi::{OsStr, OsString};
+/// # use intaglio::osstr::SymbolTable;
 /// # use intaglio::Symbol;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(Path::new("abc"))?;
+/// let sym = table.intern(OsStr::new("abc"))?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
-/// map.insert(Symbol::new(0), Path::new("abc"));
+/// map.insert(Symbol::new(0), OsStr::new("abc"));
 /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
 /// # Ok(())
 /// # }
 /// # example().unwrap();
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(docsrs, doc(cfg(feature = "path")))]
-pub struct Iter<'a>(Zip<AllSymbols<'a>, Paths<'a>>);
+#[cfg_attr(docsrs, doc(cfg(feature = "osstr")))]
+pub struct Iter<'a>(Zip<AllSymbols<'a>, OsStrings<'a>>);
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (Symbol, &'a Path);
+    type Item = (Symbol, &'a OsStr);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
@@ -294,7 +294,7 @@ impl<'a> Iterator for Iter<'a> {
 impl<'a> FusedIterator for Iter<'a> {}
 
 impl<'a> IntoIterator for &'a SymbolTable {
-    type Item = (Symbol, &'a Path);
+    type Item = (Symbol, &'a OsStr);
     type IntoIter = Iter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -302,36 +302,36 @@ impl<'a> IntoIterator for &'a SymbolTable {
     }
 }
 
-/// Path string interner.
+/// Platform string interner.
 ///
-/// This symbol table is implemented by storing [`PathBuf`]s with a fast path
-/// for [`&Path`] that are already `'static`.
+/// This symbol table is implemented by storing [`OsString`]s with a fast path
+/// for [`&OsStr`] that are already `'static`.
 ///
 /// See module documentation for more.
 ///
 /// # Usage
 ///
 /// ```
-/// # use std::path::{Path, PathBuf};
-/// # use intaglio::path::SymbolTable;
+/// # use std::ffi::{OsStr, OsString};
+/// # use intaglio::osstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(Path::new("abc"))?;
-/// assert_eq!(sym, table.intern(PathBuf::from("abc"))?);
+/// let sym = table.intern(OsStr::new("abc"))?;
+/// assert_eq!(sym, table.intern(OsString::from("abc"))?);
 /// assert!(table.contains(sym));
-/// assert!(table.is_interned(Path::new("abc")));
+/// assert!(table.is_interned(OsStr::new("abc")));
 /// # Ok(())
 /// # }
 /// # example().unwrap();
 /// ```
 ///
-/// [`PathBuf`]: std::path::PathBuf
-/// [`&Path`]: std::path::Path
+/// [`OsString`]: std::ffi::OsString
+/// [`&OsStr`]: std::ffi::OsStr
 #[derive(Default, Debug)]
-#[cfg_attr(docsrs, doc(cfg(feature = "path")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "osstr")))]
 pub struct SymbolTable<S = RandomState> {
-    map: ManuallyDrop<HashMap<&'static Path, Symbol, S>>,
-    vec: ManuallyDrop<Vec<Interned<Path>>>,
+    map: ManuallyDrop<HashMap<&'static OsStr, Symbol, S>>,
+    vec: ManuallyDrop<Vec<Interned<OsStr>>>,
 }
 
 impl<S> Drop for SymbolTable<S> {
@@ -361,7 +361,7 @@ impl SymbolTable<RandomState> {
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::path::SymbolTable;
+    /// # use intaglio::osstr::SymbolTable;
     /// let table = SymbolTable::new();
     /// assert_eq!(0, table.len());
     /// assert!(table.capacity() >= 4096);
@@ -376,14 +376,14 @@ impl SymbolTable<RandomState> {
 
     /// Constructs a new, empty `SymbolTable` with the specified capacity.
     ///
-    /// The symbol table will be able to hold at least `capacity` path strings
+    /// The symbol table will be able to hold at least `capacity` platform strings
     /// without reallocating. If `capacity` is 0, the symbol table will not
     /// allocate.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::path::SymbolTable;
+    /// # use intaglio::osstr::SymbolTable;
     /// let table = SymbolTable::with_capacity(10);
     /// assert_eq!(0, table.len());
     /// assert!(table.capacity() >= 10);
@@ -407,7 +407,7 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use std::collections::hash_map::RandomState;
-    /// # use intaglio::path::SymbolTable;
+    /// # use intaglio::osstr::SymbolTable;
     /// let hash_builder = RandomState::new();
     /// let table = SymbolTable::with_hasher(hash_builder);
     /// assert_eq!(0, table.len());
@@ -424,7 +424,7 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use std::collections::hash_map::RandomState;
-    /// # use intaglio::path::SymbolTable;
+    /// # use intaglio::osstr::SymbolTable;
     /// let hash_builder = RandomState::new();
     /// let table = SymbolTable::with_capacity_and_hasher(10, hash_builder);
     /// assert_eq!(0, table.len());
@@ -437,12 +437,12 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns the number of path strings the table can hold without reallocating.
+    /// Returns the number of platform strings the table can hold without reallocating.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use intaglio::path::SymbolTable;
+    /// # use intaglio::osstr::SymbolTable;
     /// let table = SymbolTable::with_capacity(10);
     /// assert!(table.capacity() >= 10);
     /// ```
@@ -450,21 +450,21 @@ impl<S> SymbolTable<S> {
         usize::min(self.vec.capacity(), self.map.capacity())
     }
 
-    /// Returns the number of interned path strings in the table.
+    /// Returns the number of interned platform strings in the table.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert_eq!(0, table.len());
     ///
-    /// table.intern(PathBuf::from("abc"))?;
-    /// // only uniquely interned path strings grow the symbol table.
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// // only uniquely interned platform strings grow the symbol table.
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
     /// assert_eq!(2, table.len());
     /// # Ok(())
     /// # }
@@ -474,18 +474,18 @@ impl<S> SymbolTable<S> {
         self.vec.len()
     }
 
-    /// Returns `true` if the symbol table contains no interned path strings.
+    /// Returns `true` if the symbol table contains no interned platform strings.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.is_empty());
     ///
-    /// table.intern(PathBuf::from("abc"))?;
+    /// table.intern(OsString::from("abc"))?;
     /// assert!(!table.is_empty());
     /// # Ok(())
     /// # }
@@ -500,14 +500,14 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(!table.contains(Symbol::new(0)));
     ///
-    /// let sym = table.intern(PathBuf::from("abc"))?;
+    /// let sym = table.intern(OsString::from("abc"))?;
     /// assert!(table.contains(Symbol::new(0)));
     /// assert!(table.contains(sym));
     /// # Ok(())
@@ -519,7 +519,7 @@ impl<S> SymbolTable<S> {
         self.get(id).is_some()
     }
 
-    /// Returns a reference to the path string associated with the given symbol.
+    /// Returns a reference to the platform string associated with the given symbol.
     ///
     /// If the given symbol does not exist in the underlying symbol table,
     /// `None` is returned.
@@ -529,49 +529,49 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use std::path::{Path, PathBuf};
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.get(Symbol::new(0)).is_none());
     ///
-    /// let sym = table.intern(PathBuf::from("abc"))?;
-    /// assert_eq!(Some(Path::new("abc")), table.get(Symbol::new(0)));
-    /// assert_eq!(Some(Path::new("abc")), table.get(sym));
+    /// let sym = table.intern(OsString::from("abc"))?;
+    /// assert_eq!(Some(OsStr::new("abc")), table.get(Symbol::new(0)));
+    /// assert_eq!(Some(OsStr::new("abc")), table.get(sym));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     #[must_use]
-    pub fn get(&self, id: Symbol) -> Option<&Path> {
-        let path = self.vec.get(usize::from(id))?;
-        Some(path.as_slice())
+    pub fn get(&self, id: Symbol) -> Option<&OsStr> {
+        let os_str = self.vec.get(usize::from(id))?;
+        Some(os_str.as_slice())
     }
 
-    /// Returns an iterator over all [`Symbol`]s and path strings in the
+    /// Returns an iterator over all [`Symbol`]s and platform strings in the
     /// [`SymbolTable`].
     ///
     /// # Examples
     ///
     /// ```
     /// # use std::collections::HashMap;
-    /// # use std::path::{Path, PathBuf};
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(PathBuf::from("123"))?;
-    /// table.intern(PathBuf::from("789"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsString::from("123"))?;
+    /// table.intern(OsString::from("789"))?;
     ///
     /// let iter = table.iter();
     /// let mut map = HashMap::new();
-    /// map.insert(Symbol::new(0), Path::new("abc"));
-    /// map.insert(Symbol::new(1), Path::new("xyz"));
-    /// map.insert(Symbol::new(2), Path::new("123"));
-    /// map.insert(Symbol::new(3), Path::new("789"));
+    /// map.insert(Symbol::new(0), OsStr::new("abc"));
+    /// map.insert(Symbol::new(1), OsStr::new("xyz"));
+    /// map.insert(Symbol::new(2), OsStr::new("123"));
+    /// map.insert(Symbol::new(3), OsStr::new("789"));
     /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
     /// # Ok(())
     /// # }
@@ -579,14 +579,14 @@ impl<S> SymbolTable<S> {
     /// ```
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(PathBuf::from("123"))?;
-    /// table.intern(PathBuf::from("789"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsString::from("123"))?;
+    /// table.intern(OsString::from("789"))?;
     ///
     /// let iter = table.iter();
     /// assert_eq!(table.len(), iter.count());
@@ -595,7 +595,7 @@ impl<S> SymbolTable<S> {
     /// # example().unwrap();
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter(self.all_symbols().zip(self.paths()))
+        Iter(self.all_symbols().zip(self.os_strings()))
     }
 
     /// Returns an iterator over all [`Symbol`]s in the [`SymbolTable`].
@@ -603,15 +603,15 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(PathBuf::from("123"))?;
-    /// table.intern(PathBuf::from("789"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsString::from("123"))?;
+    /// table.intern(OsString::from("789"))?;
     ///
     /// let mut all_symbols = table.all_symbols();
     /// assert_eq!(Some(Symbol::new(0)), all_symbols.next());
@@ -623,14 +623,14 @@ impl<S> SymbolTable<S> {
     /// ```
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(PathBuf::from("123"))?;
-    /// table.intern(PathBuf::from("789"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsString::from("123"))?;
+    /// table.intern(OsString::from("789"))?;
     ///
     /// let all_symbols = table.all_symbols();
     /// assert_eq!(table.len(), all_symbols.count());
@@ -653,47 +653,47 @@ impl<S> SymbolTable<S> {
         }
     }
 
-    /// Returns an iterator over all path strings in the [`SymbolTable`].
+    /// Returns an iterator over all platform strings in the [`SymbolTable`].
     ///
     /// # Examples
     ///
     /// ```
-    /// # use std::path::{Path, PathBuf};
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(PathBuf::from("123"))?;
-    /// table.intern(PathBuf::from("789"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsString::from("123"))?;
+    /// table.intern(OsString::from("789"))?;
     ///
-    /// let mut paths = table.paths();
-    /// assert_eq!(Some(Path::new("abc")), paths.next());
-    /// assert_eq!(Some(Path::new("xyz")), paths.nth_back(2));
-    /// assert_eq!(None, paths.next());
+    /// let mut os_strings = table.os_strings();
+    /// assert_eq!(Some(OsStr::new("abc")), os_strings.next());
+    /// assert_eq!(Some(OsStr::new("xyz")), os_strings.nth_back(2));
+    /// assert_eq!(None, os_strings.next());
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(PathBuf::from("123"))?;
-    /// table.intern(PathBuf::from("789"))?;
+    /// table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsString::from("123"))?;
+    /// table.intern(OsString::from("789"))?;
     ///
-    /// let paths = table.paths();
-    /// assert_eq!(table.len(), paths.count());
+    /// let os_strings = table.os_strings();
+    /// assert_eq!(table.len(), os_strings.count());
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
-    pub fn paths(&self) -> Paths<'_> {
-        Paths(self.vec.iter())
+    pub fn os_strings(&self) -> OsStrings<'_> {
+        OsStrings(self.vec.iter())
     }
 }
 
@@ -701,10 +701,10 @@ impl<S> SymbolTable<S>
 where
     S: BuildHasher,
 {
-    /// Intern a path string for the lifetime of the symbol table.
+    /// Intern a platform string for the lifetime of the symbol table.
     ///
-    /// The returned `Symbol` allows retrieving of the underlying [`Path`].
-    /// Equal path strings will be inserted into the symbol table exactly once.
+    /// The returned `Symbol` allows retrieving of the underlying [`OsStr`].
+    /// Equal platform strings will be inserted into the symbol table exactly once.
     ///
     /// This function only allocates if the underlying symbol table has no
     /// remaining capacity.
@@ -718,24 +718,24 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::path::{Path, PathBuf};
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// let sym = table.intern(PathBuf::from("abc"))?;
-    /// table.intern(PathBuf::from("xyz"))?;
-    /// table.intern(Path::new("123"))?;
-    /// table.intern(Path::new("789"))?;
+    /// let sym = table.intern(OsString::from("abc"))?;
+    /// table.intern(OsString::from("xyz"))?;
+    /// table.intern(OsStr::new("123"))?;
+    /// table.intern(OsStr::new("789"))?;
     ///
     /// assert_eq!(4, table.len());
-    /// assert_eq!(Some(Path::new("abc")), table.get(sym));
+    /// assert_eq!(Some(OsStr::new("abc")), table.get(sym));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     pub fn intern<T>(&mut self, contents: T) -> Result<Symbol, SymbolOverflowError>
     where
-        T: Into<Cow<'static, Path>>,
+        T: Into<Cow<'static, OsStr>>,
     {
         let contents = contents.into();
         if let Some(&id) = self.map.get(contents.as_ref()) {
@@ -750,7 +750,7 @@ where
         //
         // - `Interned` is an internal implementation detail of `SymbolTable`.
         // - `SymbolTable` never give out `'static` references to underlying
-        //   path string byte contents.
+        //   platform string byte contents.
         // - All slice references given out by the `SymbolTable` have the same
         //   lifetime as the `SymbolTable`.
         // - The `map` field of `SymbolTable`, which contains the `'static`
@@ -775,50 +775,50 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::path::{Path, PathBuf};
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.is_interned(Path::new("abc")));
-    /// assert_eq!(None, table.check_interned(Path::new("abc")));
+    /// assert!(!table.is_interned(OsStr::new("abc")));
+    /// assert_eq!(None, table.check_interned(OsStr::new("abc")));
     ///
-    /// table.intern(PathBuf::from("abc"))?;
-    /// assert!(table.is_interned(Path::new("abc")));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(Path::new("abc")));
+    /// table.intern(OsString::from("abc"))?;
+    /// assert!(table.is_interned(OsStr::new("abc")));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(OsStr::new("abc")));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     #[must_use]
-    pub fn check_interned(&self, contents: &Path) -> Option<Symbol> {
+    pub fn check_interned(&self, contents: &OsStr) -> Option<Symbol> {
         self.map.get(contents).copied()
     }
 
-    /// Returns `true` if the given path string has been interned before.
+    /// Returns `true` if the given platform string has been interned before.
     ///
     /// This method does not modify the symbol table.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use std::path::{Path, PathBuf};
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.is_interned(Path::new("abc")));
-    /// assert_eq!(None, table.check_interned(Path::new("abc")));
+    /// assert!(!table.is_interned(OsStr::new("abc")));
+    /// assert_eq!(None, table.check_interned(OsStr::new("abc")));
     ///
-    /// table.intern(PathBuf::from("abc"))?;
-    /// assert!(table.is_interned(Path::new("abc")));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(Path::new("abc")));
+    /// table.intern(OsString::from("abc"))?;
+    /// assert!(table.is_interned(OsStr::new("abc")));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(OsStr::new("abc")));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
     /// ```
     #[must_use]
-    pub fn is_interned(&self, contents: &Path) -> bool {
+    pub fn is_interned(&self, contents: &OsStr) -> bool {
         self.map.contains_key(contents)
     }
 
@@ -835,11 +835,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(1);
-    /// table.intern(PathBuf::from("abc"))?;
+    /// table.intern(OsString::from("abc"))?;
     /// table.reserve(10);
     /// assert!(table.capacity() >= 11);
     /// # Ok(())
@@ -860,13 +860,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
-    /// table.intern(PathBuf::from("abc"));
-    /// table.intern(PathBuf::from("xyz"));
-    /// table.intern(PathBuf::from("123"));
+    /// table.intern(OsString::from("abc"));
+    /// table.intern(OsString::from("xyz"));
+    /// table.intern(OsString::from("123"));
     /// table.shrink_to_fit();
     /// assert!(table.capacity() >= 3);
     /// # Ok(())
@@ -888,13 +888,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::path::PathBuf;
-    /// # use intaglio::path::SymbolTable;
+    /// # use std::ffi::OsString;
+    /// # use intaglio::osstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
-    /// table.intern(PathBuf::from("abc"));
-    /// table.intern(PathBuf::from("xyz"));
-    /// table.intern(PathBuf::from("123"));
+    /// table.intern(OsString::from("abc"));
+    /// table.intern(OsString::from("xyz"));
+    /// table.intern(OsString::from("123"));
     /// table.shrink_to(5);
     /// assert!(table.capacity() >= 5);
     /// # Ok(())
@@ -910,7 +910,7 @@ where
 #[cfg(test)]
 #[allow(clippy::needless_pass_by_value)]
 mod tests {
-    use std::path::{Path, PathBuf};
+    use std::ffi::{OsStr, OsString};
 
     use quickcheck_macros::quickcheck;
 
@@ -931,22 +931,22 @@ mod tests {
     #[test]
     fn drop_with_true_static_data() {
         let mut table = SymbolTable::new();
-        table.intern(Path::new("1")).unwrap();
-        table.intern(Path::new("2")).unwrap();
-        table.intern(Path::new("3")).unwrap();
-        table.intern(Path::new("4")).unwrap();
-        table.intern(Path::new("5")).unwrap();
+        table.intern(OsStr::new("1")).unwrap();
+        table.intern(OsStr::new("2")).unwrap();
+        table.intern(OsStr::new("3")).unwrap();
+        table.intern(OsStr::new("4")).unwrap();
+        table.intern(OsStr::new("5")).unwrap();
         drop(table);
     }
 
     #[test]
     fn drop_with_owned_data() {
         let mut table = SymbolTable::new();
-        table.intern(PathBuf::from("1")).unwrap();
-        table.intern(PathBuf::from("2")).unwrap();
-        table.intern(PathBuf::from("3")).unwrap();
-        table.intern(PathBuf::from("4")).unwrap();
-        table.intern(PathBuf::from("5")).unwrap();
+        table.intern(OsString::from("1")).unwrap();
+        table.intern(OsString::from("2")).unwrap();
+        table.intern(OsString::from("3")).unwrap();
+        table.intern(OsString::from("4")).unwrap();
+        table.intern(OsString::from("5")).unwrap();
         drop(table);
     }
 
@@ -954,48 +954,48 @@ mod tests {
     fn set_owned_value_and_get_with_owned_and_borrowed() {
         let mut table = SymbolTable::new();
         // intern an owned value
-        let sym = table.intern(PathBuf::from("abc")).unwrap();
-        // retrieve path string bytes
-        assert_eq!(Path::new("abc"), table.get(sym).unwrap());
+        let sym = table.intern(OsString::from("abc")).unwrap();
+        // retrieve platform string bytes
+        assert_eq!(OsStr::new("abc"), table.get(sym).unwrap());
         // intern owned value again
-        assert_eq!(sym, table.intern(PathBuf::from("abc")).unwrap());
+        assert_eq!(sym, table.intern(OsString::from("abc")).unwrap());
         // intern borrowed value
-        assert_eq!(sym, table.intern(Path::new("abc")).unwrap());
+        assert_eq!(sym, table.intern(OsStr::new("abc")).unwrap());
     }
 
     #[test]
     fn set_borrowed_value_and_get_with_owned_and_borrowed() {
         let mut table = SymbolTable::new();
         // intern a borrowed value
-        let sym = table.intern(Path::new("abc")).unwrap();
-        // retrieve path string bytes
-        assert_eq!(Path::new("abc"), table.get(sym).unwrap());
+        let sym = table.intern(OsStr::new("abc")).unwrap();
+        // retrieve platform string bytes
+        assert_eq!(OsStr::new("abc"), table.get(sym).unwrap());
         // intern owned value
-        assert_eq!(sym, table.intern(PathBuf::from("abc")).unwrap());
+        assert_eq!(sym, table.intern(OsString::from("abc")).unwrap());
         // intern borrowed value again
-        assert_eq!(sym, table.intern(Path::new("abc")).unwrap());
+        assert_eq!(sym, table.intern(OsStr::new("abc")).unwrap());
     }
 
     #[quickcheck]
-    fn intern_twice_symbol_equality(path: PathBuf) -> bool {
+    fn intern_twice_symbol_equality(os_string: OsString) -> bool {
         let mut table = SymbolTable::new();
-        let sym = table.intern(path.clone()).unwrap();
-        let sym_again = table.intern(path).unwrap();
+        let sym = table.intern(os_string.clone()).unwrap();
+        let sym_again = table.intern(os_string).unwrap();
         sym == sym_again
     }
 
     #[quickcheck]
-    fn intern_get_roundtrip(path: PathBuf) -> bool {
+    fn intern_get_roundtrip(os_string: OsString) -> bool {
         let mut table = SymbolTable::new();
-        let sym = table.intern(path.clone()).unwrap();
-        let retrieved_path = table.get(sym).unwrap();
-        &*path == retrieved_path
+        let sym = table.intern(os_string.clone()).unwrap();
+        let retrieved_os_string = table.get(sym).unwrap();
+        &*os_string == retrieved_os_string
     }
 
     #[quickcheck]
-    fn table_contains_sym(path: PathBuf) -> bool {
+    fn table_contains_sym(os_string: OsString) -> bool {
         let mut table = SymbolTable::new();
-        let sym = table.intern(path).unwrap();
+        let sym = table.intern(os_string).unwrap();
         table.contains(sym)
     }
 
@@ -1006,15 +1006,15 @@ mod tests {
     }
 
     #[quickcheck]
-    fn empty_table_does_not_report_any_interned_paths(path: PathBuf) -> bool {
+    fn empty_table_does_not_report_any_interned_os_strings(os_string: OsString) -> bool {
         let table = SymbolTable::new();
-        !table.is_interned(path.as_path())
+        !table.is_interned(os_string.as_os_str())
     }
 
     #[quickcheck]
-    fn table_reports_interned_paths_as_interned(path: PathBuf) -> bool {
+    fn table_reports_interned_os_strs_as_interned(os_string: OsString) -> bool {
         let mut table = SymbolTable::new();
-        table.intern(path.clone()).unwrap();
-        table.is_interned(path.as_path())
+        table.intern(os_string.clone()).unwrap();
+        table.is_interned(os_string.as_os_str())
     }
 }
