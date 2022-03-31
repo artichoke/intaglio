@@ -82,6 +82,22 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+Or intern path strings like:
+
+```rust
+use std::path::{Path, PathBuf};
+
+fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
+    let mut table = intaglio::path::SymbolTable::new();
+    let name: &'static Path = Path::new("abc");
+    let sym = table.intern(name)?;
+    let retrieved = table.get(sym);
+    assert_eq!(Some(name), retrieved);
+    assert_eq!(sym, table.intern(PathBuf::from("abc"))?);
+    Ok(())
+}
+```
+
 ## Implementation
 
 Intaglio interns owned and borrowed strings with no additional copying by
@@ -96,6 +112,8 @@ All features are enabled by default.
   byte strings (`Vec<u8>` and `&'static [u8]`).
 - **cstr** - Enables an additional symbol table implementation for interning C
   strings (`CString` and `&'static CStr`).
+- **path** - Enables an additional symbol table implementation for interning
+  path strings (`PathBuf` and `&'static Path`).
 
 ### Minimum Supported Rust Version
 
