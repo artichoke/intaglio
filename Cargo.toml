@@ -16,13 +16,16 @@ include = ["src/**/*", "tests/**/*", "LICENSE", "README.md"]
 
 [features]
 # All features are enabled by default.
-default = ["bytes", "cstr", "path"]
+default = ["bytes", "cstr", "osstr", "path"]
 # `bytes` feature enables an additional symbol table implementation for
 # interning byte strings (`Vec<u8>` and `&'static [u8]`).
 bytes = []
 # `cstr` feature enables an additional symbol table implementation for
 # interning C strings (`CString` and `&'static CStr`).
 cstr = []
+# `osstr` feature enables an additional symbol table implementation for
+# interning platform strings (`OsString` and `&'static OsStr`).
+osstr = []
 # `path` feature enables an additional symbol table implementation for
 # interning path strings (`PathBuf` and `&'static Path`).
 path = []

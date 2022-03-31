@@ -69,6 +69,7 @@
 //! - [`SymbolTable`] interns UTF-8 strings: [`String`] and [`&str`](prim@str).
 //! - [`bytes::SymbolTable`] interns binary strings: [`Vec<u8>`] and `&[u8]`.
 //! - [`cstr::SymbolTable`] interns C strings: [`CString`] and [`&CStr`].
+//! - [`osstr::SymbolTable`] interns platform strings: [`OsString`] and [`&OsStr`].
 //! - [`path::SymbolTable`] interns path strings: [`PathBuf`] and [`&Path`].
 //!
 //! # Crate features
@@ -79,6 +80,8 @@
 //!   byte strings ([`Vec<u8>`] and `&'static [u8]`).
 //! - **cstr** - Enables an additional symbol table implementation for interning
 //!   C strings ([`CString`] and [`&'static CStr`]).
+//! - **osstr** - Enables an additional symbol table implementation for interning
+//!   platform strings ([`OsString`] and [`&'static OsStr`]).
 //! - **path** - Enables an additional symbol table implementation for interning
 //!   path strings ([`PathBuf`] and [`&'static Path`]).
 //!
@@ -86,6 +89,9 @@
 //! [`CString`]: std::ffi::CString
 //! [`&CStr`]: std::ffi::CStr
 //! [`&'static CStr`]: std::ffi::CStr
+//! [`OsString`]: std::ffi::OsString
+//! [`&OsStr`]: std::ffi::OsStr
+//! [`&'static OsStr`]: std::ffi::OsStr
 //! [`PathBuf`]: std::path::PathBuf
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
@@ -111,6 +117,9 @@ mod convert;
 pub mod cstr;
 mod eq;
 mod internal;
+#[cfg(feature = "osstr")]
+#[cfg_attr(docsrs, doc(cfg(feature = "osstr")))]
+pub mod osstr;
 #[cfg(feature = "path")]
 #[cfg_attr(docsrs, doc(cfg(feature = "path")))]
 pub mod path;

@@ -82,6 +82,22 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+Or intern platform strings like:
+
+```rust
+use std::ffi::{OsStr, OsString};
+
+fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
+    let mut table = intaglio::osstr::SymbolTable::new();
+    let name: &'static OsStr = OsStr::new("abc");
+    let sym = table.intern(name)?;
+    let retrieved = table.get(sym);
+    assert_eq!(Some(name), retrieved);
+    assert_eq!(sym, table.intern(OsString::from("abc"))?);
+    Ok(())
+}
+```
+
 Or intern path strings like:
 
 ```rust
@@ -112,6 +128,8 @@ All features are enabled by default.
   byte strings (`Vec<u8>` and `&'static [u8]`).
 - **cstr** - Enables an additional symbol table implementation for interning C
   strings (`CString` and `&'static CStr`).
+- **osstr** - Enables an additional symbol table implementation for interning
+  platform strings (`OsString` and `&'static OsStr`).
 - **path** - Enables an additional symbol table implementation for interning
   path strings (`PathBuf` and `&'static Path`).
 
