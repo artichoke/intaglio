@@ -8,6 +8,8 @@ use core::ops::Deref;
 use std::borrow::Cow;
 #[cfg(feature = "cstr")]
 use std::ffi::{CStr, CString};
+#[cfg(feature = "path")]
+use std::path::{Path, PathBuf};
 
 /// Wrapper around `&'static` slices that does not allow mutable access to the
 /// inner slice.
@@ -65,6 +67,22 @@ impl From<CString> for Interned<CStr> {
 impl From<Cow<'static, CStr>> for Interned<CStr> {
     #[inline]
     fn from(cow: Cow<'static, CStr>) -> Self {
+        Self(cow.into())
+    }
+}
+
+#[cfg(feature = "path")]
+impl From<PathBuf> for Interned<Path> {
+    #[inline]
+    fn from(owned: PathBuf) -> Self {
+        Self(owned.into())
+    }
+}
+
+#[cfg(feature = "path")]
+impl From<Cow<'static, Path>> for Interned<Path> {
+    #[inline]
+    fn from(cow: Cow<'static, Path>) -> Self {
         Self(cow.into())
     }
 }
@@ -130,6 +148,17 @@ impl fmt::Debug for Interned<[u8]> {
 
 #[cfg(feature = "cstr")]
 impl fmt::Debug for Interned<CStr> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "{:#?}", self.0)
+        } else {
+            write!(f, "{:?}", self.0)
+        }
+    }
+}
+
+#[cfg(feature = "path")]
+impl fmt::Debug for Interned<Path> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
             write!(f, "{:#?}", self.0)
@@ -214,6 +243,22 @@ impl PartialEq<Interned<CStr>> for CString {
     #[inline]
     fn eq(&self, other: &Interned<CStr>) -> bool {
         self.as_c_str() == other.as_slice()
+    }
+}
+
+#[cfg(feature = "path")]
+impl PartialEq<PathBuf> for Interned<Path> {
+    #[inline]
+    fn eq(&self, other: &PathBuf) -> bool {
+        self.as_slice() == other.as_path()
+    }
+}
+
+#[cfg(feature = "path")]
+impl PartialEq<Interned<Path>> for PathBuf {
+    #[inline]
+    fn eq(&self, other: &Interned<Path>) -> bool {
+        self.as_path() == other.as_slice()
     }
 }
 
@@ -341,6 +386,25 @@ impl From<Cow<'static, CStr>> for Slice<CStr> {
     }
 }
 
+#[cfg(feature = "path")]
+impl From<PathBuf> for Slice<Path> {
+    #[inline]
+    fn from(owned: PathBuf) -> Self {
+        Self::Owned(owned.into_boxed_path())
+    }
+}
+
+#[cfg(feature = "path")]
+impl From<Cow<'static, Path>> for Slice<Path> {
+    #[inline]
+    fn from(cow: Cow<'static, Path>) -> Self {
+        match cow {
+            Cow::Borrowed(slice) => slice.into(),
+            Cow::Owned(owned) => owned.into(),
+        }
+    }
+}
+
 impl<T> Slice<T>
 where
     T: ?Sized,
@@ -436,6 +500,22 @@ impl fmt::Debug for Slice<CStr> {
                 "{:?}",
                 String::from_utf8_lossy(self.as_slice().to_bytes())
             )
+        } else {
+            write!(f, "{:?}", self.as_slice())
+        }
+    }
+}
+
+#[cfg(feature = "path")]
+impl fmt::Debug for Slice<Path> {
+    /// Formats the `Path` slice using the given formatter.
+    ///
+    /// If alternate format is specified, e.g. `{:#?}`, the slice is assumed to
+    /// be conventionally UTF-8 and converted to a [`String`] lossily with
+    /// [`Path::to_string_lossy`].
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "{:?}", self.as_slice().to_string_lossy())
         } else {
             write!(f, "{:?}", self.as_slice())
         }
