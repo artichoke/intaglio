@@ -185,7 +185,7 @@ impl From<Symbol> for u64 {
 impl From<Symbol> for usize {
     #[inline]
     fn from(sym: Symbol) -> Self {
-        // This conversion relies on size_of::<usize>() >= size_of::<u32>(),
+        // This conversion relies on `size_of::<usize>() >= size_of::<u32>()`,
         // which is ensured with a const assertion.
         const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
 
@@ -217,7 +217,7 @@ impl From<&Symbol> for u64 {
 impl From<&Symbol> for usize {
     #[inline]
     fn from(sym: &Symbol) -> Self {
-        // This conversion relies on size_of::<usize>() >= size_of::<u32>(),
+        // This conversion relies on `size_of::<usize>() >= size_of::<u32>()`,
         // which is ensured with a const assertion.
         const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
 

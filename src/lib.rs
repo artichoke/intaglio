@@ -98,7 +98,10 @@
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.5.0")]
 
-// Ensure code blocks in README.md compile
+// Ensure code blocks in `README.md` compile
+//
+// The README contains examples from all interners, so only run these doctests
+// when all features are enabled.
 #[cfg(all(doctest, feature = "bytes", feature = "cstr", feature = "path"))]
 #[doc = include_str!("../README.md")]
 mod readme {}
