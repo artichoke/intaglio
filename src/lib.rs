@@ -169,7 +169,12 @@ impl SymbolOverflowError {
         // ```
         //
         // The length of a range from `0..uX::MAX` is `uX::MAX + 1`.
-        u32::MAX as usize + 1
+        //
+        // On 32-bit architectures, `usize` cannot hold `u32::MAX + 1`, but a
+        // `SymbolTable` will not be able to allocate that much anyway, so
+        // saturate and return `usize::MAX`.
+        let capa = u32::MAX as usize;
+        capa.saturating_add(1)
     }
 }
 
@@ -254,12 +259,18 @@ mod tests {
     use super::SymbolOverflowError;
 
     #[test]
-    #[cfg(not(miri))]
-    fn max_capacity_is_length_of_symbol_range() {
+    #[cfg(target_pointer_width = "64")]
+    fn max_capacity_is_length_of_symbol_range_usize_64_bit() {
         let symbol_range = 0_u32..=u32::MAX;
         let len = symbol_range.size_hint().0;
         assert_eq!(SymbolOverflowError::new().max_capacity(), len);
         let len = symbol_range.size_hint().1.unwrap();
         assert_eq!(SymbolOverflowError::new().max_capacity(), len);
+    }
+
+    #[test]
+    #[cfg(target_pointer_width = "32")]
+    fn max_capacity_is_length_of_symbol_range_usize_32_bit() {
+        assert_eq!(SymbolOverflowError::new().max_capacity(), usize::MAX);
     }
 }
