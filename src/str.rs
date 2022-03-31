@@ -849,6 +849,7 @@ mod tests {
     use quickcheck_macros::quickcheck;
 
     use super::SymbolTable;
+    use crate::Symbol;
 
     #[test]
     fn alloc_drop_new() {
@@ -935,8 +936,12 @@ mod tests {
 
     #[quickcheck]
     fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
-        let table = SymbolTable::new();
-        !table.contains(sym.into())
+        if let Some(sym) = Symbol::new(sym) {
+            let table = SymbolTable::new();
+            !table.contains(sym)
+        } else {
+            true
+        }
     }
 
     #[quickcheck]
