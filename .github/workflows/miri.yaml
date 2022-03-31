@@ -31,5 +31,13 @@ jobs:
       - name: Miri setup
         run: cargo miri setup
 
+      - name: Miri test compile
+        run: cargo miri test --no-run
+
       - name: Test unsafe code with Miri
-        run: cargo miri test --test leak_drop_symbol_table --test leak_drop_symbol_table_bytes
+        run: |
+          cargo miri test --test leak_drop_symbol_table
+          cargo miri test --test leak_drop_symbol_table_bytes
+          cargo miri test --test leak_drop_symbol_table_cstr
+          cargo miri test --test leak_drop_symbol_table_osstr
+          cargo miri test --test leak_drop_symbol_table_path
