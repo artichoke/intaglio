@@ -259,5 +259,7 @@ mod tests {
         let symbol_range = 0_u32..=u32::MAX;
         let len = symbol_range.size_hint().0;
         assert_eq!(SymbolOverflowError::new().max_capacity(), len);
+        let len = symbol_range.size_hint().1.unwrap();
+        assert_eq!(SymbolOverflowError::new().max_capacity(), len);
     }
 }
