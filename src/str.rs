@@ -655,7 +655,7 @@ where
         T: Into<Cow<'static, str>>,
     {
         let contents = contents.into();
-        if let Some(&id) = self.map.get(contents.as_ref()) {
+        if let Some(&id) = self.map.get(&*contents) {
             return Ok(id);
         }
         let name = Interned::from(contents);
