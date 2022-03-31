@@ -162,7 +162,14 @@ impl SymbolOverflowError {
     #[must_use]
     #[allow(clippy::unused_self)]
     pub const fn max_capacity(self) -> usize {
-        u32::MAX as usize
+        // The valid representation of `Symbol` is:
+        //
+        // ```
+        // Symbol(0_u32)..=Symbol(u32::MAX)
+        // ```
+        //
+        // The length of a range from `0..uX::MAX` is `uX::MAX + 1`.
+        u32::MAX as usize + 1
     }
 }
 
