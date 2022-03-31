@@ -686,7 +686,7 @@ impl<S> SymbolTable<S> {
     /// table.intern(CString::new(*b"123")?)?;
     /// table.intern(CString::new(*b"789")?)?;
     ///
-    /// let  c_strings = table.c_strings();
+    /// let c_strings = table.c_strings();
     /// assert_eq!(table.len(), c_strings.count());
     /// # Ok(())
     /// # }
@@ -914,7 +914,7 @@ mod tests {
 
     use quickcheck_macros::quickcheck;
 
-    use crate::cstr::SymbolTable;
+    use super::SymbolTable;
 
     #[test]
     fn alloc_drop_new() {

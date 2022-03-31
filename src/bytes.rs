@@ -664,7 +664,7 @@ impl<S> SymbolTable<S> {
     /// table.intern(b"123".to_vec())?;
     /// table.intern(b"789".to_vec())?;
     ///
-    /// let  bytestrings = table.bytestrings();
+    /// let bytestrings = table.bytestrings();
     /// assert_eq!(table.len(), bytestrings.count());
     /// # Ok(())
     /// # }
@@ -884,7 +884,7 @@ where
 mod tests {
     use quickcheck_macros::quickcheck;
 
-    use crate::bytes::SymbolTable;
+    use super::SymbolTable;
 
     #[test]
     fn alloc_drop_new() {

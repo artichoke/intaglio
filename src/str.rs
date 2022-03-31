@@ -604,7 +604,7 @@ impl<S> SymbolTable<S> {
     /// table.intern("123")?;
     /// table.intern("789")?;
     ///
-    /// let  strings = table.strings();
+    /// let strings = table.strings();
     /// assert_eq!(table.len(), strings.count());
     /// # Ok(())
     /// # }
@@ -822,7 +822,7 @@ where
 mod tests {
     use quickcheck_macros::quickcheck;
 
-    use crate::str::SymbolTable;
+    use super::SymbolTable;
 
     #[test]
     fn alloc_drop_new() {

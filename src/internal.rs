@@ -32,8 +32,8 @@ impl From<String> for Interned<str> {
 
 impl From<Cow<'static, str>> for Interned<str> {
     #[inline]
-    fn from(string: Cow<'static, str>) -> Self {
-        Self(string.into())
+    fn from(cow: Cow<'static, str>) -> Self {
+        Self(cow.into())
     }
 }
 
@@ -48,8 +48,8 @@ impl From<Vec<u8>> for Interned<[u8]> {
 #[cfg(feature = "bytes")]
 impl From<Cow<'static, [u8]>> for Interned<[u8]> {
     #[inline]
-    fn from(bytes: Cow<'static, [u8]>) -> Self {
-        Self(bytes.into())
+    fn from(cow: Cow<'static, [u8]>) -> Self {
+        Self(cow.into())
     }
 }
 
@@ -64,8 +64,8 @@ impl From<CString> for Interned<CStr> {
 #[cfg(feature = "cstr")]
 impl From<Cow<'static, CStr>> for Interned<CStr> {
     #[inline]
-    fn from(cstr: Cow<'static, CStr>) -> Self {
-        Self(cstr.into())
+    fn from(cow: Cow<'static, CStr>) -> Self {
+        Self(cow.into())
     }
 }
 
@@ -295,8 +295,8 @@ impl From<String> for Slice<str> {
 
 impl From<Cow<'static, str>> for Slice<str> {
     #[inline]
-    fn from(string: Cow<'static, str>) -> Self {
-        match string {
+    fn from(cow: Cow<'static, str>) -> Self {
+        match cow {
             Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
@@ -314,8 +314,8 @@ impl From<Vec<u8>> for Slice<[u8]> {
 #[cfg(feature = "bytes")]
 impl From<Cow<'static, [u8]>> for Slice<[u8]> {
     #[inline]
-    fn from(bytes: Cow<'static, [u8]>) -> Self {
-        match bytes {
+    fn from(cow: Cow<'static, [u8]>) -> Self {
+        match cow {
             Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
@@ -333,8 +333,8 @@ impl From<CString> for Slice<CStr> {
 #[cfg(feature = "cstr")]
 impl From<Cow<'static, CStr>> for Slice<CStr> {
     #[inline]
-    fn from(bytes: Cow<'static, CStr>) -> Self {
-        match bytes {
+    fn from(cow: Cow<'static, CStr>) -> Self {
+        match cow {
             Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
         }
