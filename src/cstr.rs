@@ -282,6 +282,9 @@ impl<'a> IntoIterator for &'a SymbolTable {
 /// This symbol table is implemented by storing [`CString`]s with a fast path
 /// for [`&CStr`] that are already `'static`.
 ///
+/// `SymbolTable`s store at most `u32::MAX` symbols. The maximum symbol id is
+/// `u32::MAX - 1`.
+///
 /// See module documentation for more.
 ///
 /// # Usage
