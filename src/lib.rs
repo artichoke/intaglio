@@ -108,7 +108,7 @@ mod readme {}
 
 use core::fmt;
 use core::mem::size_of;
-use core::num::TryFromIntError;
+use core::num::{NonZeroU32, TryFromIntError};
 use std::error;
 
 #[cfg(feature = "bytes")]
@@ -199,7 +199,7 @@ impl error::Error for SymbolOverflowError {}
 /// that the table itself issued.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Symbol(u32);
+pub struct Symbol(NonZeroU32);
 
 impl Symbol {
     /// Construct a new `Symbol` from the given `u32`.
@@ -211,16 +211,62 @@ impl Symbol {
     /// No runtime checks ensure that [`SymbolTable::get`] is called with a
     /// `Symbol` that the table itself issued.
     ///
+    /// Symbol tables in intaglio store at most [`u32::MAX`] interned strings.
+    /// If given `u32::MAX`, this function returns [`None`]
+    ///
     /// # Examples
     ///
     /// ```
     /// # use intaglio::Symbol;
-    /// let sym = Symbol::new(263);
+    /// # fn example() -> Option<()> {
+    /// let sym = Symbol::new(263)?;
     /// assert_eq!(263, sym.id());
+    /// # Some(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    ///
+    /// `u32::MAX` is not a valid symbol id:
+    ///
+    /// ```
+    /// # use intaglio::Symbol;
+    /// assert_eq!(Symbol::new(u32::MAX), None);
     /// ```
     #[inline]
     #[must_use]
-    pub const fn new(sym: u32) -> Self {
+    pub const fn new(sym: u32) -> Option<Self> {
+        if let Some(sym) = sym.checked_add(1) {
+            // Safety:
+            //
+            // `sym + 1` can never overflow above because the addition is
+            // checked.
+            //
+            // Because the addition can never overflow, `sym + 1` is always
+            // non-zero.
+            let sym = unsafe { NonZeroU32::new_unchecked(sym) };
+            Some(Self(sym))
+        } else {
+            None
+        }
+    }
+
+    /// Create a symbol without checking for overflow.
+    ///
+    /// # Safety
+    ///
+    /// Callers must ensure that sym is less than [`u32::MAX`].
+    #[inline]
+    #[must_use]
+    pub(crate) unsafe fn new_unchecked(sym: u32) -> Self {
+        let sym = sym + 1;
+        // Safety:
+        //
+        // `sym + 1` can never overflow because callers must ensure that sym is
+        // less than `u32::MAX`.
+        //
+        // Because the addition can never overflow, `sym + 1` is always
+        // non-zero.
+        let sym = unsafe { NonZeroU32::new_unchecked(sym) };
         Self(sym)
     }
 
@@ -241,6 +287,6 @@ impl Symbol {
     #[inline]
     #[must_use]
     pub const fn id(self) -> u32 {
-        self.0
+        self.0.get() - 1
     }
 }

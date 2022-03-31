@@ -43,7 +43,13 @@ impl<'a> Iterator for AllSymbols<'a> {
     type Item = Symbol;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.range.next().map(Symbol::from)
+        self.range.next().map(|sym| {
+            // Safety:
+            //
+            // `self.range` is a `Range<u32>` which can never yield
+            // `u32::MAX`.
+            unsafe { Symbol::new_unchecked(sym) }
+        })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -55,25 +61,57 @@ impl<'a> Iterator for AllSymbols<'a> {
     }
 
     fn last(self) -> Option<Self::Item> {
-        self.range.last().map(Symbol::from)
+        self.range.last().map(|sym| {
+            // Safety:
+            //
+            // `self.range` is a `Range<u32>` which can never yield
+            // `u32::MAX`.
+            unsafe { Symbol::new_unchecked(sym) }
+        })
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.range.nth(n).map(Symbol::from)
+        self.range.nth(n).map(|sym| {
+            // Safety:
+            //
+            // `self.range` is a `Range<u32>` which can never yield
+            // `u32::MAX`.
+            unsafe { Symbol::new_unchecked(sym) }
+        })
     }
 
     fn collect<B: FromIterator<Self::Item>>(self) -> B {
-        self.range.map(Symbol::from).collect()
+        self.range
+            .map(|sym| {
+                // Safety:
+                //
+                // `self.range` is a `Range<u32>` which can never yield
+                // `u32::MAX`.
+                unsafe { Symbol::new_unchecked(sym) }
+            })
+            .collect()
     }
 }
 
 impl<'a> DoubleEndedIterator for AllSymbols<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.range.next_back().map(Symbol::from)
+        self.range.next_back().map(|sym| {
+            // Safety:
+            //
+            // `self.range` is a `Range<u32>` which can never yield
+            // `u32::MAX`.
+            unsafe { Symbol::new_unchecked(sym) }
+        })
     }
 
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        self.range.nth_back(n).map(Symbol::from)
+        self.range.nth_back(n).map(|sym| {
+            // Safety:
+            //
+            // `self.range` is a `Range<u32>` which can never yield
+            // `u32::MAX`.
+            unsafe { Symbol::new_unchecked(sym) }
+        })
     }
 }
 
@@ -635,7 +673,6 @@ where
             return Ok(id);
         }
 
-        let id = self.map.len().try_into()?;
         // If the number of symbols stored in the table is `u32::MAX`, then the
         // last issued symbol was `u32::MAX - 1` because `(0..u32::MAX).count() == u32::MAX`.
         //
@@ -643,9 +680,7 @@ where
         // table would be `0..=u32::MAX`, which means the table would store
         // `u32::MAX + 1` symbols, which is beyond `SymbolTable`'s documented
         // capacity.
-        if id == u32::MAX {
-            return Err(SymbolOverflowError::new());
-        }
+        let id = self.map.len().try_into()?;
 
         // If given `Cow::Owned(_)` this operation will potentially perform a
         // copy when converting the owned string into a boxed owned string.

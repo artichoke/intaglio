@@ -6,43 +6,61 @@ use crate::{Symbol, SymbolOverflowError};
 
 impl From<u8> for Symbol {
     #[inline]
-    fn from(id: u8) -> Self {
-        Self(id.into())
+    fn from(sym: u8) -> Self {
+        // Safety:
+        //
+        // `u8::MAX` is less than `u32::MAX`
+        unsafe { Self::new_unchecked(sym.into()) }
     }
 }
 
 impl From<NonZeroU8> for Symbol {
     #[inline]
     fn from(sym: NonZeroU8) -> Self {
-        Self(sym.get().into())
+        // Safety:
+        //
+        // `u8::MAX` is less than `u32::MAX`
+        unsafe { Self::new_unchecked(sym.get().into()) }
     }
 }
 
 impl From<u16> for Symbol {
     #[inline]
-    fn from(id: u16) -> Self {
-        Self(id.into())
+    fn from(sym: u16) -> Self {
+        // Safety:
+        //
+        // `u16::MAX` is less than `u32::MAX`
+        unsafe { Self::new_unchecked(sym.into()) }
     }
 }
 
 impl From<NonZeroU16> for Symbol {
     #[inline]
     fn from(sym: NonZeroU16) -> Self {
-        Self(sym.get().into())
+        // Safety:
+        //
+        // `u16::MAX` is less than `u32::MAX`
+        unsafe { Self::new_unchecked(sym.get().into()) }
     }
 }
 
-impl From<u32> for Symbol {
+impl TryFrom<u32> for Symbol {
+    type Error = SymbolOverflowError;
+
     #[inline]
-    fn from(id: u32) -> Self {
-        Self(id)
+    fn try_from(sym: u32) -> Result<Self, Self::Error> {
+        let sym = Self::new(sym).ok_or_else(SymbolOverflowError::new)?;
+        Ok(sym)
     }
 }
 
-impl From<NonZeroU32> for Symbol {
+impl TryFrom<NonZeroU32> for Symbol {
+    type Error = SymbolOverflowError;
+
     #[inline]
-    fn from(sym: NonZeroU32) -> Self {
-        Self(sym.get())
+    fn try_from(sym: NonZeroU32) -> Result<Self, Self::Error> {
+        let sym = Self::new(sym.get()).ok_or_else(SymbolOverflowError::new)?;
+        Ok(sym)
     }
 }
 
@@ -50,9 +68,10 @@ impl TryFrom<u64> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value)?;
-        Ok(id.into())
+    fn try_from(sym: u64) -> Result<Self, Self::Error> {
+        let sym = u32::try_from(sym)?;
+        let sym = Self::new(sym).ok_or_else(SymbolOverflowError::new)?;
+        Ok(sym)
     }
 }
 
@@ -60,9 +79,10 @@ impl TryFrom<NonZeroU64> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: NonZeroU64) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value.get())?;
-        Ok(id.into())
+    fn try_from(sym: NonZeroU64) -> Result<Self, Self::Error> {
+        let sym = u32::try_from(sym.get())?;
+        let sym = Self::new(sym).ok_or_else(SymbolOverflowError::new)?;
+        Ok(sym)
     }
 }
 
@@ -70,9 +90,10 @@ impl TryFrom<usize> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value)?;
-        Ok(id.into())
+    fn try_from(sym: usize) -> Result<Self, Self::Error> {
+        let sym = u32::try_from(sym)?;
+        let sym = Self::new(sym).ok_or_else(SymbolOverflowError::new)?;
+        Ok(sym)
     }
 }
 
@@ -80,51 +101,56 @@ impl TryFrom<NonZeroUsize> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: NonZeroUsize) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value.get())?;
-        Ok(id.into())
+    fn try_from(sym: NonZeroUsize) -> Result<Self, Self::Error> {
+        let sym = u32::try_from(sym.get())?;
+        let sym = Self::new(sym).ok_or_else(SymbolOverflowError::new)?;
+        Ok(sym)
     }
 }
 
 impl From<&u8> for Symbol {
     #[inline]
-    fn from(id: &u8) -> Self {
-        Self((*id).into())
+    fn from(sym: &u8) -> Self {
+        (*sym).into()
     }
 }
 
 impl From<&NonZeroU8> for Symbol {
     #[inline]
     fn from(sym: &NonZeroU8) -> Self {
-        Self(sym.get().into())
+        sym.get().into()
     }
 }
 
 impl From<&u16> for Symbol {
     #[inline]
-    fn from(id: &u16) -> Self {
-        Self((*id).into())
+    fn from(sym: &u16) -> Self {
+        (*sym).into()
     }
 }
 
 impl From<&NonZeroU16> for Symbol {
     #[inline]
     fn from(sym: &NonZeroU16) -> Self {
-        Self(sym.get().into())
+        sym.get().into()
     }
 }
 
-impl From<&u32> for Symbol {
+impl TryFrom<&u32> for Symbol {
+    type Error = SymbolOverflowError;
+
     #[inline]
-    fn from(id: &u32) -> Self {
-        Self(*id)
+    fn try_from(sym: &u32) -> Result<Self, Self::Error> {
+        (*sym).try_into()
     }
 }
 
-impl From<&NonZeroU32> for Symbol {
+impl TryFrom<&NonZeroU32> for Symbol {
+    type Error = SymbolOverflowError;
+
     #[inline]
-    fn from(sym: &NonZeroU32) -> Self {
-        Self(sym.get())
+    fn try_from(sym: &NonZeroU32) -> Result<Self, Self::Error> {
+        sym.try_into()
     }
 }
 
@@ -132,9 +158,8 @@ impl TryFrom<&u64> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: &u64) -> Result<Self, Self::Error> {
-        let id = u32::try_from(*value)?;
-        Ok(id.into())
+    fn try_from(sym: &u64) -> Result<Self, Self::Error> {
+        (*sym).try_into()
     }
 }
 
@@ -142,9 +167,8 @@ impl TryFrom<&NonZeroU64> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: &NonZeroU64) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value.get())?;
-        Ok(id.into())
+    fn try_from(sym: &NonZeroU64) -> Result<Self, Self::Error> {
+        sym.get().try_into()
     }
 }
 
@@ -152,9 +176,8 @@ impl TryFrom<&usize> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: &usize) -> Result<Self, Self::Error> {
-        let id = u32::try_from(*value)?;
-        Ok(id.into())
+    fn try_from(sym: &usize) -> Result<Self, Self::Error> {
+        (*sym).try_into()
     }
 }
 
@@ -162,9 +185,8 @@ impl TryFrom<&NonZeroUsize> for Symbol {
     type Error = SymbolOverflowError;
 
     #[inline]
-    fn try_from(value: &NonZeroUsize) -> Result<Self, Self::Error> {
-        let id = u32::try_from(value.get())?;
-        Ok(id.into())
+    fn try_from(sym: &NonZeroUsize) -> Result<Self, Self::Error> {
+        sym.get().try_into()
     }
 }
 
