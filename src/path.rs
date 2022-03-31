@@ -714,7 +714,6 @@ where
         if let Some(&id) = self.map.get(&*contents) {
             return Ok(id);
         }
-        let name = Interned::from(contents);
 
         let id = self.map.len().try_into()?;
         // If the number of symbols stored in the table is `u32::MAX`, then the
@@ -727,6 +726,10 @@ where
         if id == u32::MAX {
             return Err(SymbolOverflowError::new());
         }
+
+        // If given `Cow::Owned(_)` this operation will potentially perform a
+        // copy when converting the owned string into a boxed owned string.
+        let name = Interned::from(contents);
 
         // Safety:
         //
