@@ -692,7 +692,19 @@ where
             return Ok(id);
         }
         let name = Interned::from(contents);
+
         let id = self.map.len().try_into()?;
+        // If the number of symbols stored in the table is `u32::MAX`, then the
+        // last issued symbol was `u32::MAX - 1` because `(0..u32::MAX).count() == u32::MAX`.
+        //
+        // Creating a symbol with id `u32::MAX` means the range of ids in the
+        // table would be `0..=u32::MAX`, which means the table would store
+        // `u32::MAX + 1` symbols, which is beyond `SymbolTable`'s documented
+        // capacity.
+        if id == u32::MAX {
+            return Err(SymbolOverflowError::new());
+        }
+
         // Safety:
         //
         // This expression creates a reference with a `'static` lifetime

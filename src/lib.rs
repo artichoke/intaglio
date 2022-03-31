@@ -52,6 +52,9 @@
 //! [`Symbol`]s are `u32` indexes into a `SymbolTable` that are cheap to
 //! compare, copy, store, and send.
 //!
+//! `SymbolTable`s store at most `u32::MAX` symbols. The maximum symbol id is
+//! `u32::MAX - 1`.
+//!
 //! # Allocations
 //!
 //! `SymbolTable` exposes several constructors for tuning the initial allocated
