@@ -107,9 +107,18 @@
 mod readme {}
 
 use core::fmt;
-use core::mem::size_of;
 use core::num::TryFromIntError;
 use std::error;
+
+macro_rules! const_assert {
+    ($x:expr $(,)?) => {
+        #[allow(unknown_lints, clippy::eq_op)]
+        const _: [(); 0 - !{
+            const ASSERT: bool = $x;
+            ASSERT
+        } as usize] = [];
+    };
+}
 
 #[cfg(feature = "bytes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
@@ -132,10 +141,7 @@ pub use crate::str::*;
 
 // To prevent overflows when indexing into the backing `Vec`, `intaglio`
 // requires `usize` to be at least as big as `u32`.
-//
-// This const-evaluated expression will fail to compile if this invariant does
-// not hold.
-const _: () = [()][!(size_of::<usize>() >= size_of::<u32>()) as usize];
+const_assert!(usize::BITS >= u32::BITS);
 
 /// Default capacity for a new [`SymbolTable`] created with
 /// [`SymbolTable::new`].
