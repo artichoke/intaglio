@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RUST_BACKTRACE: 1
+      MIRIFLAGS: "-Zmiri-strict-provenance -Zmiri-symbolic-alignment-check -Zrandomize-layout"
 
     steps:
       - name: Checkout repository
