@@ -96,7 +96,7 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.6.0")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.6.1")]
 
 // Ensure code blocks in `README.md` compile
 //
