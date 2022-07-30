@@ -142,5 +142,5 @@ releases.
 
 `intaglio` is licensed under the [MIT License](LICENSE) (c) Ryan Lopopolo.
 
-[symbol]: https://ruby-doc.org/core-2.6.3/Symbol.html
+[symbol]: https://ruby-doc.org/core-3.1.2/Symbol.html
 [artichoke]: https://github.com/artichoke/artichoke
