@@ -1,11 +1,13 @@
 # Contributing to Artichoke – Intaglio
 
-👋 Hi and welcome to [Artichoke](https://github.com/artichoke). Thanks for
-taking the time to contribute! 💪💎🙌
+👋 Hi and welcome to [Artichoke]. Thanks for taking the time to contribute!
+💪💎🙌
 
-Artichoke aspires to be a Ruby 2.6.3-compatible implementation of the Ruby
-programming language.
-[There is lots to do](https://github.com/artichoke/artichoke/issues).
+Artichoke aspires to be a [recent MRI Ruby][mri-target]-compatible
+implementation of the Ruby programming language. [There is lots to do].
+
+[mri-target]:
+  https://github.com/artichoke/artichoke/blob/trunk/RUBYSPEC.md#mri-target
 
 Intaglio is used to implement storage for the [`Symbol` class][ruby-symbol] and
 the constant name table in Artichoke interpreter state.
@@ -208,7 +210,7 @@ Regular dependency bumps are handled by [@dependabot].
 
 [artichoke]: https://github.com/artichoke
 [there is lots to do]: https://github.com/artichoke/artichoke/issues
-[symbol-class]: https://ruby-doc.org/core-2.6.3/Symbol.html
+[symbol-class]: https://ruby-doc.org/core-3.1.2/Symbol.html
 [filed an issue so we can fix it]:
   https://github.com/artichoke/artichoke/issues/new
 [file bugs specific to intaglio in this repository]:
