@@ -265,6 +265,8 @@ impl Symbol {
 
 #[cfg(test)]
 mod tests {
+    use core::fmt::Write as _;
+
     use super::SymbolOverflowError;
 
     #[test]
@@ -281,5 +283,13 @@ mod tests {
     #[cfg(target_pointer_width = "32")]
     fn max_capacity_is_length_of_symbol_range_usize_32_bit() {
         assert_eq!(SymbolOverflowError::new().max_capacity(), usize::MAX);
+    }
+
+    #[test]
+    fn error_display_is_not_empty() {
+        let tc = SymbolOverflowError::new();
+        let mut buf = String::new();
+        write!(&mut buf, "{}", tc).unwrap();
+        assert!(!buf.is_empty());
     }
 }
