@@ -67,10 +67,22 @@
 //! they allow you to intern.
 //!
 //! - [`SymbolTable`] interns UTF-8 strings: [`String`] and [`&str`](prim@str).
-//! - [`bytes::SymbolTable`] interns binary strings: [`Vec<u8>`] and `&[u8]`.
-//! - [`cstr::SymbolTable`] interns C strings: [`CString`] and [`&CStr`].
-//! - [`osstr::SymbolTable`] interns platform strings: [`OsString`] and [`&OsStr`].
-//! - [`path::SymbolTable`] interns path strings: [`PathBuf`] and [`&Path`].
+#![cfg_attr(
+    feature = "bytes",
+    doc = "- [`bytes::SymbolTable`] interns binary strings: [`Vec<u8>`] and `&[u8]`."
+)]
+#![cfg_attr(
+    feature = "cstr",
+    doc = "- [`cstr::SymbolTable`] interns C strings: [`CString`] and [`&CStr`]."
+)]
+#![cfg_attr(
+    feature = "osstr",
+    doc = "- [`osstr::SymbolTable`] interns platform strings: [`OsString`] and [`&OsStr`]."
+)]
+#![cfg_attr(
+    feature = "path",
+    doc = "- [`path::SymbolTable`] interns path strings: [`PathBuf`] and [`&Path`]."
+)]
 //!
 //! # Crate features
 //!
