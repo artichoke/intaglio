@@ -43,7 +43,10 @@ jobs:
           echo "::endgroup::"
 
       - name: Check docs with no default features
-        run: cargo doc --no-default-features
+        run: cargo doc --workspace --no-default-features
+
+      - name: Clean docs
+        run: cargo clean
 
       - name: Build Documentation
         run: cargo doc --workspace
