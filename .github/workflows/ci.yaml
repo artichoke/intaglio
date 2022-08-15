@@ -98,7 +98,7 @@ jobs:
         run: cargo test --no-default-features --target ${{ matrix.target }}
 
   build-msrv:
-    name: Build (1.56.0)
+    name: Build (MSRV)
     runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: 0
@@ -113,6 +113,7 @@ jobs:
         with:
           toolchain: "1.56.0"
           profile: minimal
+          override: true
 
       - name: Compile
         run: cargo build --verbose
