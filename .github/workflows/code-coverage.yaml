@@ -1,0 +1,100 @@
+---
+name: Code Coverage
+"on":
+  push:
+    branches:
+      - trunk
+  pull_request:
+    branches:
+      - trunk
+jobs:
+  generate:
+    name: Generate
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: 1
+      CARGO_NET_GIT_FETCH_WITH_CLI: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          override: true
+          components: llvm-tools-preview
+
+      - name: Setup grcov
+        run: |
+          release_url="$(curl \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/mozilla/grcov/releases | \
+            jq -r '.[0].assets | map(select(.browser_download_url | test(".*x86_64-unknown-linux-musl.tar.bz2$"))) | .[0].browser_download_url')"
+
+          curl -sL "$release_url" | sudo tar xvj -C /usr/local/bin/
+
+      - name: Generate coverage
+        env:
+          LLVM_PROFILE_FILE: "intaglio-%m.profraw"
+          RUSTFLAGS: "-C instrument-coverage"
+          # Unstable feature: https://github.com/rust-lang/rust/issues/56925
+          RUSTDOCFLAGS: "-C instrument-coverage -Z unstable-options --persist-doctests target/debug/doctests"
+        run: |
+          cargo +nightly test --lib
+          cargo +nightly test --doc
+
+      - name: Generate HTML report
+        run: grcov intaglio*.profraw --source-dir . --binary-path target/debug -t html --filter covered -o target/coverage
+
+      - name: Generate detailed JSON report
+        run: grcov intaglio*.profraw --source-dir . --binary-path target/debug -t covdir --filter covered -o target/coverage/coverage.json
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        if: github.ref == 'refs/heads/trunk'
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::447522982029:role/gha-intaglio-s3-backup-20220820215201567700000006
+          role-session-name: GitHubActionsRustCodeCoverage@intaglio
+
+      - name: Show AWS caller identity
+        if: github.ref == 'refs/heads/trunk'
+        run: aws sts get-caller-identity
+
+      - name: Upload archives to S3
+        if: github.ref == 'refs/heads/trunk'
+        run: |
+          aws s3 sync target/coverage/ s3://artichoke-forge-code-coverage-us-west-2/intaglio/ --delete --sse AES256 --exclude '*' --include '*.svg' --content-type 'image/svg+xml'
+          aws s3 sync target/coverage/ s3://artichoke-forge-code-coverage-us-west-2/intaglio/ --delete --sse AES256 --exclude '*' --include '*.html' --content-type 'text/html'
+          aws s3 sync target/coverage/ s3://artichoke-forge-code-coverage-us-west-2/intaglio/ --delete --sse AES256 --exclude '*' --include '*.json' --content-type 'application/json'
+          aws s3 sync target/coverage/ s3://artichoke-forge-code-coverage-us-west-2/intaglio/ --delete --sse AES256 --include '*' --exclude '*.svg' --exclude '*.html' --exclude '*.json'
+
+      - name: Check missed lines
+        run: |
+          curl -s https://codecov.artichokeruby.org/intaglio/coverage.json | python -c '\
+          import sys, json; \
+          \
+          trunk_coverage = json.loads(sys.stdin.read()); \
+          print("On trunk: "); \
+          print("coveragePercent =", trunk_coverage["coveragePercent"]); \
+          print("linesCovered =", trunk_coverage["linesCovered"]); \
+          print("linesMissed =", trunk_coverage["linesMissed"]); \
+          print("linesTotal =", trunk_coverage["linesTotal"]); \
+          print(""); \
+          \
+          branch_coverage = json.load(open("target/coverage/coverage.json"))
+          print("On PR branch: "); \
+          print("coveragePercent =", branch_coverage["coveragePercent"]); \
+          print("linesCovered =", branch_coverage["linesCovered"]); \
+          print("linesMissed =", branch_coverage["linesMissed"]); \
+          print("linesTotal =", branch_coverage["linesTotal"]); \
+          print(""); \
+          \
+          is_ok = branch_coverage["linesMissed"] <= trunk_coverage["linesMissed"]; \
+          exit(0) if is_ok else exit(1) \
+          '
