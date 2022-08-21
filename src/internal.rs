@@ -1,10 +1,7 @@
 //! A Wrapper around interned strings that maintains the safety invariants of
 //! the `'static` slices handed out to the interner.
 
-use core::borrow::Borrow;
 use core::fmt;
-use core::hash::{Hash, Hasher};
-use core::ops::Deref;
 use std::borrow::Cow;
 #[cfg(feature = "cstr")]
 use std::ffi::{CStr, CString};
@@ -17,35 +14,10 @@ use std::path::{Path, PathBuf};
 /// inner slice.
 pub struct Interned<T: 'static + ?Sized>(Slice<T>);
 
-impl<T> From<&'static T> for Interned<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn from(slice: &'static T) -> Self {
-        Self(slice.into())
-    }
-}
-
-impl From<String> for Interned<str> {
-    #[inline]
-    fn from(owned: String) -> Self {
-        Self(owned.into())
-    }
-}
-
 impl From<Cow<'static, str>> for Interned<str> {
     #[inline]
     fn from(cow: Cow<'static, str>) -> Self {
         Self(cow.into())
-    }
-}
-
-#[cfg(feature = "bytes")]
-impl From<Vec<u8>> for Interned<[u8]> {
-    #[inline]
-    fn from(owned: Vec<u8>) -> Self {
-        Self(owned.into())
     }
 }
 
@@ -58,14 +30,6 @@ impl From<Cow<'static, [u8]>> for Interned<[u8]> {
 }
 
 #[cfg(feature = "cstr")]
-impl From<CString> for Interned<CStr> {
-    #[inline]
-    fn from(owned: CString) -> Self {
-        Self(owned.into())
-    }
-}
-
-#[cfg(feature = "cstr")]
 impl From<Cow<'static, CStr>> for Interned<CStr> {
     #[inline]
     fn from(cow: Cow<'static, CStr>) -> Self {
@@ -74,26 +38,10 @@ impl From<Cow<'static, CStr>> for Interned<CStr> {
 }
 
 #[cfg(feature = "osstr")]
-impl From<OsString> for Interned<OsStr> {
-    #[inline]
-    fn from(owned: OsString) -> Self {
-        Self(owned.into())
-    }
-}
-
-#[cfg(feature = "osstr")]
 impl From<Cow<'static, OsStr>> for Interned<OsStr> {
     #[inline]
     fn from(cow: Cow<'static, OsStr>) -> Self {
         Self(cow.into())
-    }
-}
-
-#[cfg(feature = "path")]
-impl From<PathBuf> for Interned<Path> {
-    #[inline]
-    fn from(owned: PathBuf) -> Self {
-        Self(owned.into())
     }
 }
 
@@ -129,17 +77,6 @@ where
         // `Interned::as_static_slice`'s caller upheld safety invariants are the
         // same as `Slice::as_static_slice`'s caller upheld safety invariants.
         unsafe { self.0.as_static_slice() }
-    }
-}
-
-impl<T> Default for Interned<T>
-where
-    T: ?Sized,
-    &'static T: Default,
-{
-    #[inline]
-    fn default() -> Self {
-        Self(Slice::default())
     }
 }
 
@@ -194,158 +131,6 @@ impl fmt::Debug for Interned<Path> {
         } else {
             write!(f, "{:?}", self.0)
         }
-    }
-}
-
-impl<T> Deref for Interned<T>
-where
-    T: ?Sized,
-{
-    type Target = T;
-
-    #[inline]
-    fn deref(&self) -> &Self::Target {
-        self.as_slice()
-    }
-}
-
-impl<T> PartialEq<Interned<T>> for Interned<T>
-where
-    T: ?Sized + PartialEq,
-{
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-impl<T> PartialEq<T> for Interned<T>
-where
-    T: ?Sized + PartialEq,
-{
-    #[inline]
-    fn eq(&self, other: &T) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<String> for Interned<str> {
-    #[inline]
-    fn eq(&self, other: &String) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<Interned<str>> for String {
-    #[inline]
-    fn eq(&self, other: &Interned<str>) -> bool {
-        self == other.as_slice()
-    }
-}
-
-#[cfg(feature = "bytes")]
-impl PartialEq<Vec<u8>> for Interned<[u8]> {
-    #[inline]
-    fn eq(&self, other: &Vec<u8>) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-#[cfg(feature = "bytes")]
-impl PartialEq<Interned<[u8]>> for Vec<u8> {
-    #[inline]
-    fn eq(&self, other: &Interned<[u8]>) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-#[cfg(feature = "cstr")]
-impl PartialEq<CString> for Interned<CStr> {
-    #[inline]
-    fn eq(&self, other: &CString) -> bool {
-        self.as_slice() == other.as_c_str()
-    }
-}
-
-#[cfg(feature = "cstr")]
-impl PartialEq<Interned<CStr>> for CString {
-    #[inline]
-    fn eq(&self, other: &Interned<CStr>) -> bool {
-        self.as_c_str() == other.as_slice()
-    }
-}
-
-#[cfg(feature = "osstr")]
-impl PartialEq<OsString> for Interned<OsStr> {
-    #[inline]
-    fn eq(&self, other: &OsString) -> bool {
-        self.as_slice() == other.as_os_str()
-    }
-}
-
-#[cfg(feature = "osstr")]
-impl PartialEq<Interned<OsStr>> for OsString {
-    #[inline]
-    fn eq(&self, other: &Interned<OsStr>) -> bool {
-        self.as_os_str() == other.as_slice()
-    }
-}
-
-#[cfg(feature = "path")]
-impl PartialEq<PathBuf> for Interned<Path> {
-    #[inline]
-    fn eq(&self, other: &PathBuf) -> bool {
-        self.as_slice() == other.as_path()
-    }
-}
-
-#[cfg(feature = "path")]
-impl PartialEq<Interned<Path>> for PathBuf {
-    #[inline]
-    fn eq(&self, other: &Interned<Path>) -> bool {
-        self.as_path() == other.as_slice()
-    }
-}
-
-impl<T> Eq for Interned<T> where T: ?Sized + PartialEq {}
-
-impl<T> Hash for Interned<T>
-where
-    T: ?Sized + Hash,
-{
-    #[inline]
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_slice().hash(state);
-    }
-}
-
-impl<T> Borrow<T> for Interned<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn borrow(&self) -> &T {
-        self.as_slice()
-    }
-}
-
-impl<T> Borrow<T> for &Interned<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn borrow(&self) -> &T {
-        self.as_slice()
-    }
-}
-
-impl<T> AsRef<T> for Interned<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn as_ref(&self) -> &T {
-        self.as_slice()
     }
 }
 
@@ -516,17 +301,6 @@ where
     }
 }
 
-impl<T> Default for Slice<T>
-where
-    T: ?Sized,
-    &'static T: Default,
-{
-    #[inline]
-    fn default() -> Self {
-        Self::Static(<_>::default())
-    }
-}
-
 impl fmt::Debug for Slice<str> {
     /// Formats the string slice using the given formatter.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -599,125 +373,5 @@ impl fmt::Debug for Slice<Path> {
         } else {
             write!(f, "{:?}", self.as_slice())
         }
-    }
-}
-
-impl<T> Deref for Slice<T>
-where
-    T: ?Sized,
-{
-    type Target = T;
-
-    #[inline]
-    fn deref(&self) -> &Self::Target {
-        self.as_slice()
-    }
-}
-
-impl<T> PartialEq<Slice<T>> for Slice<T>
-where
-    T: ?Sized + PartialEq,
-{
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-impl<T> PartialEq<T> for Slice<T>
-where
-    T: ?Sized + PartialEq,
-{
-    #[inline]
-    fn eq(&self, other: &T) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<String> for Slice<str> {
-    #[inline]
-    fn eq(&self, other: &String) -> bool {
-        self.as_slice() == other
-    }
-}
-
-impl PartialEq<Slice<str>> for String {
-    #[inline]
-    fn eq(&self, other: &Slice<str>) -> bool {
-        self == other.as_slice()
-    }
-}
-
-#[cfg(feature = "bytes")]
-impl PartialEq<Vec<u8>> for Slice<[u8]> {
-    #[inline]
-    fn eq(&self, other: &Vec<u8>) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-#[cfg(feature = "bytes")]
-impl PartialEq<Slice<[u8]>> for Vec<u8> {
-    #[inline]
-    fn eq(&self, other: &Slice<[u8]>) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-#[cfg(feature = "cstr")]
-impl PartialEq<CString> for Slice<CStr> {
-    #[inline]
-    fn eq(&self, other: &CString) -> bool {
-        self.as_slice() == other.as_c_str()
-    }
-}
-
-#[cfg(feature = "cstr")]
-impl PartialEq<Slice<CStr>> for CString {
-    #[inline]
-    fn eq(&self, other: &Slice<CStr>) -> bool {
-        self.as_c_str() == other.as_slice()
-    }
-}
-
-impl<T> Eq for Slice<T> where T: ?Sized + PartialEq {}
-
-impl<T> Hash for Slice<T>
-where
-    T: ?Sized + Hash,
-{
-    #[inline]
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_slice().hash(state);
-    }
-}
-
-impl<T> Borrow<T> for Slice<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn borrow(&self) -> &T {
-        self.as_slice()
-    }
-}
-
-impl<T> Borrow<T> for &Slice<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn borrow(&self) -> &T {
-        self.as_slice()
-    }
-}
-
-impl<T> AsRef<T> for Slice<T>
-where
-    T: ?Sized,
-{
-    #[inline]
-    fn as_ref(&self) -> &T {
-        self.as_slice()
     }
 }
