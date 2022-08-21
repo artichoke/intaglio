@@ -1,4 +1,3 @@
-use core::convert::TryFrom;
 use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
 
 use crate::{Symbol, SymbolOverflowError};
@@ -223,5 +222,142 @@ impl From<&Symbol> for i64 {
     #[inline]
     fn from(sym: &Symbol) -> Self {
         sym.id().into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+
+    use crate::Symbol;
+
+    #[test]
+    fn symbol_from_primitive() {
+        assert_eq!(Symbol::from(0_u8), Symbol::new(0));
+        assert_eq!(Symbol::from(17_u8), Symbol::new(17));
+
+        assert_eq!(Symbol::from(0_u16), Symbol::new(0));
+        assert_eq!(Symbol::from(17_u16), Symbol::new(17));
+
+        assert_eq!(Symbol::from(0_u32), Symbol::new(0));
+        assert_eq!(Symbol::from(17_u32), Symbol::new(17));
+
+        assert_eq!(Symbol::try_from(0_u64).unwrap(), Symbol::new(0));
+        assert_eq!(Symbol::try_from(17_u64).unwrap(), Symbol::new(17));
+
+        Symbol::try_from(u64::MAX).unwrap_err();
+        Symbol::try_from(u64::from(u32::MAX) + 1).unwrap_err();
+
+        assert_eq!(Symbol::try_from(0_usize).unwrap(), Symbol::new(0));
+        assert_eq!(Symbol::try_from(17_usize).unwrap(), Symbol::new(17));
+
+        #[cfg(target_pointer_width = "64")]
+        {
+            Symbol::try_from(usize::MAX).unwrap_err();
+            Symbol::try_from(u64::try_from(u32::MAX).unwrap() + 1).unwrap_err();
+        }
+    }
+
+    #[test]
+    fn symbol_from_primitive_ref() {
+        assert_eq!(Symbol::from(&0_u8), Symbol::new(0));
+        assert_eq!(Symbol::from(&17_u8), Symbol::new(17));
+
+        assert_eq!(Symbol::from(&0_u16), Symbol::new(0));
+        assert_eq!(Symbol::from(&17_u16), Symbol::new(17));
+
+        assert_eq!(Symbol::from(&0_u32), Symbol::new(0));
+        assert_eq!(Symbol::from(&17_u32), Symbol::new(17));
+
+        assert_eq!(Symbol::try_from(&0_u64).unwrap(), Symbol::new(0));
+        assert_eq!(Symbol::try_from(&17_u64).unwrap(), Symbol::new(17));
+
+        Symbol::try_from(&u64::MAX).unwrap_err();
+        Symbol::try_from(&(u64::from(u32::MAX) + 1)).unwrap_err();
+
+        assert_eq!(Symbol::try_from(&0_usize).unwrap(), Symbol::new(0));
+        assert_eq!(Symbol::try_from(&17_usize).unwrap(), Symbol::new(17));
+
+        #[cfg(target_pointer_width = "64")]
+        {
+            Symbol::try_from(&usize::MAX).unwrap_err();
+            Symbol::try_from(&(u64::try_from(u32::MAX).unwrap() + 1)).unwrap_err();
+        }
+    }
+
+    #[test]
+    fn symbol_from_nonzero() {
+        assert_eq!(
+            Symbol::from(NonZeroU8::new(17_u8).unwrap()),
+            Symbol::new(17)
+        );
+
+        assert_eq!(
+            Symbol::from(NonZeroU16::new(17_u16).unwrap()),
+            Symbol::new(17)
+        );
+
+        assert_eq!(
+            Symbol::from(NonZeroU32::new(17_u32).unwrap()),
+            Symbol::new(17)
+        );
+
+        assert_eq!(
+            Symbol::try_from(NonZeroU64::new(17_u64).unwrap()).unwrap(),
+            Symbol::new(17)
+        );
+
+        Symbol::try_from(NonZeroU64::new(u64::MAX).unwrap()).unwrap_err();
+        Symbol::try_from(NonZeroU64::new(u64::from(u32::MAX) + 1).unwrap()).unwrap_err();
+
+        assert_eq!(
+            Symbol::try_from(NonZeroUsize::new(17_usize).unwrap()).unwrap(),
+            Symbol::new(17)
+        );
+
+        #[cfg(target_pointer_width = "64")]
+        {
+            Symbol::try_from(NonZeroUsize::new(usize::MAX).unwrap()).unwrap_err();
+            Symbol::try_from(NonZeroUsize::new((usize::try_from(u32::MAX).unwrap()) + 1).unwrap())
+                .unwrap_err();
+        }
+    }
+
+    #[test]
+    fn symbol_from_nonzero_ref() {
+        assert_eq!(
+            Symbol::from(&NonZeroU8::new(17_u8).unwrap()),
+            Symbol::new(17)
+        );
+
+        assert_eq!(
+            Symbol::from(&NonZeroU16::new(17_u16).unwrap()),
+            Symbol::new(17)
+        );
+
+        assert_eq!(
+            Symbol::from(&NonZeroU32::new(17_u32).unwrap()),
+            Symbol::new(17)
+        );
+
+        assert_eq!(
+            Symbol::try_from(&NonZeroU64::new(17_u64).unwrap()).unwrap(),
+            Symbol::new(17)
+        );
+
+        Symbol::try_from(&NonZeroU64::new(u64::MAX).unwrap()).unwrap_err();
+        Symbol::try_from(&NonZeroU64::new(u64::from(u32::MAX) + 1).unwrap()).unwrap_err();
+
+        assert_eq!(
+            Symbol::try_from(&NonZeroUsize::new(17_usize).unwrap()).unwrap(),
+            Symbol::new(17)
+        );
+
+        #[cfg(target_pointer_width = "64")]
+        {
+            Symbol::try_from(&NonZeroUsize::new(usize::MAX).unwrap()).unwrap_err();
+            Symbol::try_from(&NonZeroUsize::new((usize::try_from(u32::MAX).unwrap()) + 1).unwrap())
+                .unwrap_err();
+        }
     }
 }
