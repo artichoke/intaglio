@@ -269,7 +269,10 @@ impl Symbol {
 
 #[cfg(test)]
 mod tests {
+    use core::cmp::Ordering;
     use core::fmt::Write as _;
+    use core::hash::{BuildHasher as _, Hash as _, Hasher as _};
+    use std::collections::hash_map::RandomState;
 
     use super::SymbolOverflowError;
 
@@ -295,6 +298,64 @@ mod tests {
         let mut buf = String::new();
         write!(&mut buf, "{}", tc).unwrap();
         assert!(!buf.is_empty());
+    }
+
+    #[test]
+    fn error_debug_is_not_empty() {
+        let tc = SymbolOverflowError::new();
+        let mut buf = String::new();
+        write!(&mut buf, "{:?}", tc).unwrap();
+        assert!(!buf.is_empty());
+    }
+
+    #[test]
+    fn error_from_int_conversion_error() {
+        let try_from_int_error = i8::try_from(u8::MAX).unwrap_err();
+        let err = SymbolOverflowError::from(try_from_int_error);
+        assert_eq!(err, SymbolOverflowError::new());
+    }
+
+    #[test]
+    fn error_default_is_error_new() {
+        let default = SymbolOverflowError::default();
+        let new = SymbolOverflowError::new();
+        assert_eq!(default, new);
+    }
+
+    #[test]
+    fn error_clone_is_equal_to_self() {
+        let default = SymbolOverflowError::default();
+        #[allow(clippy::clone_on_copy)]
+        let clone = default.clone();
+        assert_eq!(default, clone);
+    }
+
+    #[test]
+    fn error_ord_is_equal_to_self() {
+        let default = SymbolOverflowError::default();
+        let new = SymbolOverflowError::new();
+        assert_eq!(default.cmp(&new), Ordering::Equal);
+        assert_eq!(new.cmp(&default), Ordering::Equal);
+    }
+
+    #[test]
+    fn error_hash_is_equal_to_self() {
+        let default = SymbolOverflowError::default();
+        let new = SymbolOverflowError::new();
+
+        let s = RandomState::new();
+        let default_hash = {
+            let mut hasher = s.build_hasher();
+            default.hash(&mut hasher);
+            hasher.finish()
+        };
+        let new_hash = {
+            let mut hasher = s.build_hasher();
+            new.hash(&mut hasher);
+            hasher.finish()
+        };
+
+        assert_eq!(default_hash, new_hash);
     }
 }
 
