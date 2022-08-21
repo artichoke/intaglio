@@ -40,7 +40,7 @@ jobs:
 
       - name: Generate coverage
         env:
-          LLVM_PROFILE_FILE: "intaglio-%m.profraw"
+          LLVM_PROFILE_FILE: "intaglio-%m-%p.profraw"
           RUSTFLAGS: "-C instrument-coverage"
           # Unstable feature: https://github.com/rust-lang/rust/issues/56925
           RUSTDOCFLAGS: "-C instrument-coverage -Z unstable-options --persist-doctests target/debug/doctests"
