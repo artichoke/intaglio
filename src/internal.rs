@@ -72,10 +72,9 @@ where
     /// inner `Slice` is dropped.
     #[inline]
     pub unsafe fn as_static_slice(&self) -> &'static T {
-        // Safety:
-        //
-        // `Interned::as_static_slice`'s caller upheld safety invariants are the
-        // same as `Slice::as_static_slice`'s caller upheld safety invariants.
+        // SAFETY: `Interned::as_static_slice`'s caller upheld safety invariants
+        // are the same as `Slice::as_static_slice`'s caller upheld safety
+        // invariants.
         unsafe { self.0.as_static_slice() }
     }
 }
@@ -281,21 +280,20 @@ where
             Self::Owned(owned) => {
                 // Coerce the `Box<T>` to a pointer.
                 let ptr: *const T = &**owned;
-                // Coerce the pointer to a `&'static T`.
+                // SAFETY: This expression creates a reference with a `'static`
+                // lifetime from an owned buffer, which is permissible because:
                 //
-                // Safety:
-                //
-                // This expression creates a reference with a `'static` lifetime
-                // from an owned buffer. This is permissible because:
-                //
-                // - `Slice` is an internal implementation detail of
-                //   `SymbolTable` and `bytes::SymbolTable`.
-                // - `SymbolTable` and `bytes::SymbolTable` never give out
-                //   `'static` references to underlying byte contents.
-                // - The `map` field of `SymbolTable` and `bytes::SymbolTable`,
-                //   which contains the `'static` references, is dropped before
-                //   the owned buffers stored in this `Slice`.
-                unsafe { &*ptr }
+                // - `Slice` is an internal implementation detail of the various
+                //   symbol table data structures
+                // - The various symbol tables never give out `'static` references
+                //   to underlying byte contents.
+                // - The `map` field of the various symbol tables which contains
+                //   the `'static` references, is dropped before the owned buffers
+                //   stored in this `Slice`.
+                unsafe {
+                    // Coerce the pointer to a `&'static T`.
+                    &*ptr
+                }
             }
         }
     }
