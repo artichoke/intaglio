@@ -321,16 +321,13 @@ pub struct SymbolTable<S = RandomState> {
 
 impl<S> Drop for SymbolTable<S> {
     fn drop(&mut self) {
-        // Safety:
-        //
-        // `Interned` requires that the `'static` references it gives out are
-        // dropped before the owning buffer stored in the `Interned`.
-        //
-        // `ManuallyDrop::drop` is only invoked in this `Drop::drop` impl;
-        // because mutable references to `map` and `vec` fields are not given
-        // out by `SymbolTable`, `map` and `vec` are guaranteed to be
-        // initialized.
+        // SAFETY: No mutable references to `SymbolTable` internal fields are
+        // given out, which means `ManuallyDrop::drop` can only be invoked in
+        // this `Drop::drop` impl. Interal fields are guaranteed to be
+        // initialized by `SymbolTable` constructors.
         unsafe {
+            // `Interned` requires that the `'static` references it gives out
+            // are dropped before the owning buffer stored in the `Interned`.
             ManuallyDrop::drop(&mut self.map);
             ManuallyDrop::drop(&mut self.vec);
         }
@@ -720,13 +717,11 @@ where
         }
         let name = Interned::from(contents);
         let id = self.map.len().try_into()?;
-        // Safety:
-        //
-        // This expression creates a reference with a `'static` lifetime
-        // from an owned and interned buffer. This is permissible because:
+        // SAFETY: This expression creates a reference with a `'static` lifetime
+        // from an owned and interned buffer, which is permissible because:
         //
         // - `Interned` is an internal implementation detail of `SymbolTable`.
-        // - `SymbolTable` never give out `'static` references to underlying
+        // - `SymbolTable` never gives out `'static` references to underlying
         //   C string byte contents.
         // - All slice references given out by the `SymbolTable` have the same
         //   lifetime as the `SymbolTable`.
