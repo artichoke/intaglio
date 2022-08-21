@@ -360,4 +360,46 @@ mod tests {
                 .unwrap_err();
         }
     }
+
+    #[test]
+    fn symbol_into_u32_eql_symbol_as_id() {
+        let test_cases = [0, 1, 17, 192, u32::MAX];
+        for id in test_cases {
+            let sym = Symbol::new(id);
+            assert_eq!(u32::from(sym), id);
+            assert_eq!(u32::from(&sym), id);
+            assert_eq!(u32::from(sym), sym.id());
+            assert_eq!(u32::from(&sym), sym.id());
+        }
+    }
+
+    #[test]
+    fn primitive_from_symbol() {
+        assert_eq!(0_u32, u32::from(Symbol::new(0)));
+        assert_eq!(17_u32, u32::from(Symbol::new(17)));
+
+        assert_eq!(0_u64, u64::from(Symbol::new(0)));
+        assert_eq!(17_u64, u64::from(Symbol::new(17)));
+
+        assert_eq!(0_usize, usize::from(Symbol::new(0)));
+        assert_eq!(17_usize, usize::from(Symbol::new(17)));
+
+        assert_eq!(0_i64, i64::from(Symbol::new(0)));
+        assert_eq!(17_i64, i64::from(Symbol::new(17)));
+    }
+
+    #[test]
+    fn primitive_from_symbol_ref() {
+        assert_eq!(0_u32, u32::from(&Symbol::new(0)));
+        assert_eq!(17_u32, u32::from(&Symbol::new(17)));
+
+        assert_eq!(0_u64, u64::from(&Symbol::new(0)));
+        assert_eq!(17_u64, u64::from(&Symbol::new(17)));
+
+        assert_eq!(0_usize, usize::from(&Symbol::new(0)));
+        assert_eq!(17_usize, usize::from(&Symbol::new(17)));
+
+        assert_eq!(0_i64, i64::from(&Symbol::new(0)));
+        assert_eq!(17_i64, i64::from(&Symbol::new(17)));
+    }
 }
