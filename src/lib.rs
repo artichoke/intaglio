@@ -110,14 +110,6 @@
 
 #![doc(html_root_url = "https://docs.rs/intaglio/1.7.0")]
 
-// Ensure code blocks in `README.md` compile
-//
-// The README contains examples from all interners, so only run these doctests
-// when all features are enabled.
-#[cfg(all(doctest, feature = "bytes", feature = "cstr", feature = "path"))]
-#[doc = include_str!("../README.md")]
-mod readme {}
-
 use core::fmt;
 use core::num::TryFromIntError;
 use std::error;
@@ -305,3 +297,20 @@ mod tests {
         assert!(!buf.is_empty());
     }
 }
+
+// Ensure code blocks in `README.md` compile
+//
+// The README contains examples from all interners, so only run these doctests
+// when all features are enabled.
+//
+// This module declaration should be kept at the end of the file, in order to
+// not interfere with code coverage.
+#[cfg(all(
+    doctest,
+    feature = "bytes",
+    feature = "cstr",
+    feature = "osstr",
+    feature = "path"
+))]
+#[doc = include_str!("../README.md")]
+mod readme {}
