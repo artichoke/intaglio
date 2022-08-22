@@ -44,15 +44,13 @@ jobs:
           RUSTFLAGS: "-C instrument-coverage"
           # Unstable feature: https://github.com/rust-lang/rust/issues/56925
           RUSTDOCFLAGS: "-C instrument-coverage -Z unstable-options --persist-doctests target/debug/doctests"
-        run: |
-          cargo +nightly test --lib
-          cargo +nightly test --doc
+        run: cargo test
 
       - name: Generate HTML report
-        run: grcov intaglio*.profraw --source-dir . --binary-path target/debug -t html --filter covered -o target/coverage
+        run: grcov intaglio*.profraw --source-dir . --keep-only 'src/**/*.rs' --binary-path target/debug -t html --filter covered -o target/coverage
 
       - name: Generate detailed JSON report
-        run: grcov intaglio*.profraw --source-dir . --binary-path target/debug -t covdir --filter covered -o target/coverage/coverage.json
+        run: grcov intaglio*.profraw --source-dir . --keep-only 'src/**/*.rs' --binary-path target/debug -t covdir --filter covered -o target/coverage/coverage.json
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
