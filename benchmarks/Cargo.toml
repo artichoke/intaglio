@@ -16,6 +16,6 @@ harness = false
 
 [dev-dependencies]
 # Benchmarking support on stable Rust.
-criterion = "0.3"
+criterion = "0.4"
 # benchmark target
 intaglio = { path = ".." }
