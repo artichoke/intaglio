@@ -262,7 +262,7 @@ where
     const fn as_slice(&self) -> &T {
         match self {
             Self::Static(slice) => slice,
-            Self::Owned(owned) => &**owned,
+            Self::Owned(owned) => owned,
         }
     }
 
