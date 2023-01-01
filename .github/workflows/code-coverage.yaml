@@ -39,6 +39,9 @@ jobs:
           )"
           curl -sL "$release_url" | sudo tar xvj -C /usr/local/bin/
 
+      - name: Show grcov version
+        run: grcov --version
+
       - name: Generate coverage
         env:
           LLVM_PROFILE_FILE: "intaglio-%m-%p.profraw"
