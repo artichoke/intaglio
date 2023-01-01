@@ -27,10 +27,16 @@ jobs:
       - name: Setup grcov
         run: |
           release_url="$(curl \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/mozilla/grcov/releases | \
-            jq -r '.[0].assets | map(select(.browser_download_url | test(".*x86_64-unknown-linux-musl.tar.bz2$"))) | .[0].browser_download_url')"
-
+            --url https://api.github.com/repos/mozilla/grcov/releases \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --silent \
+            --fail \
+            --retry 5 \
+            | jq -r '.[0].assets
+                     | map(select(.browser_download_url | test(".*x86_64-unknown-linux-musl.tar.bz2$")))
+                     | .[0].browser_download_url'
+          )"
           curl -sL "$release_url" | sudo tar xvj -C /usr/local/bin/
 
       - name: Generate coverage
