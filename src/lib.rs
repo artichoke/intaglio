@@ -194,8 +194,7 @@ impl SymbolOverflowError {
 
 impl From<TryFromIntError> for SymbolOverflowError {
     #[inline]
-    fn from(err: TryFromIntError) -> Self {
-        let _ = err;
+    fn from(_err: TryFromIntError) -> Self {
         Self::new()
     }
 }
