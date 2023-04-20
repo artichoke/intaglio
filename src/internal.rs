@@ -81,55 +81,35 @@ where
 
 impl fmt::Debug for Interned<str> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "{:#?}", self.0)
-        } else {
-            write!(f, "{:?}", self.0)
-        }
+        self.0.fmt(f)
     }
 }
 
 #[cfg(feature = "bytes")]
 impl fmt::Debug for Interned<[u8]> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "{:#?}", self.0)
-        } else {
-            write!(f, "{:?}", self.0)
-        }
+        self.0.fmt(f)
     }
 }
 
 #[cfg(feature = "cstr")]
 impl fmt::Debug for Interned<CStr> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "{:#?}", self.0)
-        } else {
-            write!(f, "{:?}", self.0)
-        }
+        self.0.fmt(f)
     }
 }
 
 #[cfg(feature = "osstr")]
 impl fmt::Debug for Interned<OsStr> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "{:#?}", self.0)
-        } else {
-            write!(f, "{:?}", self.0)
-        }
+        self.0.fmt(f)
     }
 }
 
 #[cfg(feature = "path")]
 impl fmt::Debug for Interned<Path> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "{:#?}", self.0)
-        } else {
-            write!(f, "{:?}", self.0)
-        }
+        self.0.fmt(f)
     }
 }
 
