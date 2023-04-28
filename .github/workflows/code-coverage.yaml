@@ -19,10 +19,10 @@ jobs:
       CARGO_NET_GIT_FETCH_WITH_CLI: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.2
 
       - name: Install nightly Rust toolchain
-        uses: artichoke/setup-rust/code-coverage@v1
+        uses: artichoke/setup-rust/code-coverage@v1.9.0
 
       - name: Setup grcov
         run: |
@@ -57,7 +57,7 @@ jobs:
         run: grcov intaglio*.profraw --source-dir . --keep-only 'src/**/*.rs' --binary-path target/debug -t covdir --filter covered -o target/coverage/coverage.json
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@master
+        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # v2.0.0
         if: github.ref == 'refs/heads/trunk'
         with:
           aws-region: us-west-2
