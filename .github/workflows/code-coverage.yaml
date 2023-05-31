@@ -17,6 +17,7 @@ jobs:
     env:
       RUST_BACKTRACE: 1
       CARGO_NET_GIT_FETCH_WITH_CLI: true
+      CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3.5.2
@@ -46,7 +47,10 @@ jobs:
         env:
           LLVM_PROFILE_FILE: "intaglio-%m-%p.profraw"
           RUSTFLAGS: "-C instrument-coverage"
-          # Unstable feature: https://github.com/rust-lang/rust/issues/56925
+          # Unstable feature: `--persist-doctests`: persist doctest executables after running
+          # https://rustwiki.org/en/rustdoc/unstable-features.html#--persist-doctests-persist-doctest-executables-after-running
+          #
+          # Used to allow grcov to use these sources to generate coverage metrics.
           RUSTDOCFLAGS: "-C instrument-coverage -Z unstable-options --persist-doctests target/debug/doctests"
         run: cargo test
 
@@ -77,26 +81,43 @@ jobs:
           aws s3 sync target/coverage/ s3://artichoke-forge-code-coverage-us-west-2/intaglio/ --delete --sse AES256 --include '*' --exclude '*.svg' --exclude '*.html' --exclude '*.json'
 
       - name: Check missed lines
+        shell: python
         run: |
-          curl -s https://codecov.artichokeruby.org/intaglio/coverage.json | python -c '\
-          import sys, json; \
-          \
-          trunk_coverage = json.loads(sys.stdin.read()); \
-          print("On trunk: "); \
-          print("coveragePercent =", trunk_coverage["coveragePercent"]); \
-          print("linesCovered =", trunk_coverage["linesCovered"]); \
-          print("linesMissed =", trunk_coverage["linesMissed"]); \
-          print("linesTotal =", trunk_coverage["linesTotal"]); \
-          print(""); \
-          \
-          branch_coverage = json.load(open("target/coverage/coverage.json"))
-          print("On PR branch: "); \
-          print("coveragePercent =", branch_coverage["coveragePercent"]); \
-          print("linesCovered =", branch_coverage["linesCovered"]); \
-          print("linesMissed =", branch_coverage["linesMissed"]); \
-          print("linesTotal =", branch_coverage["linesTotal"]); \
-          print(""); \
-          \
-          is_ok = branch_coverage["linesMissed"] <= trunk_coverage["linesMissed"]; \
-          exit(0) if is_ok else exit(1) \
-          '
+          import json
+          from urllib.request import urlopen
+
+          trunk_coverage_url = "https://codecov.artichokeruby.org/intaglio/coverage.json"
+
+
+          def print_report(coverage, *, on=None):
+              if on is None:
+                  raise ValueError("must provide `on` kwarg")
+
+              print(f"On {on}:")
+              print("coveragePercent =", coverage["coveragePercent"])
+              print("linesCovered =", coverage["linesCovered"])
+              print("linesMissed =", coverage["linesMissed"])
+              print("linesTotal =", coverage["linesTotal"])
+              print("")
+
+
+          if "${{ github.ref_name }}" == "trunk":
+              # We don't need to compare trunk coverage to itself
+              exit(0)
+
+          with urlopen(trunk_coverage_url, data=None, timeout=3) as remote:
+              trunk_coverage = json.load(remote)
+
+          print_report(trunk_coverage, on="branch trunk")
+
+          with open("target/coverage/coverage.json") as local:
+              branch_coverage = json.load(local)
+
+          on = None
+          if "${{ github.event_name }}" == "pull_request":
+              on = "PR artichoke/intaglio#${{ github.event.number }}"
+
+          print_report(branch_coverage, on=on)
+
+          is_ok = branch_coverage["linesMissed"] <= trunk_coverage["linesMissed"]
+          exit(0) if is_ok else exit(1)
