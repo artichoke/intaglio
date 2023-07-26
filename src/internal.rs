@@ -367,6 +367,10 @@ impl fmt::Debug for Slice<Path> {
 /// - <https://github.com/CAD97/simple-interner/blob/24a836e9f8a0173faf48438d711442c2a86659c1/src/interner.rs#L26-L56>
 /// - <https://github.com/artichoke/intaglio/pull/236#issuecomment-1651058752>
 /// - <https://github.com/artichoke/intaglio/pull/236#issuecomment-1652003240>
+///
+/// This code is placed into the public domain by @CAD97:
+///
+/// - <https://github.com/artichoke/intaglio/pull/236#issuecomment-1652393974>
 mod boxed {
     use core::fmt;
     use core::marker::PhantomData;
