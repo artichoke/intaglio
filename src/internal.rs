@@ -353,3 +353,201 @@ impl fmt::Debug for Slice<Path> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::fmt::Write;
+    use std::borrow::Cow;
+    #[cfg(feature = "cstr")]
+    use std::ffi::CStr;
+    #[cfg(feature = "osstr")]
+    use std::ffi::OsStr;
+    #[cfg(feature = "path")]
+    use std::path::Path;
+
+    use super::Interned;
+
+    #[test]
+    fn test_interned_static_str_debug_format() {
+        let s = Interned::from(Cow::Borrowed("abc"));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+    }
+
+    #[test]
+    fn test_interned_owned_str_debug_format() {
+        let s = Interned::<str>::from(Cow::Owned("abc".to_string()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+    }
+
+    #[test]
+    #[cfg(feature = "bytes")]
+    fn test_interned_static_bytes_debug_format() {
+        let s = Interned::from(Cow::Borrowed(&b"abc"[..]));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "[97, 98, 99]");
+
+        let s = Interned::from(Cow::Borrowed(&b"\xFF"[..]));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "[255]");
+
+        let s = Interned::from(Cow::Borrowed(&b"abc"[..]));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::from(Cow::Borrowed(&b"\xFF"[..]));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"\u{FFFD}\"");
+    }
+
+    #[test]
+    #[cfg(feature = "bytes")]
+    fn test_interned_owned_bytes_debug_format() {
+        let s = Interned::<[u8]>::from(Cow::Owned(b"abc".to_vec()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "[97, 98, 99]");
+
+        let s = Interned::<[u8]>::from(Cow::Owned(b"\xFF".to_vec()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "[255]");
+
+        let s = Interned::<[u8]>::from(Cow::Owned(b"abc".to_vec()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::<[u8]>::from(Cow::Owned(b"\xFF".to_vec()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"\u{FFFD}\"");
+    }
+
+    #[test]
+    #[cfg(feature = "cstr")]
+    fn test_interned_static_cstr_debug_format() {
+        let s = Interned::from(Cow::Borrowed(
+            CStr::from_bytes_with_nul(b"abc\x00").unwrap(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::from(Cow::Borrowed(
+            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, r#""\xff""#);
+
+        let s = Interned::from(Cow::Borrowed(
+            CStr::from_bytes_with_nul(b"abc\x00").unwrap(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::from(Cow::Borrowed(
+            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"\u{FFFD}\"");
+    }
+
+    #[test]
+    #[cfg(feature = "cstr")]
+    fn test_interned_owned_cstring_debug_format() {
+        let s = Interned::<CStr>::from(Cow::Owned(
+            CStr::from_bytes_with_nul(b"abc\x00").unwrap().to_owned(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::<CStr>::from(Cow::Owned(
+            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap().to_owned(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, r#""\xff""#);
+
+        let s = Interned::<CStr>::from(Cow::Owned(
+            CStr::from_bytes_with_nul(b"abc\x00").unwrap().to_owned(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::<CStr>::from(Cow::Owned(
+            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap().to_owned(),
+        ));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"\u{FFFD}\"");
+    }
+
+    #[test]
+    #[cfg(feature = "osstr")]
+    fn test_interned_static_osstr_debug_format() {
+        let s = Interned::from(Cow::Borrowed(OsStr::new("abc")));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::from(Cow::Borrowed(OsStr::new("abc")));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+    }
+
+    #[test]
+    #[cfg(feature = "osstr")]
+    fn test_interned_owned_osstring_debug_format() {
+        let s = Interned::<OsStr>::from(Cow::Owned(OsStr::new("abc").to_owned()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::<OsStr>::from(Cow::Owned(OsStr::new("abc").to_owned()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+    }
+
+    #[test]
+    #[cfg(feature = "path")]
+    fn test_interned_static_path_debug_format() {
+        let s = Interned::from(Cow::Borrowed(Path::new("abc")));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::from(Cow::Borrowed(Path::new("abc")));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+    }
+
+    #[test]
+    #[cfg(feature = "path")]
+    fn test_interned_owned_pathbuf_debug_format() {
+        let s = Interned::<Path>::from(Cow::Owned(Path::new("abc").to_owned()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+
+        let s = Interned::<Path>::from(Cow::Owned(Path::new("abc").to_owned()));
+        let mut buf = String::new();
+        write!(&mut buf, "{s:#?}").unwrap();
+        assert_eq!(buf, "\"abc\"");
+    }
+}

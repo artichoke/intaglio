@@ -296,7 +296,7 @@ mod tests {
     fn error_display_is_not_empty() {
         let tc = SymbolOverflowError::new();
         let mut buf = String::new();
-        write!(&mut buf, "{}", tc).unwrap();
+        write!(&mut buf, "{tc}").unwrap();
         assert!(!buf.is_empty());
     }
 
@@ -304,7 +304,7 @@ mod tests {
     fn error_debug_is_not_empty() {
         let tc = SymbolOverflowError::new();
         let mut buf = String::new();
-        write!(&mut buf, "{:?}", tc).unwrap();
+        write!(&mut buf, "{tc:?}").unwrap();
         assert!(!buf.is_empty());
     }
 
