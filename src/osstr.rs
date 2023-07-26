@@ -714,19 +714,43 @@ where
         if let Some(&id) = self.map.get(&*contents) {
             return Ok(id);
         }
+
+        // The `Interned::Owned` variant is derived from a `Box<T>`. When such
+        // a structure is moved or assigned, as it is below in the call to
+        // `self.vec.push`, the allocation is "retagged" in Miri/stacked borrows.
+        //
+        // Retagging an allocation pops all of the borrows derived from it off
+        // of the stack. This means we need to move the `Interned` into the
+        // `Vec` before calling `Interned::as_static_slice` to ensure the
+        // reference does not get invalidated by retagging.
+        //
+        // However, that alone may be insufficient as the `Interened` may be
+        // moved when the symbol table grows.
+        //
+        // The `SymbolTable` API prevents shared references to the `Interned`
+        // being invalidated by a retag by tying resolved symbol contents,
+        // `&'a T`, to `&'a SymbolTable`, which means the `SymbolTable` cannot
+        // grow, shrink, or otherwise reallocate/move contents while a reference
+        // to the `Interned`'s inner `T` is alive.
+        //
+        // To protect against future updates to stacked borrows or the unsafe
+        // code operational semantics, we can address this additional invariant
+        // with updated `Interned` internals which store the `Box<T>` in a raw
+        // pointer form, which allows moves to be treated as untyped copies.
+        //
+        // See:
+        //
+        // - <https://github.com/artichoke/intaglio/issues/235>
+        // - <https://github.com/artichoke/intaglio/pull/236>
         let name = Interned::from(contents);
         let id = Symbol::try_from(self.map.len())?;
 
-        // The `Interned::Owned` variant contains a `Box`. When such a structure
-        // is assigned (as it is with the call to `self.vec.push`), the alloc
-        // is "retagged" in Miri/stacked borrows. Retagging an allocation pops
-        // all of the borrows derived from it off of the stack.
-        //
-        // Previously this function derived the `&'static OsStr` from the given
-        // contents before pushing it into the vec. The code was restructured in
-        // the fix for #235 to ensure borrows on the underlying `Box<OsStr>` only
-        // get created after the `Box` is done being moved.
+        // Move the `Interned` into the `Vec`, causing it to be retagged under
+        // stacked borrows, before taking any references to its inner `T`.
         self.vec.push(name);
+        // Ensure we grow the map before we take any shared references to the
+        // inner `T`.
+        self.map.reserve(1);
 
         // SAFETY: `self.vec` is non-empty because the preceding line of code
         // pushed an entry into it.
@@ -737,14 +761,16 @@ where
         //
         // - `Interned` is an internal implementation detail of `SymbolTable`.
         // - `SymbolTable` never gives out `'static` references to underlying
-        //   platform string byte contents.
+        //   contents.
         // - All slice references given out by the `SymbolTable` have the same
         //   lifetime as the `SymbolTable`.
         // - The `map` field of `SymbolTable`, which contains the `'static`
         //   references, is dropped before the owned buffers stored in this
         //   `Interned`.
-        // - The shared reference may be derived from a `Box` and that `Box`
-        //   will never be retagged/reassigned for the life of the symbol table.
+        // - The shared reference may be derived from a `PinBox` which prevents
+        //   moves from retagging the underlying boxed `T` under stacked borrows.
+        // - The symbol table cannot grow, shrink, or otherwise move its contents
+        //   while this reference is alive.
         let slice = unsafe { name.as_static_slice() };
 
         self.map.insert(slice, id);
