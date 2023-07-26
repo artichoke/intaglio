@@ -10,6 +10,8 @@ use std::ffi::{OsStr, OsString};
 #[cfg(feature = "path")]
 use std::path::{Path, PathBuf};
 
+use self::boxed::PinBox;
+
 /// Wrapper around `&'static` slices that does not allow mutable access to the
 /// inner slice.
 pub struct Interned<T: 'static + ?Sized>(Slice<T>);
@@ -59,7 +61,7 @@ where
 {
     /// Return a reference to the inner slice.
     #[inline]
-    pub const fn as_slice(&self) -> &T {
+    pub fn as_slice(&self) -> &T {
         self.0.as_slice()
     }
 
@@ -127,7 +129,7 @@ enum Slice<T: 'static + ?Sized> {
     /// True `'static` references.
     Static(&'static T),
     /// Owned `'static` references.
-    Owned(Box<T>),
+    Owned(PinBox<T>),
 }
 
 impl<T> From<&'static T> for Slice<T>
@@ -143,7 +145,7 @@ where
 impl From<String> for Slice<str> {
     #[inline]
     fn from(owned: String) -> Self {
-        Self::Owned(owned.into_boxed_str())
+        Self::Owned(PinBox::new(owned.into_boxed_str()))
     }
 }
 
@@ -161,7 +163,7 @@ impl From<Cow<'static, str>> for Slice<str> {
 impl From<Vec<u8>> for Slice<[u8]> {
     #[inline]
     fn from(owned: Vec<u8>) -> Self {
-        Self::Owned(owned.into_boxed_slice())
+        Self::Owned(PinBox::new(owned.into_boxed_slice()))
     }
 }
 
@@ -180,7 +182,7 @@ impl From<Cow<'static, [u8]>> for Slice<[u8]> {
 impl From<CString> for Slice<CStr> {
     #[inline]
     fn from(owned: CString) -> Self {
-        Self::Owned(owned.into_boxed_c_str())
+        Self::Owned(PinBox::new(owned.into_boxed_c_str()))
     }
 }
 
@@ -199,7 +201,7 @@ impl From<Cow<'static, CStr>> for Slice<CStr> {
 impl From<OsString> for Slice<OsStr> {
     #[inline]
     fn from(owned: OsString) -> Self {
-        Self::Owned(owned.into_boxed_os_str())
+        Self::Owned(PinBox::new(owned.into_boxed_os_str()))
     }
 }
 
@@ -218,7 +220,7 @@ impl From<Cow<'static, OsStr>> for Slice<OsStr> {
 impl From<PathBuf> for Slice<Path> {
     #[inline]
     fn from(owned: PathBuf) -> Self {
-        Self::Owned(owned.into_boxed_path())
+        Self::Owned(PinBox::new(owned.into_boxed_path()))
     }
 }
 
@@ -239,10 +241,13 @@ where
 {
     /// Return a reference to the inner slice.
     #[inline]
-    const fn as_slice(&self) -> &T {
+    fn as_slice(&self) -> &T {
         match self {
             Self::Static(slice) => slice,
-            Self::Owned(owned) => owned,
+            Self::Owned(owned) => {
+                // SAFETY: `PinBox` acts like `Box`.
+                unsafe { owned.as_ref() }
+            }
         }
     }
 
@@ -258,8 +263,6 @@ where
         match self {
             Self::Static(slice) => slice,
             Self::Owned(owned) => {
-                // Coerce the `Box<T>` to a pointer.
-                let ptr: *const T = &**owned;
                 // SAFETY: This expression creates a reference with a `'static`
                 // lifetime from an owned buffer, which is permissible because:
                 //
@@ -270,9 +273,10 @@ where
                 // - The `map` field of the various symbol tables which contains
                 //   the `'static` references, is dropped before the owned buffers
                 //   stored in this `Slice`.
+                // - `PinBox` acts like `Box`.
                 unsafe {
                     // Coerce the pointer to a `&'static T`.
-                    &*ptr
+                    owned.as_ref()
                 }
             }
         }
@@ -350,6 +354,107 @@ impl fmt::Debug for Slice<Path> {
             write!(f, "{:?}", self.as_slice().to_string_lossy())
         } else {
             write!(f, "{:?}", self.as_slice())
+        }
+    }
+}
+
+/// An abstraction over a `Box<T>` where T is an unsized slice type which moves
+/// the box by raw pointer. This type is required to satisfy Miri with
+/// `-Zmiri-retag-fields`. See #235, #236.
+///
+/// The `PinBox` type is derived from:
+///
+/// - <https://github.com/CAD97/simple-interner/blob/24a836e9f8a0173faf48438d711442c2a86659c1/src/interner.rs#L26-L56>
+/// - <https://github.com/artichoke/intaglio/pull/236#issuecomment-1651058752>
+/// - <https://github.com/artichoke/intaglio/pull/236#issuecomment-1652003240>
+///
+/// This code is placed into the public domain by @CAD97:
+///
+/// - <https://github.com/artichoke/intaglio/pull/236#issuecomment-1652393974>
+mod boxed {
+    use core::fmt;
+    use core::marker::PhantomData;
+    use core::ptr::NonNull;
+
+    /// A wrapper around box that does not provide &mut access to the pointee and
+    /// uses raw-pointer borrowing rules to avoid invalidating extant references.
+    ///
+    /// The resolved reference is guaranteed valid until the `PinBox` is dropped.
+    ///
+    /// This type is meant to allow the owned data in the given `Box<T>` to be moved
+    /// without being retagged by Miri. See #235, #236.
+    pub(crate) struct PinBox<T: ?Sized> {
+        ptr: NonNull<T>,
+        _marker: PhantomData<Box<T>>,
+    }
+
+    impl<T: ?Sized> PinBox<T> {
+        #[inline]
+        pub(crate) fn new(x: Box<T>) -> Self {
+            let ptr = Box::into_raw(x);
+            // SAFETY: `ptr` is derived from `Box::into_raw` and can never be null.
+            let ptr = unsafe { NonNull::new_unchecked(ptr) };
+            Self {
+                ptr,
+                _marker: PhantomData,
+            }
+        }
+
+        #[inline]
+        pub(crate) unsafe fn as_ref<'a>(&self) -> &'a T {
+            // SAFETY: `PinBox` acts like `Box`, `self.ptr` is non-null and points
+            // to a live `Box`.
+            unsafe { self.ptr.as_ref() }
+        }
+    }
+
+    impl<T: ?Sized> Drop for PinBox<T> {
+        fn drop(&mut self) {
+            // SAFETY: `PinBox` acts like `Box`.
+            unsafe {
+                drop(Box::from_raw(self.ptr.as_ptr()));
+            }
+        }
+    }
+
+    impl<T: ?Sized + fmt::Debug> fmt::Debug for PinBox<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            // SAFETY: `PinBox` acts like `Box`.
+            let s = unsafe { self.as_ref() };
+            s.fmt(f)
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use core::fmt::Write;
+
+        use super::PinBox;
+
+        #[test]
+        fn test_drop() {
+            let x = "abc".to_string().into_boxed_str();
+            let x = PinBox::new(x);
+            drop(x);
+        }
+
+        #[test]
+        fn test_as_ref() {
+            let x = "abc".to_string().into_boxed_str();
+            let x = PinBox::new(x);
+
+            // SAFETY: `PinBox` acts like `Box` and contains a valid pointer.
+            assert_eq!(unsafe { x.as_ref() }, "abc");
+        }
+
+        #[test]
+        fn test_debug_format() {
+            let x = "abc".to_string().into_boxed_str();
+            let x = PinBox::new(x);
+
+            let mut buf = String::new();
+            write!(&mut buf, "{x:?}").unwrap();
+            assert_eq!(buf, "\"abc\"");
         }
     }
 }

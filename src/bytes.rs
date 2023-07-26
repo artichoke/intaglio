@@ -50,7 +50,6 @@
 //! In general, one should expect this crate's performance on `&[u8]` to be
 //! roughly similar to performance on `&str`.
 
-use core::convert::TryInto;
 use core::hash::BuildHasher;
 use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
@@ -692,23 +691,66 @@ where
         if let Some(&id) = self.map.get(&*contents) {
             return Ok(id);
         }
+
+        // The `Interned::Owned` variant is derived from a `Box<T>`. When such
+        // a structure is moved or assigned, as it is below in the call to
+        // `self.vec.push`, the allocation is "retagged" in Miri/stacked borrows.
+        //
+        // Retagging an allocation pops all of the borrows derived from it off
+        // of the stack. This means we need to move the `Interned` into the
+        // `Vec` before calling `Interned::as_static_slice` to ensure the
+        // reference does not get invalidated by retagging.
+        //
+        // However, that alone may be insufficient as the `Interened` may be
+        // moved when the symbol table grows.
+        //
+        // The `SymbolTable` API prevents shared references to the `Interned`
+        // being invalidated by a retag by tying resolved symbol contents,
+        // `&'a T`, to `&'a SymbolTable`, which means the `SymbolTable` cannot
+        // grow, shrink, or otherwise reallocate/move contents while a reference
+        // to the `Interned`'s inner `T` is alive.
+        //
+        // To protect against future updates to stacked borrows or the unsafe
+        // code operational semantics, we can address this additional invariant
+        // with updated `Interned` internals which store the `Box<T>` in a raw
+        // pointer form, which allows moves to be treated as untyped copies.
+        //
+        // See:
+        //
+        // - <https://github.com/artichoke/intaglio/issues/235>
+        // - <https://github.com/artichoke/intaglio/pull/236>
         let name = Interned::from(contents);
-        let id = self.map.len().try_into()?;
+        let id = Symbol::try_from(self.map.len())?;
+
+        // Move the `Interned` into the `Vec`, causing it to be retagged under
+        // stacked borrows, before taking any references to its inner `T`.
+        self.vec.push(name);
+        // Ensure we grow the map before we take any shared references to the
+        // inner `T`.
+        self.map.reserve(1);
+
+        // SAFETY: `self.vec` is non-empty because the preceding line of code
+        // pushed an entry into it.
+        let name = unsafe { self.vec.last().unwrap_unchecked() };
+
         // SAFETY: This expression creates a reference with a `'static` lifetime
         // from an owned and interned buffer, which is permissible because:
         //
         // - `Interned` is an internal implementation detail of `SymbolTable`.
         // - `SymbolTable` never gives out `'static` references to underlying
-        //   byte string byte contents.
+        //   contents.
         // - All slice references given out by the `SymbolTable` have the same
         //   lifetime as the `SymbolTable`.
         // - The `map` field of `SymbolTable`, which contains the `'static`
         //   references, is dropped before the owned buffers stored in this
         //   `Interned`.
+        // - The shared reference may be derived from a `PinBox` which prevents
+        //   moves from retagging the underlying boxed `T` under stacked borrows.
+        // - The symbol table cannot grow, shrink, or otherwise move its contents
+        //   while this reference is alive.
         let slice = unsafe { name.as_static_slice() };
 
         self.map.insert(slice, id);
-        self.vec.push(name);
 
         debug_assert_eq!(self.get(id), Some(slice));
         debug_assert_eq!(self.intern(slice), Ok(id));
