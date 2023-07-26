@@ -136,7 +136,7 @@ All features are enabled by default.
 
 ### Minimum Supported Rust Version
 
-This crate requires at least Rust 1.56.0. This version can be bumped in minor
+This crate requires at least Rust 1.58.0. This version can be bumped in minor
 releases.
 
 ## License
