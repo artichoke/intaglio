@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use intaglio::path::SymbolTable;
+use intaglio::Symbol;
 
 #[test]
 fn dealloc_owned_data() {
@@ -17,5 +18,7 @@ fn dealloc_owned_data() {
         assert!(table.is_interned(&symbol));
         assert!(table.contains(sym_id));
         assert_eq!(Some(symbol.as_path()), table.get(sym_id));
+
+        assert_eq!(table.get(Symbol::new(0)).unwrap().as_os_str().len(), 100);
     }
 }

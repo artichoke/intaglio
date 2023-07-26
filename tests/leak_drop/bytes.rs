@@ -1,4 +1,5 @@
 use intaglio::bytes::SymbolTable;
+use intaglio::Symbol;
 
 #[test]
 fn dealloc_owned_data() {
@@ -15,5 +16,7 @@ fn dealloc_owned_data() {
         assert!(table.is_interned(&symbol));
         assert!(table.contains(sym_id));
         assert_eq!(Some(symbol.as_slice()), table.get(sym_id));
+
+        assert_eq!(table.get(Symbol::new(0)).unwrap().len(), 100);
     }
 }

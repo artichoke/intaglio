@@ -55,7 +55,6 @@
 //! [`OsString`]: std::ffi::OsString
 //! [`&OsStr`]: std::ffi::OsStr
 
-use core::convert::TryInto;
 use core::hash::BuildHasher;
 use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
@@ -716,7 +715,24 @@ where
             return Ok(id);
         }
         let name = Interned::from(contents);
-        let id = self.map.len().try_into()?;
+        let id = Symbol::try_from(self.map.len())?;
+
+        // The `Interned::Owned` variant contains a `Box`. When such a structure
+        // is assigned (as it is with the call to `self.vec.push`), the alloc
+        // is "retagged" in Miri/stacked borrows. Retagging an allocation pops
+        // all of the borrows derived from it off of the stack.
+        //
+        // Previously this function derived the `&'static OsStr` from the given
+        // contents before pushing it into the vec. The code was restructured in
+        // the fix for #235 to ensure borrows on the underlying `Box<OsStr>` only
+        // get created after the `Box` is done being moved.
+        self.vec.push(name);
+
+        // SAFETY: `self.map` and `self.vec` always have the same length, which
+        // means the derived `id` is the next index in `self.vec`. The preceding
+        // line of code pushes an entry into the vec at this position.
+        let name = unsafe { self.vec.get_unchecked(usize::from(id)) };
+
         // SAFETY: This expression creates a reference with a `'static` lifetime
         // from an owned and interned buffer, which is permissible because:
         //
@@ -728,10 +744,11 @@ where
         // - The `map` field of `SymbolTable`, which contains the `'static`
         //   references, is dropped before the owned buffers stored in this
         //   `Interned`.
+        // - The shared reference may be derived from a `Box` and that `Box`
+        //   will never be retagged/reassigned for the life of the symbol table.
         let slice = unsafe { name.as_static_slice() };
 
         self.map.insert(slice, id);
-        self.vec.push(name);
 
         debug_assert_eq!(self.get(id), Some(slice));
         debug_assert_eq!(self.intern(slice), Ok(id));
