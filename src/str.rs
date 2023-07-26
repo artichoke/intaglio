@@ -645,10 +645,9 @@ where
         // get created after the `Box` is done being moved.
         self.vec.push(name);
 
-        // SAFETY: `self.map` and `self.vec` always have the same length, which
-        // means the derived `id` is the next index in `self.vec`. The preceding
-        // line of code pushes an entry into the vec at this position.
-        let name = unsafe { self.vec.get_unchecked(usize::from(id)) };
+        // SAFETY: `self.vec` is non-empty because the preceding line of code
+        // pushed an entry into it.
+        let name = unsafe { self.vec.last().unwrap_unchecked() };
 
         // SAFETY: This expression creates a reference with a `'static` lifetime
         // from an owned and interned buffer, which is permissible because:
