@@ -36,7 +36,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-intaglio = "1.9.0"
+intaglio = "1.9.1"
 ```
 
 Then intern UTF-8 strings like:

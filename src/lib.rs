@@ -109,7 +109,7 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.9.0")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.9.1")]
 
 use core::fmt;
 use core::num::TryFromIntError;
@@ -272,6 +272,8 @@ mod tests {
     use core::cmp::Ordering;
     use core::fmt::Write as _;
     use core::hash::{BuildHasher as _, Hash as _, Hasher as _};
+    use core::marker::Unpin;
+    use core::panic::{RefUnwindSafe, UnwindSafe};
     use std::collections::hash_map::RandomState;
 
     use super::SymbolOverflowError;
@@ -356,6 +358,21 @@ mod tests {
         };
 
         assert_eq!(default_hash, new_hash);
+    }
+
+    #[test]
+    fn auto_traits_are_implemented() {
+        fn constraint<T: RefUnwindSafe + Send + Sync + Unpin + UnwindSafe>(_table: T) {}
+
+        constraint(crate::SymbolTable::with_capacity(0));
+        #[cfg(feature = "bytes")]
+        constraint(crate::bytes::SymbolTable::with_capacity(0));
+        #[cfg(feature = "cstr")]
+        constraint(crate::cstr::SymbolTable::with_capacity(0));
+        #[cfg(feature = "osstr")]
+        constraint(crate::osstr::SymbolTable::with_capacity(0));
+        #[cfg(feature = "path")]
+        constraint(crate::path::SymbolTable::with_capacity(0));
     }
 }
 

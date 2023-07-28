@@ -425,6 +425,22 @@ mod boxed {
         }
     }
 
+    // SAFETY: `PinBox` acts like `Box`.
+    unsafe impl<T> Send for PinBox<T>
+    where
+        T: ?Sized,
+        Box<T>: Send,
+    {
+    }
+
+    // SAFETY: `PinBox` acts like `Box`.
+    unsafe impl<T> Sync for PinBox<T>
+    where
+        T: ?Sized,
+        Box<T>: Sync,
+    {
+    }
+
     #[cfg(test)]
     mod tests {
         use core::fmt::Write;
