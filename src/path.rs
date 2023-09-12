@@ -926,7 +926,7 @@ where
 mod tests {
     use std::path::{Path, PathBuf};
 
-    use quickcheck_macros::quickcheck;
+    use quickcheck::quickcheck;
 
     use super::SymbolTable;
 
@@ -990,45 +990,41 @@ mod tests {
         assert_eq!(sym, table.intern(Path::new("abc")).unwrap());
     }
 
-    #[quickcheck]
-    fn intern_twice_symbol_equality(path: PathBuf) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(path.clone()).unwrap();
-        let sym_again = table.intern(path).unwrap();
-        sym == sym_again
-    }
+    quickcheck! {
+        fn intern_twice_symbol_equality(path: PathBuf) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(path.clone()).unwrap();
+            let sym_again = table.intern(path).unwrap();
+            sym == sym_again
+        }
 
-    #[quickcheck]
-    fn intern_get_roundtrip(path: PathBuf) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(path.clone()).unwrap();
-        let retrieved_path = table.get(sym).unwrap();
-        &*path == retrieved_path
-    }
+        fn intern_get_roundtrip(path: PathBuf) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(path.clone()).unwrap();
+            let retrieved_path = table.get(sym).unwrap();
+            &*path == retrieved_path
+        }
 
-    #[quickcheck]
-    fn table_contains_sym(path: PathBuf) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(path).unwrap();
-        table.contains(sym)
-    }
+        fn table_contains_sym(path: PathBuf) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(path).unwrap();
+            table.contains(sym)
+        }
 
-    #[quickcheck]
-    fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
-        let table = SymbolTable::new();
-        !table.contains(sym.into())
-    }
+        fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
+            let table = SymbolTable::new();
+            !table.contains(sym.into())
+        }
 
-    #[quickcheck]
-    fn empty_table_does_not_report_any_interned_paths(path: PathBuf) -> bool {
-        let table = SymbolTable::new();
-        !table.is_interned(path.as_path())
-    }
+        fn empty_table_does_not_report_any_interned_paths(path: PathBuf) -> bool {
+            let table = SymbolTable::new();
+            !table.is_interned(path.as_path())
+        }
 
-    #[quickcheck]
-    fn table_reports_interned_paths_as_interned(path: PathBuf) -> bool {
-        let mut table = SymbolTable::new();
-        table.intern(path.clone()).unwrap();
-        table.is_interned(path.as_path())
+        fn table_reports_interned_paths_as_interned(path: PathBuf) -> bool {
+            let mut table = SymbolTable::new();
+            table.intern(path.clone()).unwrap();
+            table.is_interned(path.as_path())
+        }
     }
 }
