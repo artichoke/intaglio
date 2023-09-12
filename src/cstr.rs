@@ -926,7 +926,7 @@ where
 mod tests {
     use std::ffi::{CStr, CString};
 
-    use quickcheck_macros::quickcheck;
+    use quickcheck::quickcheck;
 
     use super::SymbolTable;
 
@@ -1012,45 +1012,41 @@ mod tests {
         );
     }
 
-    #[quickcheck]
-    fn intern_twice_symbol_equality(cstring: CString) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(cstring.clone()).unwrap();
-        let sym_again = table.intern(cstring).unwrap();
-        sym == sym_again
-    }
+    quickcheck! {
+        fn intern_twice_symbol_equality(cstring: CString) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(cstring.clone()).unwrap();
+            let sym_again = table.intern(cstring).unwrap();
+            sym == sym_again
+        }
 
-    #[quickcheck]
-    fn intern_get_roundtrip(cstring: CString) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(cstring.clone()).unwrap();
-        let retrieved_c_string = table.get(sym).unwrap();
-        &*cstring == retrieved_c_string
-    }
+        fn intern_get_roundtrip(cstring: CString) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(cstring.clone()).unwrap();
+            let retrieved_c_string = table.get(sym).unwrap();
+            &*cstring == retrieved_c_string
+        }
 
-    #[quickcheck]
-    fn table_contains_sym(cstring: CString) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(cstring).unwrap();
-        table.contains(sym)
-    }
+        fn table_contains_sym(cstring: CString) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(cstring).unwrap();
+            table.contains(sym)
+        }
 
-    #[quickcheck]
-    fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
-        let table = SymbolTable::new();
-        !table.contains(sym.into())
-    }
+        fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
+            let table = SymbolTable::new();
+            !table.contains(sym.into())
+        }
 
-    #[quickcheck]
-    fn empty_table_does_not_report_any_interned_c_strings(cstring: CString) -> bool {
-        let table = SymbolTable::new();
-        !table.is_interned(cstring.as_c_str())
-    }
+        fn empty_table_does_not_report_any_interned_c_strings(cstring: CString) -> bool {
+            let table = SymbolTable::new();
+            !table.is_interned(cstring.as_c_str())
+        }
 
-    #[quickcheck]
-    fn table_reports_interned_c_strings_as_interned(cstring: CString) -> bool {
-        let mut table = SymbolTable::new();
-        table.intern(cstring.clone()).unwrap();
-        table.is_interned(cstring.as_c_str())
+        fn table_reports_interned_c_strings_as_interned(cstring: CString) -> bool {
+            let mut table = SymbolTable::new();
+            table.intern(cstring.clone()).unwrap();
+            table.is_interned(cstring.as_c_str())
+        }
     }
 }

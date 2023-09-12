@@ -896,7 +896,7 @@ where
 #[cfg(test)]
 #[allow(clippy::needless_pass_by_value)]
 mod tests {
-    use quickcheck_macros::quickcheck;
+    use quickcheck::quickcheck;
 
     use super::SymbolTable;
 
@@ -960,45 +960,41 @@ mod tests {
         assert_eq!(sym, table.intern(&b"abc"[..]).unwrap());
     }
 
-    #[quickcheck]
-    fn intern_twice_symbol_equality(bytes: Vec<u8>) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(bytes.clone()).unwrap();
-        let sym_again = table.intern(bytes).unwrap();
-        sym == sym_again
-    }
+    quickcheck! {
+        fn intern_twice_symbol_equality(bytes: Vec<u8>) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(bytes.clone()).unwrap();
+            let sym_again = table.intern(bytes).unwrap();
+            sym == sym_again
+        }
 
-    #[quickcheck]
-    fn intern_get_roundtrip(bytes: Vec<u8>) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(bytes.clone()).unwrap();
-        let retrieved_bytes = table.get(sym).unwrap();
-        bytes == retrieved_bytes
-    }
+        fn intern_get_roundtrip(bytes: Vec<u8>) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(bytes.clone()).unwrap();
+            let retrieved_bytes = table.get(sym).unwrap();
+            bytes == retrieved_bytes
+        }
 
-    #[quickcheck]
-    fn table_contains_sym(bytes: Vec<u8>) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(bytes).unwrap();
-        table.contains(sym)
-    }
+        fn table_contains_sym(bytes: Vec<u8>) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(bytes).unwrap();
+            table.contains(sym)
+        }
 
-    #[quickcheck]
-    fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
-        let table = SymbolTable::new();
-        !table.contains(sym.into())
-    }
+        fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
+            let table = SymbolTable::new();
+            !table.contains(sym.into())
+        }
 
-    #[quickcheck]
-    fn empty_table_does_not_report_any_interned_byte_strings(bytes: Vec<u8>) -> bool {
-        let table = SymbolTable::new();
-        !table.is_interned(bytes.as_slice())
-    }
+        fn empty_table_does_not_report_any_interned_byte_strings(bytes: Vec<u8>) -> bool {
+            let table = SymbolTable::new();
+            !table.is_interned(bytes.as_slice())
+        }
 
-    #[quickcheck]
-    fn table_reports_interned_byte_strings_as_interned(bytes: Vec<u8>) -> bool {
-        let mut table = SymbolTable::new();
-        table.intern(bytes.clone()).unwrap();
-        table.is_interned(bytes.as_slice())
+        fn table_reports_interned_byte_strings_as_interned(bytes: Vec<u8>) -> bool {
+            let mut table = SymbolTable::new();
+            table.intern(bytes.clone()).unwrap();
+            table.is_interned(bytes.as_slice())
+        }
     }
 }

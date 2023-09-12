@@ -926,7 +926,7 @@ where
 mod tests {
     use std::ffi::{OsStr, OsString};
 
-    use quickcheck_macros::quickcheck;
+    use quickcheck::quickcheck;
 
     use super::SymbolTable;
 
@@ -990,45 +990,41 @@ mod tests {
         assert_eq!(sym, table.intern(OsStr::new("abc")).unwrap());
     }
 
-    #[quickcheck]
-    fn intern_twice_symbol_equality(os_string: OsString) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(os_string.clone()).unwrap();
-        let sym_again = table.intern(os_string).unwrap();
-        sym == sym_again
-    }
+    quickcheck! {
+        fn intern_twice_symbol_equality(os_string: OsString) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(os_string.clone()).unwrap();
+            let sym_again = table.intern(os_string).unwrap();
+            sym == sym_again
+        }
 
-    #[quickcheck]
-    fn intern_get_roundtrip(os_string: OsString) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(os_string.clone()).unwrap();
-        let retrieved_os_string = table.get(sym).unwrap();
-        &*os_string == retrieved_os_string
-    }
+        fn intern_get_roundtrip(os_string: OsString) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(os_string.clone()).unwrap();
+            let retrieved_os_string = table.get(sym).unwrap();
+            &*os_string == retrieved_os_string
+        }
 
-    #[quickcheck]
-    fn table_contains_sym(os_string: OsString) -> bool {
-        let mut table = SymbolTable::new();
-        let sym = table.intern(os_string).unwrap();
-        table.contains(sym)
-    }
+        fn table_contains_sym(os_string: OsString) -> bool {
+            let mut table = SymbolTable::new();
+            let sym = table.intern(os_string).unwrap();
+            table.contains(sym)
+        }
 
-    #[quickcheck]
-    fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
-        let table = SymbolTable::new();
-        !table.contains(sym.into())
-    }
+        fn table_does_not_contain_missing_symbol_ids(sym: u32) -> bool {
+            let table = SymbolTable::new();
+            !table.contains(sym.into())
+        }
 
-    #[quickcheck]
-    fn empty_table_does_not_report_any_interned_os_strings(os_string: OsString) -> bool {
-        let table = SymbolTable::new();
-        !table.is_interned(os_string.as_os_str())
-    }
+        fn empty_table_does_not_report_any_interned_os_strings(os_string: OsString) -> bool {
+            let table = SymbolTable::new();
+            !table.is_interned(os_string.as_os_str())
+        }
 
-    #[quickcheck]
-    fn table_reports_interned_os_strs_as_interned(os_string: OsString) -> bool {
-        let mut table = SymbolTable::new();
-        table.intern(os_string.clone()).unwrap();
-        table.is_interned(os_string.as_os_str())
+        fn table_reports_interned_os_strs_as_interned(os_string: OsString) -> bool {
+            let mut table = SymbolTable::new();
+            table.intern(os_string.clone()).unwrap();
+            table.is_interned(os_string.as_os_str())
+        }
     }
 }
