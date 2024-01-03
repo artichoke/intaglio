@@ -254,7 +254,7 @@ mod tests {
         #[cfg(target_pointer_width = "64")]
         {
             Symbol::try_from(usize::MAX).unwrap_err();
-            Symbol::try_from(u64::try_from(u32::MAX).unwrap() + 1).unwrap_err();
+            Symbol::try_from(u64::from(u32::MAX) + 1).unwrap_err();
         }
     }
 
@@ -281,7 +281,7 @@ mod tests {
         #[cfg(target_pointer_width = "64")]
         {
             Symbol::try_from(&usize::MAX).unwrap_err();
-            Symbol::try_from(&(u64::try_from(u32::MAX).unwrap() + 1)).unwrap_err();
+            Symbol::try_from(&(u64::from(u32::MAX) + 1)).unwrap_err();
         }
     }
 
