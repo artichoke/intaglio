@@ -214,7 +214,7 @@ impl<'a> Iterator for Iter<'a> {
 
 impl<'a> FusedIterator for Iter<'a> {}
 
-impl<'a> IntoIterator for &'a SymbolTable {
+impl<'a, S> IntoIterator for &'a SymbolTable<S> {
     type Item = (Symbol, &'a str);
     type IntoIter = Iter<'a>;
 
