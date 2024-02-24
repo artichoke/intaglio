@@ -108,34 +108,16 @@ bundle install
 Intaglio uses [`rake`](Rakefile) as a task runner. You can see the available
 tasks by running:
 
-```console
-$ bundle exec rake --tasks
-rake build                        # Build Rust workspace
-rake bundle:audit:check           # Checks the Gemfile.lock for insecure dependencies
-rake bundle:audit:update          # Updates the bundler-audit vulnerability database
-rake doc                          # Generate Rust API documentation
-rake doc:open                     # Generate Rust API documentation and open it in a web browser
-rake fmt                          # Format sources
-rake fmt:rust                     # Format Rust sources with rustfmt
-rake fmt:text                     # Format text, YAML, and Markdown sources with prettier
-rake format                       # Format sources
-rake format:rust                  # Format Rust sources with rustfmt
-rake format:text                  # Format text, YAML, and Markdown sources with prettier
-rake lint                         # Lint sources
-rake lint:clippy                  # Lint Rust sources with Clippy
-rake lint:clippy:restriction      # Lint Rust sources with Clippy restriction pass (unenforced lints)
-rake lint:rubocop                 # Run RuboCop
-rake lint:rubocop:autocorrect     # Auto-correct RuboCop offenses
-rake release:markdown_link_check  # Check for broken links in markdown files
-rake test                         # Run Intaglio unit tests
+```sh
+bundle exec rake --tasks
 ```
 
 To lint Ruby sources, Intaglio uses [RuboCop]. RuboCop runs as part of the
 `lint` task. To run RuboCop by itself, invoke the `lint:rubocop` task.
 
-```console
-$ bundle exec rake lint
-$ bundle exec rake lint:rubocop
+```sh
+bundle exec rake lint
+bundle exec rake lint:rubocop
 ```
 
 ### Node.js
@@ -149,7 +131,8 @@ Node.js is only required for formatting if modifying the following filetypes:
 - `yaml`
 - `yml`
 
-You will need to install [Node.js].
+You will need to install [Node.js]. The [`.ruby-version`](.ruby-version) file in
+this repository specifies the preferred Node.js toolchain.
 
 On macOS, you can install Node.js with [Homebrew]:
 
@@ -162,15 +145,14 @@ brew install node
 To lint and format Rust sources run:
 
 ```sh
-cargo fmt
-touch src/lib.rs
-cargo clippy --all-targets --all-features
+bundle exec rake lint:clippy
+bundle exec rake fmt:rust
 ```
 
 To lint and format text sources run:
 
 ```sh
-npx prettier --write '**/*'
+bundle exec rake fmt:text
 ```
 
 ## Testing
@@ -210,7 +192,7 @@ Regular dependency bumps are handled by [@dependabot].
 
 [artichoke]: https://github.com/artichoke
 [there is lots to do]: https://github.com/artichoke/artichoke/issues
-[symbol-class]: https://ruby-doc.org/core-3.1.2/Symbol.html
+[ruby-symbol]: https://ruby-doc.org/core-3.1.2/Symbol.html
 [filed an issue so we can fix it]:
   https://github.com/artichoke/artichoke/issues/new
 [file bugs specific to intaglio in this repository]:
