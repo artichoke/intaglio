@@ -109,7 +109,7 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.9.1")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.10.0")]
 
 use core::fmt;
 use core::num::TryFromIntError;
@@ -271,7 +271,7 @@ impl Symbol {
 mod tests {
     use core::cmp::Ordering;
     use core::fmt::Write as _;
-    use core::hash::{BuildHasher as _, Hash as _, Hasher as _};
+    use core::hash::BuildHasher as _;
     use core::marker::Unpin;
     use core::panic::{RefUnwindSafe, UnwindSafe};
     use std::collections::hash_map::RandomState;
@@ -346,16 +346,8 @@ mod tests {
         let new = SymbolOverflowError::new();
 
         let s = RandomState::new();
-        let default_hash = {
-            let mut hasher = s.build_hasher();
-            default.hash(&mut hasher);
-            hasher.finish()
-        };
-        let new_hash = {
-            let mut hasher = s.build_hasher();
-            new.hash(&mut hasher);
-            hasher.finish()
-        };
+        let default_hash = s.hash_one(default);
+        let new_hash = s.hash_one(new);
 
         assert_eq!(default_hash, new_hash);
     }
