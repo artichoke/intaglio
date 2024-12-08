@@ -38,7 +38,7 @@ pub struct AllSymbols<'a> {
     phantom: PhantomData<&'a SymbolTable>,
 }
 
-impl<'a> Iterator for AllSymbols<'a> {
+impl Iterator for AllSymbols<'_> {
     type Item = Symbol;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -72,7 +72,7 @@ impl<'a> Iterator for AllSymbols<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for AllSymbols<'a> {
+impl DoubleEndedIterator for AllSymbols<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         let next = self.range.next_back()?;
         debug_assert!(u32::try_from(next).is_ok());
@@ -86,7 +86,7 @@ impl<'a> DoubleEndedIterator for AllSymbols<'a> {
     }
 }
 
-impl<'a> FusedIterator for AllSymbols<'a> {}
+impl FusedIterator for AllSymbols<'_> {}
 
 /// An iterator over all interned strings in a [`SymbolTable`].
 ///
@@ -136,7 +136,7 @@ impl<'a> Iterator for Strings<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Strings<'a> {
+impl DoubleEndedIterator for Strings<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().map(Interned::as_slice)
     }
@@ -153,13 +153,13 @@ impl<'a> DoubleEndedIterator for Strings<'a> {
     }
 }
 
-impl<'a> ExactSizeIterator for Strings<'a> {
+impl ExactSizeIterator for Strings<'_> {
     fn len(&self) -> usize {
         self.0.len()
     }
 }
 
-impl<'a> FusedIterator for Strings<'a> {}
+impl FusedIterator for Strings<'_> {}
 
 /// An iterator over all symbols and interned strings in a [`SymbolTable`].
 ///
@@ -212,7 +212,7 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-impl<'a> FusedIterator for Iter<'a> {}
+impl FusedIterator for Iter<'_> {}
 
 impl<'a, S> IntoIterator for &'a SymbolTable<S> {
     type Item = (Symbol, &'a str);
