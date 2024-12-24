@@ -108,8 +108,26 @@ bundle install
 Intaglio uses [`rake`](Rakefile) as a task runner. You can see the available
 tasks by running:
 
-```sh
-bundle exec rake --tasks
+```console
+$ bundle exec rake --tasks
+rake build                         # Build Rust workspace
+rake bundle:audit:check            # Checks the Gemfile.lock for insecure dependencies
+rake bundle:audit:update           # Updates the bundler-audit vulnerability database
+rake doc                           # Generate Rust API documentation
+rake doc:open                      # Generate Rust API documentation and open it in a web browser
+rake fmt                           # Format sources
+rake fmt:rust                      # Format Rust sources with rustfmt
+rake fmt:text                      # Format text, YAML, and Markdown sources with prettier
+rake format                        # Format sources
+rake format:rust                   # Format Rust sources with rustfmt
+rake format:text                   # Format text, YAML, and Markdown sources with prettier
+rake lint                          # Lint sources
+rake lint:clippy                   # Lint Rust sources with Clippy
+rake lint:clippy:restriction       # Lint Rust sources with Clippy restriction pass (unenforced lints)
+rake lint:rubocop                  # Run RuboCop
+rake lint:rubocop:autocorrect      # Autocorrect RuboCop offenses (only when it's safe)
+rake lint:rubocop:autocorrect_all  # Autocorrect RuboCop offenses (safe and unsafe)
+rake test                          # Run Intaglio unit tests
 ```
 
 To lint Ruby sources, Intaglio uses [RuboCop]. RuboCop runs as part of the
