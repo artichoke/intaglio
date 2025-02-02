@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Install nightly Rust toolchain
         uses: artichoke/setup-rust/code-coverage@v1.12.1
@@ -82,8 +84,13 @@ jobs:
 
       - name: Check missed lines
         shell: python
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_NUMBER: ${{ github.event.number }}
         run: |
           import json
+          import os
           from urllib.request import urlopen
 
           trunk_coverage_url = "https://codecov.artichokeruby.org/intaglio/coverage.json"
@@ -101,7 +108,7 @@ jobs:
               print("")
 
 
-          if "${{ github.ref_name }}" == "trunk":
+          if os.environ.get("GITHUB_REF_NAME") == "trunk":
               # We don't need to compare trunk coverage to itself
               exit(0)
 
@@ -114,8 +121,8 @@ jobs:
               branch_coverage = json.load(local)
 
           on = None
-          if "${{ github.event_name }}" == "pull_request":
-              on = "PR artichoke/intaglio#${{ github.event.number }}"
+          if os.environ.get("GITHUB_EVENT_NAME") == "pull_request":
+              on = "PR artichoke/intaglio#" + os.environ.get("GITHUB_EVENT_NUMBER")
 
           print_report(branch_coverage, on=on)
 
