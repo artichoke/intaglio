@@ -349,6 +349,11 @@ impl fmt::Debug for Slice<Path> {
     /// If alternate format is specified, e.g. `{:#?}`, the slice is assumed to
     /// be conventionally UTF-8 and converted to a [`String`] lossily with
     /// [`Path::to_string_lossy`].
+    // Suppress due to false positives in the lint:
+    //
+    // - https://github.com/rust-lang/rust-clippy/issues/14952
+    // - https://github.com/rust-lang/rust-clippy/issues/14977
+    #[allow(clippy::unnecessary_debug_formatting)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
             write!(f, "{:?}", self.as_slice().to_string_lossy())
