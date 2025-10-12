@@ -36,7 +36,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-intaglio = "1.10.0"
+intaglio = "1.11.0"
 ```
 
 Then intern UTF-8 strings like:
@@ -74,11 +74,11 @@ use std::ffi::{CStr, CString};
 
 fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
     let mut table = intaglio::cstr::SymbolTable::new();
-    let name: &'static CStr = CStr::from_bytes_with_nul(b"abc\0")?;
+    let name: &'static CStr = c"abc";
     let sym = table.intern(name)?;
     let retrieved = table.get(sym);
     assert_eq!(Some(name), retrieved);
-    assert_eq!(sym, table.intern(CString::new(*b"abc")?)?);
+    assert_eq!(sym, table.intern(CString::from(c"abc"))?);
     Ok(())
 }
 ```
@@ -136,7 +136,7 @@ All features are enabled by default.
 
 ### Minimum Supported Rust Version
 
-This crate requires at least Rust 1.76.0. This version can be bumped in minor
+This crate requires at least Rust 1.81.0. This version can be bumped in minor
 releases.
 
 ## License

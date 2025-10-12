@@ -560,30 +560,22 @@ mod tests {
     #[test]
     #[cfg(feature = "cstr")]
     fn test_interned_static_cstr_debug_format() {
-        let s = Interned::from(Cow::Borrowed(
-            CStr::from_bytes_with_nul(b"abc\x00").unwrap(),
-        ));
+        let s = Interned::from(Cow::Borrowed(c"abc"));
         let mut buf = String::new();
         write!(&mut buf, "{s:?}").unwrap();
         assert_eq!(buf, "\"abc\"");
 
-        let s = Interned::from(Cow::Borrowed(
-            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap(),
-        ));
+        let s = Interned::from(Cow::Borrowed(c"\xFF"));
         let mut buf = String::new();
         write!(&mut buf, "{s:?}").unwrap();
         assert_eq!(buf, r#""\xff""#);
 
-        let s = Interned::from(Cow::Borrowed(
-            CStr::from_bytes_with_nul(b"abc\x00").unwrap(),
-        ));
+        let s = Interned::from(Cow::Borrowed(c"abc"));
         let mut buf = String::new();
         write!(&mut buf, "{s:#?}").unwrap();
         assert_eq!(buf, "\"abc\"");
 
-        let s = Interned::from(Cow::Borrowed(
-            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap(),
-        ));
+        let s = Interned::from(Cow::Borrowed(c"\xFF"));
         let mut buf = String::new();
         write!(&mut buf, "{s:#?}").unwrap();
         assert_eq!(buf, "\"\u{FFFD}\"");
@@ -592,30 +584,22 @@ mod tests {
     #[test]
     #[cfg(feature = "cstr")]
     fn test_interned_owned_cstring_debug_format() {
-        let s = Interned::<CStr>::from(Cow::Owned(
-            CStr::from_bytes_with_nul(b"abc\x00").unwrap().to_owned(),
-        ));
+        let s = Interned::<CStr>::from(Cow::Owned(c"abc".to_owned()));
         let mut buf = String::new();
         write!(&mut buf, "{s:?}").unwrap();
         assert_eq!(buf, "\"abc\"");
 
-        let s = Interned::<CStr>::from(Cow::Owned(
-            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap().to_owned(),
-        ));
+        let s = Interned::<CStr>::from(Cow::Owned(c"\xFF".to_owned()));
         let mut buf = String::new();
         write!(&mut buf, "{s:?}").unwrap();
         assert_eq!(buf, r#""\xff""#);
 
-        let s = Interned::<CStr>::from(Cow::Owned(
-            CStr::from_bytes_with_nul(b"abc\x00").unwrap().to_owned(),
-        ));
+        let s = Interned::<CStr>::from(Cow::Owned(c"abc".to_owned()));
         let mut buf = String::new();
         write!(&mut buf, "{s:#?}").unwrap();
         assert_eq!(buf, "\"abc\"");
 
-        let s = Interned::<CStr>::from(Cow::Owned(
-            CStr::from_bytes_with_nul(b"\xFF\x00").unwrap().to_owned(),
-        ));
+        let s = Interned::<CStr>::from(Cow::Owned(c"\xFF".to_owned()));
         let mut buf = String::new();
         write!(&mut buf, "{s:#?}").unwrap();
         assert_eq!(buf, "\"\u{FFFD}\"");
