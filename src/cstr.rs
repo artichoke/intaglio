@@ -995,6 +995,10 @@ mod tests {
             sym == sym_again
         }
 
+        #[expect(
+            clippy::op_ref,
+            reason = "https://github.com/rust-lang/rust-clippy/issues/15868",
+        )]
         fn intern_get_roundtrip(cstring: CString) -> bool {
             let mut table = SymbolTable::new();
             let sym = table.intern(cstring.clone()).unwrap();
