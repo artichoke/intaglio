@@ -924,7 +924,7 @@ where
 #[cfg(test)]
 #[allow(clippy::needless_pass_by_value)]
 mod tests {
-    use std::ffi::{CStr, CString};
+    use std::ffi::CString;
 
     use quickcheck::quickcheck;
 
@@ -945,32 +945,22 @@ mod tests {
     #[test]
     fn drop_with_true_static_data() {
         let mut table = SymbolTable::new();
-        table
-            .intern(CStr::from_bytes_with_nul(b"1\0").unwrap())
-            .unwrap();
-        table
-            .intern(CStr::from_bytes_with_nul(b"2\0").unwrap())
-            .unwrap();
-        table
-            .intern(CStr::from_bytes_with_nul(b"3\0").unwrap())
-            .unwrap();
-        table
-            .intern(CStr::from_bytes_with_nul(b"4\0").unwrap())
-            .unwrap();
-        table
-            .intern(CStr::from_bytes_with_nul(b"5\0").unwrap())
-            .unwrap();
+        table.intern(c"1").unwrap();
+        table.intern(c"2").unwrap();
+        table.intern(c"3").unwrap();
+        table.intern(c"4").unwrap();
+        table.intern(c"5").unwrap();
         drop(table);
     }
 
     #[test]
     fn drop_with_owned_data() {
         let mut table = SymbolTable::new();
-        table.intern(CString::new(*b"1").unwrap()).unwrap();
-        table.intern(CString::new(*b"2").unwrap()).unwrap();
-        table.intern(CString::new(*b"3").unwrap()).unwrap();
-        table.intern(CString::new(*b"4").unwrap()).unwrap();
-        table.intern(CString::new(*b"5").unwrap()).unwrap();
+        table.intern(c"1".to_owned()).unwrap();
+        table.intern(c"2".to_owned()).unwrap();
+        table.intern(c"3".to_owned()).unwrap();
+        table.intern(c"4".to_owned()).unwrap();
+        table.intern(c"5".to_owned()).unwrap();
         drop(table);
     }
 
@@ -978,38 +968,26 @@ mod tests {
     fn set_owned_value_and_get_with_owned_and_borrowed() {
         let mut table = SymbolTable::new();
         // intern an owned value
-        let sym = table.intern(CString::new(*b"abc").unwrap()).unwrap();
+        let sym = table.intern(c"abc".to_owned()).unwrap();
         // retrieve C string bytes
         assert_eq!(&b"abc\0"[..], table.get(sym).unwrap().to_bytes_with_nul());
         // intern owned value again
-        assert_eq!(sym, table.intern(CString::new(*b"abc").unwrap()).unwrap());
+        assert_eq!(sym, table.intern(c"abc".to_owned()).unwrap());
         // intern borrowed value
-        assert_eq!(
-            sym,
-            table
-                .intern(CStr::from_bytes_with_nul(b"abc\0").unwrap())
-                .unwrap()
-        );
+        assert_eq!(sym, table.intern(c"abc").unwrap());
     }
 
     #[test]
     fn set_borrowed_value_and_get_with_owned_and_borrowed() {
         let mut table = SymbolTable::new();
         // intern a borrowed value
-        let sym = table
-            .intern(CStr::from_bytes_with_nul(b"abc\0").unwrap())
-            .unwrap();
+        let sym = table.intern(c"abc").unwrap();
         // retrieve C string bytes
         assert_eq!(&b"abc\0"[..], table.get(sym).unwrap().to_bytes_with_nul());
         // intern owned value
-        assert_eq!(sym, table.intern(CString::new(*b"abc").unwrap()).unwrap());
+        assert_eq!(sym, table.intern(c"abc".to_owned()).unwrap());
         // intern borrowed value again
-        assert_eq!(
-            sym,
-            table
-                .intern(CStr::from_bytes_with_nul(b"abc\0").unwrap())
-                .unwrap()
-        );
+        assert_eq!(sym, table.intern(c"abc").unwrap());
     }
 
     quickcheck! {
@@ -1024,7 +1002,7 @@ mod tests {
             let mut table = SymbolTable::new();
             let sym = table.intern(cstring.clone()).unwrap();
             let retrieved_c_string = table.get(sym).unwrap();
-            cstring == retrieved_c_string
+            &*cstring == retrieved_c_string
         }
 
         fn table_contains_sym(cstring: CString) -> bool {

@@ -36,7 +36,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-intaglio = "1.10.0"
+intaglio = "1.11.0"
 ```
 
 Then intern UTF-8 strings like:
@@ -136,7 +136,7 @@ All features are enabled by default.
 
 ### Minimum Supported Rust Version
 
-This crate requires at least Rust 1.76.0. This version can be bumped in minor
+This crate requires at least Rust 1.81.0. This version can be bumped in minor
 releases.
 
 ## License
