@@ -9,13 +9,13 @@
 //! # Example: intern C string
 //!
 //! ```
-//! # use std::ffi::{CStr, CString};
+//! # use std::ffi::CString;
 //! # use intaglio::cstr::SymbolTable;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
-//! assert_eq!(sym, table.intern(CString::new(*b"abc")?)?);
-//! assert_eq!(Some(&b"abc\0"[..]), table.get(sym).map(CStr::to_bytes_with_nul));
+//! let sym = table.intern(c"abc")?;
+//! assert_eq!(sym, table.intern(CString::from(c"abc"))?);
+//! assert_eq!(Some(c"abc"), table.get(sym));
 //! # Ok(())
 //! # }
 //! # example().unwrap();
@@ -25,20 +25,19 @@
 //!
 //! ```
 //! # use std::collections::HashMap;
-//! # use std::ffi::CStr;
 //! # use intaglio::cstr::SymbolTable;
 //! # use intaglio::Symbol;
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut table = SymbolTable::new();
-//! let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
+//! let sym = table.intern(c"abc")?;
 //! // Retrieve set of `Symbol`s.
 //! let all_symbols = table.all_symbols();
 //! assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 //!
-//! table.intern(CStr::from_bytes_with_nul(b"xyz\0")?)?;
+//! table.intern(c"xyz")?;
 //! let mut map = HashMap::new();
-//! map.insert(Symbol::new(0), CStr::from_bytes_with_nul(b"abc\0")?);
-//! map.insert(Symbol::new(1), CStr::from_bytes_with_nul(b"xyz\0")?);
+//! map.insert(Symbol::new(0), c"abc");
+//! map.insert(Symbol::new(1), c"xyz");
 //! // Retrieve symbol to C string content mappings.
 //! let iter = table.iter();
 //! assert_eq!(map, iter.collect::<HashMap<_, _>>());
@@ -75,11 +74,10 @@ use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
 /// # Usage
 ///
 /// ```
-/// # use std::ffi::CStr;
 /// # use intaglio::cstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
+/// let sym = table.intern(c"abc")?;
 /// let all_symbols = table.all_symbols();
 /// assert_eq!(vec![sym], all_symbols.collect::<Vec<_>>());
 /// # Ok(())
@@ -153,13 +151,13 @@ impl FusedIterator for AllSymbols<'_> {}
 /// # Usage
 ///
 /// ```
-/// # use std::ffi::{CStr, CString};
+/// # use std::ffi::CString;
 /// # use intaglio::cstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(CString::new(*b"abc")?)?;
+/// let sym = table.intern(CString::from(c"abc"))?;
 /// let c_strings = table.c_strings();
-/// assert_eq!(vec![CStr::from_bytes_with_nul(b"abc\0")?], c_strings.collect::<Vec<_>>());
+/// assert_eq!(vec![c"abc"], c_strings.collect::<Vec<_>>());
 /// # Ok(())
 /// # }
 /// # example().unwrap();
@@ -229,15 +227,14 @@ impl FusedIterator for CStrings<'_> {}
 ///
 /// ```
 /// # use std::collections::HashMap;
-/// # use std::ffi::{CStr, CString};
 /// # use intaglio::cstr::SymbolTable;
 /// # use intaglio::Symbol;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
+/// let sym = table.intern(c"abc")?;
 /// let iter = table.iter();
 /// let mut map = HashMap::new();
-/// map.insert(Symbol::new(0), CStr::from_bytes_with_nul(b"abc\0")?);
+/// map.insert(Symbol::new(0), c"abc");
 /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
 /// # Ok(())
 /// # }
@@ -296,14 +293,14 @@ impl<'a, S> IntoIterator for &'a SymbolTable<S> {
 /// # Usage
 ///
 /// ```
-/// # use std::ffi::{CStr, CString};
+/// # use std::ffi::CString;
 /// # use intaglio::cstr::SymbolTable;
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut table = SymbolTable::new();
-/// let sym = table.intern(CStr::from_bytes_with_nul(b"abc\0")?)?;
-/// assert_eq!(sym, table.intern(CString::new(*b"abc")?)?);
+/// let sym = table.intern(c"abc")?;
+/// assert_eq!(sym, table.intern(CString::from(c"abc"))?);
 /// assert!(table.contains(sym));
-/// assert!(table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+/// assert!(table.is_interned(c"abc"));
 /// # Ok(())
 /// # }
 /// # example().unwrap();
@@ -510,16 +507,16 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi::{CStr, CString};
+    /// # use std::ffi::CString;
     /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
     /// assert!(table.get(Symbol::new(0)).is_none());
     ///
-    /// let sym = table.intern(CString::new(*b"abc")?)?;
-    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"abc\0")?), table.get(Symbol::new(0)));
-    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"abc\0")?), table.get(sym));
+    /// let sym = table.intern(CString::from(c"abc"))?;
+    /// assert_eq!(Some(c"abc"), table.get(Symbol::new(0)));
+    /// assert_eq!(Some(c"abc"), table.get(sym));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -537,22 +534,22 @@ impl<S> SymbolTable<S> {
     ///
     /// ```
     /// # use std::collections::HashMap;
-    /// # use std::ffi::{CStr, CString};
+    /// # use std::ffi::CString;
     /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CString::new(*b"123")?)?;
-    /// table.intern(CString::new(*b"789")?)?;
+    /// table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(CString::from(c"123"))?;
+    /// table.intern(CString::from(c"789"))?;
     ///
     /// let iter = table.iter();
     /// let mut map = HashMap::new();
-    /// map.insert(Symbol::new(0), CStr::from_bytes_with_nul(b"abc\0")?);
-    /// map.insert(Symbol::new(1), CStr::from_bytes_with_nul(b"xyz\0")?);
-    /// map.insert(Symbol::new(2), CStr::from_bytes_with_nul(b"123\0")?);
-    /// map.insert(Symbol::new(3), CStr::from_bytes_with_nul(b"789\0")?);
+    /// map.insert(Symbol::new(0), c"abc");
+    /// map.insert(Symbol::new(1), c"xyz");
+    /// map.insert(Symbol::new(2), c"123");
+    /// map.insert(Symbol::new(3), c"789");
     /// assert_eq!(map, iter.collect::<HashMap<_, _>>());
     /// # Ok(())
     /// # }
@@ -564,10 +561,10 @@ impl<S> SymbolTable<S> {
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CString::new(*b"123")?)?;
-    /// table.intern(CString::new(*b"789")?)?;
+    /// table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(CString::from(c"123"))?;
+    /// table.intern(CString::from(c"789"))?;
     ///
     /// let iter = table.iter();
     /// assert_eq!(table.len(), iter.count());
@@ -589,10 +586,10 @@ impl<S> SymbolTable<S> {
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CString::new(*b"123")?)?;
-    /// table.intern(CString::new(*b"789")?)?;
+    /// table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(CString::from(c"123"))?;
+    /// table.intern(CString::from(c"789"))?;
     ///
     /// let mut all_symbols = table.all_symbols();
     /// assert_eq!(Some(Symbol::new(0)), all_symbols.next());
@@ -608,10 +605,10 @@ impl<S> SymbolTable<S> {
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CString::new(*b"123")?)?;
-    /// table.intern(CString::new(*b"789")?)?;
+    /// table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(CString::from(c"123"))?;
+    /// table.intern(CString::from(c"789"))?;
     ///
     /// let all_symbols = table.all_symbols();
     /// assert_eq!(table.len(), all_symbols.count());
@@ -631,18 +628,18 @@ impl<S> SymbolTable<S> {
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi::{CStr, CString};
+    /// # use std::ffi::CString;
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CString::new(*b"123")?)?;
-    /// table.intern(CString::new(*b"789")?)?;
+    /// table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(CString::from(c"123"))?;
+    /// table.intern(CString::from(c"789"))?;
     ///
     /// let mut c_strings = table.c_strings();
-    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"abc\0")?), c_strings.next());
-    /// assert_eq!(Some(CStr::from_bytes_with_nul(b"xyz\0")?), c_strings.nth_back(2));
+    /// assert_eq!(Some(c"abc"), c_strings.next());
+    /// assert_eq!(Some(c"xyz"), c_strings.nth_back(2));
     /// assert_eq!(None, c_strings.next());
     /// # Ok(())
     /// # }
@@ -654,10 +651,10 @@ impl<S> SymbolTable<S> {
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CString::new(*b"123")?)?;
-    /// table.intern(CString::new(*b"789")?)?;
+    /// table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(CString::from(c"123"))?;
+    /// table.intern(CString::from(c"789"))?;
     ///
     /// let c_strings = table.c_strings();
     /// assert_eq!(table.len(), c_strings.count());
@@ -691,17 +688,17 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi::{CStr, CString};
+    /// # use std::ffi::CString;
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// let sym = table.intern(CString::new(*b"abc")?)?;
-    /// table.intern(CString::new(*b"xyz")?)?;
-    /// table.intern(CStr::from_bytes_with_nul(b"123\0")?)?;
-    /// table.intern(CStr::from_bytes_with_nul(b"789\0")?)?;
+    /// let sym = table.intern(CString::from(c"abc"))?;
+    /// table.intern(CString::from(c"xyz"))?;
+    /// table.intern(c"123")?;
+    /// table.intern(c"789")?;
     ///
     /// assert_eq!(4, table.len());
-    /// assert_eq!(Some(&b"abc\0"[..]), table.get(sym).map(CStr::to_bytes_with_nul));
+    /// assert_eq!(Some(c"abc"), table.get(sym));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -789,17 +786,17 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi::{CStr, CString};
+    /// # use std::ffi::CString;
     /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
-    /// assert_eq!(None, table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// assert!(!table.is_interned(c"abc"));
+    /// assert_eq!(None, table.check_interned(c"abc"));
     ///
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// assert!(table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// table.intern(CString::from(c"abc"))?;
+    /// assert!(table.is_interned(c"abc"));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(c"abc"));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -816,17 +813,17 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi::{CStr, CString};
+    /// # use std::ffi::CString;
     /// # use intaglio::cstr::SymbolTable;
     /// # use intaglio::Symbol;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::new();
-    /// assert!(!table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
-    /// assert_eq!(None, table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// assert!(!table.is_interned(c"abc"));
+    /// assert_eq!(None, table.check_interned(c"abc"));
     ///
-    /// table.intern(CString::new(*b"abc")?)?;
-    /// assert!(table.is_interned(CStr::from_bytes_with_nul(b"abc\0")?));
-    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(CStr::from_bytes_with_nul(b"abc\0")?));
+    /// table.intern(CString::from(c"abc"))?;
+    /// assert!(table.is_interned(c"abc"));
+    /// assert_eq!(Some(Symbol::new(0)), table.check_interned(c"abc"));
     /// # Ok(())
     /// # }
     /// # example().unwrap();
@@ -853,7 +850,7 @@ where
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(1);
-    /// table.intern(CString::new(*b"abc")?)?;
+    /// table.intern(CString::from(c"abc"))?;
     /// table.reserve(10);
     /// assert!(table.capacity() >= 11);
     /// # Ok(())
@@ -878,9 +875,9 @@ where
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
-    /// table.intern(CString::new(*b"abc")?);
-    /// table.intern(CString::new(*b"xyz")?);
-    /// table.intern(CString::new(*b"123")?);
+    /// table.intern(CString::from(c"abc"));
+    /// table.intern(CString::from(c"xyz"));
+    /// table.intern(CString::from(c"123"));
     /// table.shrink_to_fit();
     /// assert!(table.capacity() >= 3);
     /// # Ok(())
@@ -906,9 +903,9 @@ where
     /// # use intaglio::cstr::SymbolTable;
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut table = SymbolTable::with_capacity(10);
-    /// table.intern(CString::new(*b"abc")?);
-    /// table.intern(CString::new(*b"xyz")?);
-    /// table.intern(CString::new(*b"123")?);
+    /// table.intern(CString::from(c"abc"));
+    /// table.intern(CString::from(c"xyz"));
+    /// table.intern(CString::from(c"123"));
     /// table.shrink_to(5);
     /// assert!(table.capacity() >= 5);
     /// # Ok(())
