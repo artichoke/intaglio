@@ -9,6 +9,11 @@ name: Miri
       - trunk
   schedule:
     - cron: "0 0 * * WED"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read # required to checkout repository
 jobs:
   miri:
     name: Test with Miri
@@ -19,10 +24,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/miri@v2.0.1
+        uses: artichoke/setup-rust/miri@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
         with:
           toolchain: nightly
 
