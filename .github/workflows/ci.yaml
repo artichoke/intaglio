@@ -73,6 +73,7 @@ jobs:
     env:
       RUSTFLAGS: -D warnings
       RUST_BACKTRACE: 1
+      CI_TARGET_TRIPLE: ${{ matrix.target }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -90,19 +91,19 @@ jobs:
         run: sudo apt-get update && sudo apt install gcc-multilib
 
       - name: Compile
-        run: cargo build --verbose --target ${{ matrix.target }}
+        run: cargo build --verbose --target "$CI_TARGET_TRIPLE"
 
       - name: Compile tests
-        run: cargo test --no-run --target ${{ matrix.target }}
+        run: cargo test --no-run --target "$CI_TARGET_TRIPLE"
 
       - name: Test
-        run: cargo test --target ${{ matrix.target }}
+        run: cargo test --target "$CI_TARGET_TRIPLE"
 
       - name: Test with all features
-        run: cargo test --all-features --target ${{ matrix.target }}
+        run: cargo test --all-features --target "$CI_TARGET_TRIPLE"
 
       - name: Test with no default features
-        run: cargo test --no-default-features --target ${{ matrix.target }}
+        run: cargo test --no-default-features --target "$CI_TARGET_TRIPLE"
 
   build-msrv:
     name: Build (MSRV)
@@ -151,6 +152,7 @@ jobs:
     env:
       RUSTFLAGS: -D warnings
       RUST_BACKTRACE: 1
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -166,9 +168,10 @@ jobs:
       - name: Test with leak sanitizer and all features
         # LeakSanitzier is broken: https://github.com/rust-lang/rust/issues/111073
         if: false
-        run: cargo test --all-features --target ${{ matrix.target }}
+        run: cargo test --all-features --target "$CI_TARGET_TRIPLE"
         env:
           RUSTFLAGS: "-Z sanitizer=leak"
+          CI_TARGET_TRIPLE: ${{ matrix.target }}
 
   rust:
     name: Lint and format Rust
