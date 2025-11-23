@@ -13,6 +13,8 @@ updates:
       - lopopolo
     labels:
       - A-deps
+    cooldown:
+      default-days: 7
   - package-ecosystem: cargo
     directory: "/"
     schedule:
@@ -25,6 +27,8 @@ updates:
       - lopopolo
     labels:
       - A-deps
+    cooldown:
+      default-days: 7
   - package-ecosystem: bundler
     directory: "/"
     schedule:
@@ -37,6 +41,8 @@ updates:
       - lopopolo
     labels:
       - A-deps
+    cooldown:
+      default-days: 7
   - package-ecosystem: npm
     directory: "/"
     schedule:
@@ -49,3 +55,5 @@ updates:
       - lopopolo
     labels:
       - A-deps
+    cooldown:
+      default-days: 7
