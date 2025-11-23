@@ -92,18 +92,23 @@ jobs:
 
       - name: Compile
         run: cargo build --verbose --target "$CI_TARGET_TRIPLE"
+        shell: bash
 
       - name: Compile tests
         run: cargo test --no-run --target "$CI_TARGET_TRIPLE"
+        shell: bash
 
       - name: Test
         run: cargo test --target "$CI_TARGET_TRIPLE"
+        shell: bash
 
       - name: Test with all features
         run: cargo test --all-features --target "$CI_TARGET_TRIPLE"
+        shell: bash
 
       - name: Test with no default features
         run: cargo test --no-default-features --target "$CI_TARGET_TRIPLE"
+        shell: bash
 
   build-msrv:
     name: Build (MSRV)
@@ -152,7 +157,7 @@ jobs:
     env:
       RUSTFLAGS: -D warnings
       RUST_BACKTRACE: 1
-      
+      CI_TARGET_TRIPLE: ${{ matrix.target }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
