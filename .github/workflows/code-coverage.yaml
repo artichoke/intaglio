@@ -33,21 +33,16 @@ jobs:
         uses: artichoke/setup-rust/code-coverage@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
 
       - name: Setup grcov
-        run: |
-          release_url="$(curl \
-            --url https://api.github.com/repos/mozilla/grcov/releases \
-            --header "authorization: Bearer $GITHUB_TOKEN" \
-            --header 'content-type: application/json' \
-            --silent \
-            --fail \
-            --retry 5 \
-            | jq -r '.[0].assets
-                     | map(select(.browser_download_url | test(".*x86_64-unknown-linux-musl.tar.bz2$")))
-                     | .[0].browser_download_url'
-          )"
-          curl -sL "$release_url" | sudo tar xvj -C /usr/local/bin/
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/grcov
+          gh release download \
+            --repo mozilla/grcov \
+            --pattern '*x86_64-unknown-linux-musl.tar.bz2' \
+            --dir /tmp/grcov
+          # Assuming only one matching asset:
+          tar xvj -C /usr/local/bin/ -f /tmp/grcov/*.tar.bz2
 
       - name: Show grcov version
         run: grcov --version
