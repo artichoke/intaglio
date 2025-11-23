@@ -10,23 +10,37 @@ name: Documentation
   schedule:
     - cron: "0 0 * * TUE"
 concurrency:
-  group: docs-${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+permissions: {}
 jobs:
   rustdoc:
     name: Build Rust API docs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # required to push docs to github-pages branch
     env:
       RUSTDOCFLAGS: -D warnings -D rustdoc::broken_intra_doc_links --cfg docsrs
       RUST_BACKTRACE: 1
 
     steps:
+      # https://github.com/actions/checkout/issues/135
+      - name: Setup git line ending checkout behavior
+        shell: bash
+        if: runner.os == 'Windows'
+        run: |
+          git config --system core.autocrlf false
+          git config --system core.eol lf
+
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/rustdoc@v2.0.1
+        uses: artichoke/setup-rust/rustdoc@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
 
       - name: Check docs with no default features
         run: cargo doc --workspace --no-default-features
@@ -38,7 +52,7 @@ jobs:
         run: cargo doc --workspace
 
       - name: Deploy Docs
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v3.9.2
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
         if: github.ref == 'refs/heads/trunk'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
