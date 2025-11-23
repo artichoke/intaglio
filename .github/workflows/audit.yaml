@@ -9,14 +9,22 @@ name: Audit
       - trunk
   schedule:
     - cron: "0 0 * * TUE"
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   ruby:
     name: Audit Ruby Dependencies
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # required to checkout repository
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
 
       - name: Install Ruby toolchain
         uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # v1.267.0
@@ -35,16 +43,20 @@ jobs:
         checks:
           - advisories
           - bans licenses sources
+    permissions:
+      contents: read # required to checkout repository
 
     # Prevent sudden announcement of a new advisory from failing ci:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/audit@v2.0.1
+        uses: artichoke/setup-rust/audit@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
 
       - name: Generate Cargo.lock
         run: |
@@ -62,10 +74,11 @@ jobs:
     name: Run zizmor 🌈
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
+      contents: read # required to checkout repository
+      security-events: write # required to add findings via sarif
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.2.2
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           persist-credentials: false
 
