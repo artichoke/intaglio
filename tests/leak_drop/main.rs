@@ -29,7 +29,7 @@ mod vectors {
             .take(ITERATIONS)
             .map(|(i, ch)| {
                 let len = (i / 256) + 100;
-                iter::repeat(ch).take(len).collect::<String>()
+                iter::repeat_n(ch, len).collect::<String>()
             })
     }
 
@@ -40,7 +40,7 @@ mod vectors {
             .take(ITERATIONS)
             .map(|(i, ch)| {
                 let len = (i / 256) + 100;
-                iter::repeat(ch).take(len).collect::<Vec<_>>()
+                iter::repeat_n(ch, len).collect::<Vec<_>>()
             })
     }
 
@@ -51,7 +51,7 @@ mod vectors {
             .take(ITERATIONS)
             .map(|(i, ch)| {
                 let len = (i / 256) + 100;
-                iter::repeat(ch).take(len).collect::<Vec<_>>()
+                iter::repeat_n(ch, len).collect::<Vec<_>>()
             })
     }
 }
