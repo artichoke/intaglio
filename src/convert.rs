@@ -184,7 +184,7 @@ impl From<Symbol> for usize {
     #[inline]
     fn from(sym: Symbol) -> Self {
         // Ensure this cast is lossless.
-        const_assert!(usize::BITS >= u32::BITS);
+        const _: () = assert!(usize::BITS >= u32::BITS);
 
         sym.id() as usize
     }
