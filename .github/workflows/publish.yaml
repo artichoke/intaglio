@@ -1,0 +1,79 @@
+---
+name: Publish
+"on":
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  crates-io:
+    name: Publish to crates.io
+    if: github.event.created == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # required to checkout repository
+      id-token: write # required for trusted publishing to crates.io
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+      RUST_BACKTRACE: 1
+      # Use ephemeral per-job directories and avoid cross-run caches.
+      CARGO_HOME: ${{ runner.temp }}/cargo-home
+      RUSTUP_HOME: ${{ runner.temp }}/rustup-home
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='${{ github.ref_name }}'
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release tag '$TAG' does not match vX.Y.Z"
+            exit 1
+          fi
+
+      - name: Install Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup set profile minimal
+          rustup toolchain install stable --no-self-update
+          rustup default stable
+          rustc -Vv
+          cargo -V
+
+      - name: Ensure Cargo.toml version matches tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_VERSION='${{ github.ref_name }}'
+          TAG_VERSION="${TAG_VERSION#v}"
+          CARGO_VERSION="$(sed -n 's/^version = "\([0-9][0-9.]*\)".*/\1/p' Cargo.toml | head -n1)"
+          if [[ -z "$CARGO_VERSION" ]]; then
+            echo "failed to parse crate version from Cargo.toml"
+            exit 1
+          fi
+          if [[ "$TAG_VERSION" != "$CARGO_VERSION" ]]; then
+            echo "tag version '$TAG_VERSION' does not match crate version '$CARGO_VERSION'"
+            exit 1
+          fi
+
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@b7e9a28eded4986ec6b1fa40eeee8f8f165559ec # v1.0.3
+
+      - name: Publish crate
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish
