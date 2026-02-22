@@ -36,9 +36,10 @@ jobs:
 
       - name: Validate release tag
         shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          TAG='${{ github.ref_name }}'
           if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "release tag '$TAG' does not match vX.Y.Z"
             exit 1
@@ -56,9 +57,10 @@ jobs:
 
       - name: Ensure Cargo.toml version matches tag
         shell: bash
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          TAG_VERSION='${{ github.ref_name }}'
           TAG_VERSION="${TAG_VERSION#v}"
           CARGO_VERSION="$(sed -n 's/^version = "\([0-9][0-9.]*\)".*/\1/p' Cargo.toml | head -n1)"
           if [[ -z "$CARGO_VERSION" ]]; then
