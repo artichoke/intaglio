@@ -1,7 +1,7 @@
 use std::ffi::OsString;
 
-use intaglio::osstr::SymbolTable;
 use intaglio::Symbol;
+use intaglio::osstr::SymbolTable;
 
 #[test]
 fn dealloc_owned_data() {

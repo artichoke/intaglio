@@ -1,5 +1,5 @@
-use intaglio::bytes::SymbolTable;
 use intaglio::Symbol;
+use intaglio::bytes::SymbolTable;
 
 #[test]
 fn dealloc_owned_data() {

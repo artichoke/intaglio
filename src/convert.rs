@@ -1,4 +1,4 @@
-use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+use core::num::{NonZeroU8, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroUsize};
 
 use crate::{Symbol, SymbolOverflowError};
 
@@ -184,7 +184,7 @@ impl From<Symbol> for usize {
     #[inline]
     fn from(sym: Symbol) -> Self {
         // Ensure this cast is lossless.
-        const_assert!(usize::BITS >= u32::BITS);
+        const _: () = assert!(usize::BITS >= u32::BITS);
 
         sym.id() as usize
     }
@@ -227,7 +227,7 @@ impl From<&Symbol> for i64 {
 
 #[cfg(test)]
 mod tests {
-    use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+    use core::num::{NonZeroU8, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroUsize};
 
     use crate::Symbol;
 

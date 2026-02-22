@@ -1,10 +1,10 @@
 [package]
 name = "intaglio"
-version = "1.12.0" # remember to set `html_root_url` in `src/lib.rs`.
+version = "1.13.0" # remember to set `html_root_url` in `src/lib.rs`.
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 license = "MIT"
-edition = "2021"
-rust-version = "1.81.0"
+edition = "2024"
+rust-version = "1.85.0"
 readme = "README.md"
 repository = "https://github.com/artichoke/intaglio"
 documentation = "https://docs.rs/intaglio"
@@ -34,7 +34,7 @@ path = []
 
 [dev-dependencies]
 # Property testing for interner getters and setters.
-quickcheck = { version = "1.0.3", default-features = false }
+quickcheck = { version = "1.1.0", default-features = false }
 
 [package.metadata.docs.rs]
 # This sets the default target to `x86_64-unknown-linux-gnu` and only builds

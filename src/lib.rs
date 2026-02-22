@@ -109,21 +109,11 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.12.0")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.13.0")]
 
 use core::fmt;
 use core::num::TryFromIntError;
 use std::error;
-
-macro_rules! const_assert {
-    ($x:expr $(,)?) => {
-        #[allow(unknown_lints, clippy::eq_op)]
-        const _: [(); 0 - !{
-            const ASSERT: bool = $x;
-            ASSERT
-        } as usize] = [];
-    };
-}
 
 #[cfg(feature = "bytes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
@@ -146,7 +136,7 @@ pub use crate::str::*;
 
 // To prevent overflows when indexing into the backing `Vec`, `intaglio`
 // requires `usize` to be at least as big as `u32`.
-const_assert!(usize::BITS >= u32::BITS);
+const _: () = assert!(usize::BITS >= u32::BITS);
 
 /// Default capacity for a new [`SymbolTable`] created with
 /// [`SymbolTable::new`].

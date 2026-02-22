@@ -1,7 +1,7 @@
 use std::ffi::CString;
 
-use intaglio::cstr::SymbolTable;
 use intaglio::Symbol;
+use intaglio::cstr::SymbolTable;
 
 #[test]
 fn dealloc_owned_data() {

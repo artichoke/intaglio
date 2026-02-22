@@ -62,13 +62,13 @@ use core::ops::Range;
 use core::slice;
 use std::borrow::Cow;
 use std::collections::{
-    hash_map::{HashMap, RandomState},
     TryReserveError,
+    hash_map::{HashMap, RandomState},
 };
 use std::ffi::CStr;
 
 use crate::internal::Interned;
-use crate::{Symbol, SymbolOverflowError, DEFAULT_SYMBOL_TABLE_CAPACITY};
+use crate::{DEFAULT_SYMBOL_TABLE_CAPACITY, Symbol, SymbolOverflowError};
 
 /// An iterator over all [`Symbol`]s in a [`SymbolTable`].
 ///
