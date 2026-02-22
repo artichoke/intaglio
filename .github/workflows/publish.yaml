@@ -76,7 +76,7 @@ jobs:
       - name: Wait for CI on tagged commit
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
           CI_WORKFLOW_NAME: CI
@@ -86,39 +86,37 @@ jobs:
           set -euo pipefail
 
           deadline="$(( $(date +%s) + MAX_WAIT_SECONDS ))"
-          api="https://api.github.com/repos/${REPO}/actions/runs?head_sha=${SHA}&per_page=100"
+          run_list=(
+            gh run list
+            --repo "${REPO}"
+            --workflow "${CI_WORKFLOW_NAME}"
+            --commit "${SHA}"
+            --limit 50
+          )
 
           while true; do
-            response="$(
-              curl --fail --silent --show-error \
-                --header "Accept: application/vnd.github+json" \
-                --header "Authorization: Bearer ${GITHUB_TOKEN}" \
-                --header "X-GitHub-Api-Version: 2022-11-28" \
-                "${api}"
-            )"
-
             ci_count="$(
-              jq '[.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME)] | length' <<<"${response}"
+              "${run_list[@]}" --json status --jq 'length'
             )"
 
             if [[ "${ci_count}" -eq 0 ]]; then
               echo "no '${CI_WORKFLOW_NAME}' workflow runs found yet for ${SHA}; waiting..."
             else
               pending_count="$(
-                jq '[.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME and .status != "completed")] | length' <<<"${response}"
+                "${run_list[@]}" --json status --jq '[.[] | select(.status != "completed")] | length'
               )"
               if [[ "${pending_count}" -gt 0 ]]; then
                 echo "${pending_count} '${CI_WORKFLOW_NAME}' runs pending for ${SHA}; waiting..."
               else
                 non_success_count="$(
-                  jq '[.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME and .conclusion != "success")] | length' <<<"${response}"
+                  "${run_list[@]}" --json conclusion --jq '[.[] | select(.conclusion != "success")] | length'
                 )"
                 if [[ "${non_success_count}" -eq 0 ]]; then
                   echo "all '${CI_WORKFLOW_NAME}' runs for ${SHA} completed successfully."
                   break
                 fi
                 echo "'${CI_WORKFLOW_NAME}' is not green for ${SHA}:"
-                jq -r '.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME and .conclusion != "success") | "- \(.html_url) => \(.conclusion)"' <<<"${response}"
+                "${run_list[@]}" --json conclusion,url --jq '.[] | select(.conclusion != "success") | "- \(.url) => \(.conclusion)"'
                 exit 1
               fi
             fi
