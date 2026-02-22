@@ -56,7 +56,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/audit@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
+        with:
+          cache: false
 
       - name: Generate Cargo.lock
         run: |

@@ -39,8 +39,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/build-and-test@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
+          cache: false
           toolchain: stable
 
       - name: Compile
@@ -81,8 +82,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/build-and-test@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
+          cache: false
           toolchain: stable
           target: ${{ matrix.target }}
 
@@ -124,8 +126,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/build-and-test@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
+          cache: false
           toolchain: "1.85.0"
 
       - name: Compile
@@ -165,8 +168,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/build-and-test@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
+          cache: false
           toolchain: nightly
           target: ${{ matrix.target }}
 
@@ -191,13 +195,17 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/lint-and-format@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
+          cache: false
+          components: rustfmt
           toolchain: nightly
 
       - name: Install Rust toolchain
-        uses: artichoke/setup-rust/lint-and-format@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
+          cache: false
+          components: clippy
           toolchain: stable
 
       - name: Check formatting
