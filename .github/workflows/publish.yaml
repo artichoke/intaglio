@@ -18,6 +18,7 @@ jobs:
     environment:
       name: crates-io-publish
     permissions:
+      actions: read # required to inspect CI workflow run status
       contents: read # required to checkout repository
       id-token: write # required for trusted publishing to crates.io
     env:
@@ -71,6 +72,63 @@ jobs:
             echo "tag version '$TAG_VERSION' does not match crate version '$CARGO_VERSION'"
             exit 1
           fi
+
+      - name: Wait for CI on tagged commit
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          CI_WORKFLOW_NAME: CI
+          POLL_INTERVAL_SECONDS: 20
+          MAX_WAIT_SECONDS: 10800
+        run: |
+          set -euo pipefail
+
+          deadline="$(( $(date +%s) + MAX_WAIT_SECONDS ))"
+          api="https://api.github.com/repos/${REPO}/actions/runs?head_sha=${SHA}&per_page=100"
+
+          while true; do
+            response="$(
+              curl --fail --silent --show-error \
+                --header "Accept: application/vnd.github+json" \
+                --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+                --header "X-GitHub-Api-Version: 2022-11-28" \
+                "${api}"
+            )"
+
+            ci_count="$(
+              jq '[.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME)] | length' <<<"${response}"
+            )"
+
+            if [[ "${ci_count}" -eq 0 ]]; then
+              echo "no '${CI_WORKFLOW_NAME}' workflow runs found yet for ${SHA}; waiting..."
+            else
+              pending_count="$(
+                jq '[.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME and .status != "completed")] | length' <<<"${response}"
+              )"
+              if [[ "${pending_count}" -gt 0 ]]; then
+                echo "${pending_count} '${CI_WORKFLOW_NAME}' runs pending for ${SHA}; waiting..."
+              else
+                non_success_count="$(
+                  jq '[.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME and .conclusion != "success")] | length' <<<"${response}"
+                )"
+                if [[ "${non_success_count}" -eq 0 ]]; then
+                  echo "all '${CI_WORKFLOW_NAME}' runs for ${SHA} completed successfully."
+                  break
+                fi
+                echo "'${CI_WORKFLOW_NAME}' is not green for ${SHA}:"
+                jq -r '.workflow_runs[] | select(.name == env.CI_WORKFLOW_NAME and .conclusion != "success") | "- \(.html_url) => \(.conclusion)"' <<<"${response}"
+                exit 1
+              fi
+            fi
+
+            if [[ "$(date +%s)" -ge "${deadline}" ]]; then
+              echo "timed out waiting for '${CI_WORKFLOW_NAME}' to complete for ${SHA}"
+              exit 1
+            fi
+            sleep "${POLL_INTERVAL_SECONDS}"
+          done
 
       - name: Authenticate with crates.io
         id: auth
