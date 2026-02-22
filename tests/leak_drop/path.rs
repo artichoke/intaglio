@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use intaglio::path::SymbolTable;
 use intaglio::Symbol;
+use intaglio::path::SymbolTable;
 
 #[test]
 fn dealloc_owned_data() {

@@ -1,4 +1,4 @@
-use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+use core::num::{NonZeroU8, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroUsize};
 
 use crate::{Symbol, SymbolOverflowError};
 
@@ -227,7 +227,7 @@ impl From<&Symbol> for i64 {
 
 #[cfg(test)]
 mod tests {
-    use core::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+    use core::num::{NonZeroU8, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroUsize};
 
     use crate::Symbol;
 
