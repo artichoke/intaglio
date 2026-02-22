@@ -1,0 +1,145 @@
+---
+name: Publish
+"on":
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  crates-io:
+    name: Publish to crates.io
+    if: github.event.created == true
+    runs-on: ubuntu-latest
+    environment:
+      name: crates-io-publish
+    permissions:
+      actions: read # required to inspect CI workflow run status
+      contents: read # required to checkout repository
+      id-token: write # required for trusted publishing to crates.io
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+      RUST_BACKTRACE: 1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Configure ephemeral Rust homes
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Use per-job temporary directories and avoid cross-run caches.
+          mkdir -p "${RUNNER_TEMP}/cargo-home" "${RUNNER_TEMP}/rustup-home"
+          echo "CARGO_HOME=${RUNNER_TEMP}/cargo-home" >> "$GITHUB_ENV"
+          echo "RUSTUP_HOME=${RUNNER_TEMP}/rustup-home" >> "$GITHUB_ENV"
+
+      - name: Validate release tag
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release tag '$TAG' does not match vX.Y.Z"
+            exit 1
+          fi
+
+      - name: Install Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup set profile minimal
+          rustup toolchain install stable --no-self-update
+          rustup default stable
+          rustc -Vv
+          cargo -V
+
+      - name: Ensure Cargo.toml version matches tag
+        shell: bash
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${TAG_VERSION#v}"
+          CARGO_VERSION="$(sed -n 's/^version = "\([0-9][0-9.]*\)".*/\1/p' Cargo.toml | head -n1)"
+          if [[ -z "$CARGO_VERSION" ]]; then
+            echo "failed to parse crate version from Cargo.toml"
+            exit 1
+          fi
+          if [[ "$TAG_VERSION" != "$CARGO_VERSION" ]]; then
+            echo "tag version '$TAG_VERSION' does not match crate version '$CARGO_VERSION'"
+            exit 1
+          fi
+
+      - name: Wait for CI on tagged commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          CI_WORKFLOW_NAME: CI
+          POLL_INTERVAL_SECONDS: 20
+          MAX_WAIT_SECONDS: 10800
+        run: |
+          set -euo pipefail
+
+          deadline="$(( $(date +%s) + MAX_WAIT_SECONDS ))"
+          run_list=(
+            gh run list
+            --repo "${REPO}"
+            --workflow "${CI_WORKFLOW_NAME}"
+            --commit "${SHA}"
+            --limit 50
+          )
+
+          while true; do
+            ci_count="$(
+              "${run_list[@]}" --json status --jq 'length'
+            )"
+
+            if [[ "${ci_count}" -eq 0 ]]; then
+              echo "no '${CI_WORKFLOW_NAME}' workflow runs found yet for ${SHA}; waiting..."
+            else
+              pending_count="$(
+                "${run_list[@]}" --json status --jq '[.[] | select(.status != "completed")] | length'
+              )"
+              if [[ "${pending_count}" -gt 0 ]]; then
+                echo "${pending_count} '${CI_WORKFLOW_NAME}' runs pending for ${SHA}; waiting..."
+              else
+                non_success_count="$(
+                  "${run_list[@]}" --json conclusion --jq '[.[] | select(.conclusion != "success")] | length'
+                )"
+                if [[ "${non_success_count}" -eq 0 ]]; then
+                  echo "all '${CI_WORKFLOW_NAME}' runs for ${SHA} completed successfully."
+                  break
+                fi
+                echo "'${CI_WORKFLOW_NAME}' is not green for ${SHA}:"
+                "${run_list[@]}" --json conclusion,url --jq '.[] | select(.conclusion != "success") | "- \(.url) => \(.conclusion)"'
+                exit 1
+              fi
+            fi
+
+            if [[ "$(date +%s)" -ge "${deadline}" ]]; then
+              echo "timed out waiting for '${CI_WORKFLOW_NAME}' to complete for ${SHA}"
+              exit 1
+            fi
+            sleep "${POLL_INTERVAL_SECONDS}"
+          done
+
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@b7e9a28eded4986ec6b1fa40eeee8f8f165559ec # v1.0.3
+
+      - name: Publish crate
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish

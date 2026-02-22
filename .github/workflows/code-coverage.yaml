@@ -30,7 +30,10 @@ jobs:
           persist-credentials: false
 
       - name: Install nightly Rust toolchain
-        uses: artichoke/setup-rust/code-coverage@68e0ebb3b406970de1cc2ca807797c9156a198a7 # v2.0.1
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
 
       - name: Setup grcov
         env:
