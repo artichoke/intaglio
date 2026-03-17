@@ -17,7 +17,6 @@
 //
 // This approach is borrowed from tokio.
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![cfg_attr(docsrs, feature(doc_alias))]
 
 //! This crate provides a library for interning strings.
 //!
@@ -109,7 +108,7 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.13.1")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.13.2")]
 
 use core::fmt;
 use core::num::TryFromIntError;
