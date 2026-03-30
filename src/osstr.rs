@@ -69,6 +69,7 @@ use std::collections::{
 use std::ffi::OsStr;
 
 use crate::internal::Interned;
+use crate::rollback::VecEntryRollbackGuard;
 use crate::{DEFAULT_SYMBOL_TABLE_CAPACITY, Symbol, SymbolOverflowError};
 
 /// An iterator over all [`Symbol`]s in a [`SymbolTable`].
@@ -748,35 +749,40 @@ where
         let name = Interned::from(contents);
         let id = Symbol::try_from(self.map.len())?;
 
-        // Move the `Interned` into the `Vec`, causing it to be retagged under
-        // stacked borrows, before taking any references to its inner `T`.
-        self.vec.push(name);
-        // Ensure we grow the map before we take any shared references to the
-        // inner `T`.
-        self.map.reserve(1);
+        let slice = {
+            // Move the `Interned` into the `Vec`, causing it to be retagged
+            // under stacked borrows, before taking any references to its inner
+            // `T`. If anything after this push panics, roll back the `Vec`
+            // mutation so the symbol table remains internally consistent.
+            let guard = VecEntryRollbackGuard::new(&mut self.vec, name);
+            // Ensure we grow the map before we take any shared references to
+            // the inner `T`.
+            self.map.reserve(1);
 
-        // SAFETY: `self.vec` is non-empty because the preceding line of code
-        // pushed an entry into it.
-        let name = unsafe { self.vec.last().unwrap_unchecked() };
+            // SAFETY: This expression creates a reference with a `'static`
+            // lifetime from an owned and interned buffer, which is permissible
+            // because:
+            //
+            // - `Interned` is an internal implementation detail of
+            //   `SymbolTable`.
+            // - `SymbolTable` never gives out `'static` references to
+            //   underlying contents.
+            // - All slice references given out by the `SymbolTable` have the
+            //   same lifetime as the `SymbolTable`.
+            // - The `map` field of `SymbolTable`, which contains the `'static`
+            //   references, is dropped before the owned buffers stored in this
+            //   `Interned`.
+            // - The shared reference may be derived from a `PinBox` which
+            //   prevents moves from retagging the underlying boxed `T` under
+            //   stacked borrows.
+            // - The symbol table cannot grow, shrink, or otherwise move its
+            //   contents while this reference is alive.
+            let slice = unsafe { guard.last().as_static_slice() };
 
-        // SAFETY: This expression creates a reference with a `'static` lifetime
-        // from an owned and interned buffer, which is permissible because:
-        //
-        // - `Interned` is an internal implementation detail of `SymbolTable`.
-        // - `SymbolTable` never gives out `'static` references to underlying
-        //   contents.
-        // - All slice references given out by the `SymbolTable` have the same
-        //   lifetime as the `SymbolTable`.
-        // - The `map` field of `SymbolTable`, which contains the `'static`
-        //   references, is dropped before the owned buffers stored in this
-        //   `Interned`.
-        // - The shared reference may be derived from a `PinBox` which prevents
-        //   moves from retagging the underlying boxed `T` under stacked borrows.
-        // - The symbol table cannot grow, shrink, or otherwise move its contents
-        //   while this reference is alive.
-        let slice = unsafe { name.as_static_slice() };
-
-        self.map.insert(slice, id);
+            self.map.insert(slice, id);
+            guard.defuse();
+            slice
+        };
 
         debug_assert_eq!(self.get(id), Some(slice));
         debug_assert_eq!(self.intern(slice), Ok(id));

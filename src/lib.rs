@@ -108,7 +108,7 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.13.2")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.13.3")]
 
 use core::fmt;
 use core::num::TryFromIntError;
@@ -129,6 +129,7 @@ pub mod osstr;
 #[cfg(feature = "path")]
 #[cfg_attr(docsrs, doc(cfg(feature = "path")))]
 pub mod path;
+mod rollback;
 mod str;
 
 pub use crate::str::*;
