@@ -1,0 +1,17 @@
+[project]
+name = "intaglio"
+version = "1.13.2"
+description = "UTF-8 string and byte string interner and symbol table"
+readme = "README.md"
+requires-python = ">=3.14"
+classifiers = ["Private :: Do Not Upload"]
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "yamllint==1.38.0",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"

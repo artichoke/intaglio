@@ -54,7 +54,7 @@
 
 ## Security & Configuration Tips
 
-- Keep toolchains in sync with `.ruby-version` and Rust stable (see README);
+- Keep toolchains in sync with `mise.toml` and Rust stable (see README);
   bump MSRV only with justification.
 - Use `cargo deny check` before dependency updates; update the advisory DB with
   `cargo deny --all-features --locked check` if needed.
