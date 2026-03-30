@@ -27,9 +27,9 @@ Intaglio includes Rust and Text sources. Developing on Intaglio requires
 configuring several dependencies.
 
 Intaglio uses [mise] to manage the local development toolchain declared in
-[`mise.toml`](mise.toml), including Node.js, Python, Ruby, Rust, and `uv`.
-For Rust, `mise` uses [rustup] under the hood. Nightly-only Rust workflows in
-this repository continue to use `rustup` directly.
+[`mise.toml`](mise.toml), including Node.js, Python, Ruby, Rust, and `uv`. For
+Rust, `mise` uses [rustup] under the hood. Nightly-only Rust workflows in this
+repository continue to use `rustup` directly.
 
 ### Rust Toolchain
 
@@ -72,8 +72,8 @@ cargo build
 
 ### Ruby
 
-Intaglio requires a recent Ruby and [bundler] for development tasks. Install
-the development toolchain with [mise]:
+Intaglio requires a recent Ruby and [bundler] for development tasks. Install the
+development toolchain with [mise]:
 
 ```sh
 mise install
@@ -144,8 +144,8 @@ mise install
 
 ### Python and uv
 
-Python and `uv` are optional dependencies that are used for linting YAML
-sources with `yamllint`.
+Python and `uv` are optional dependencies that are used for linting YAML sources
+with `yamllint`.
 
 Install them with `mise`:
 
