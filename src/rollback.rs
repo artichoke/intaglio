@@ -89,5 +89,4 @@ mod tests {
         assert_eq!(vec.len(), 1);
         assert_eq!(vec[0].as_slice(), "persist");
     }
-
 }
