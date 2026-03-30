@@ -59,3 +59,52 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::borrow::Cow;
+
+    use super::VecEntryRollbackGuard;
+    use crate::internal::Interned;
+
+    #[test]
+    fn armed_guard_rolls_back_last_push() {
+        let mut vec = vec![Interned::from(Cow::Borrowed("existing"))];
+
+        {
+            let guard = VecEntryRollbackGuard::new(&mut vec, Interned::from(Cow::Borrowed("new")));
+
+            assert_eq!(guard.last().as_slice(), "new");
+        }
+
+        assert_eq!(vec.len(), 1);
+        assert_eq!(vec[0].as_slice(), "existing");
+    }
+
+    #[test]
+    fn defused_guard_keeps_pushed_value() {
+        let mut vec = Vec::new();
+
+        {
+            let mut guard =
+                VecEntryRollbackGuard::new(&mut vec, Interned::from(Cow::Borrowed("persist")));
+
+            assert_eq!(guard.last().as_slice(), "persist");
+            guard.defuse();
+        }
+
+        assert_eq!(vec.len(), 1);
+        assert_eq!(vec[0].as_slice(), "persist");
+    }
+
+    #[test]
+    #[should_panic(expected = "VecEntryRollbackGuard defused more than once")]
+    fn defusing_guard_twice_panics() {
+        let mut vec = Vec::new();
+        let mut guard =
+            VecEntryRollbackGuard::new(&mut vec, Interned::from(Cow::Borrowed("persist")));
+
+        guard.defuse();
+        guard.defuse();
+    }
+}
