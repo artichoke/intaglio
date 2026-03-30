@@ -1,8 +1,10 @@
 #[cfg(feature = "cstr")]
 use std::ffi::CStr;
+#[cfg(feature = "osstr")]
 use std::ffi::OsStr;
 use std::hash::{BuildHasher, Hasher};
 use std::panic::{AssertUnwindSafe, catch_unwind};
+#[cfg(feature = "path")]
 use std::path::Path;
 use std::sync::{
     Arc,
