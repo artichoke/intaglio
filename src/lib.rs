@@ -129,6 +129,7 @@ pub mod osstr;
 #[cfg(feature = "path")]
 #[cfg_attr(docsrs, doc(cfg(feature = "path")))]
 pub mod path;
+mod rollback;
 mod str;
 
 pub use crate::str::*;

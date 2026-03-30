@@ -62,7 +62,8 @@ use std::collections::{
     hash_map::{HashMap, RandomState},
 };
 
-use crate::internal::{Interned, VecEntryRollbackGuard};
+use crate::internal::Interned;
+use crate::rollback::VecEntryRollbackGuard;
 use crate::{DEFAULT_SYMBOL_TABLE_CAPACITY, Symbol, SymbolOverflowError};
 
 /// An iterator over all [`Symbol`]s in a [`SymbolTable`].
@@ -756,7 +757,7 @@ where
             let slice = unsafe { name.last().as_static_slice() };
 
             self.map.insert(slice, id);
-            name.disarm();
+            name.defuse();
             slice
         };
 
