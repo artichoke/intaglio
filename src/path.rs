@@ -754,7 +754,7 @@ where
             // under stacked borrows, before taking any references to its inner
             // `T`. If anything after this push panics, roll back the `Vec`
             // mutation so the symbol table remains internally consistent.
-            let mut guard = VecEntryRollbackGuard::new(&mut self.vec, name);
+            let guard = VecEntryRollbackGuard::new(&mut self.vec, name);
             // Ensure we grow the map before we take any shared references to
             // the inner `T`.
             self.map.reserve(1);

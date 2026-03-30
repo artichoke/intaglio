@@ -34,15 +34,8 @@ where
     }
 
     #[inline]
-    pub(crate) fn defuse(&mut self) {
-        match self.state {
-            GuardState::Armed => {
-                self.state = GuardState::Defused;
-            }
-            GuardState::Defused => {
-                unreachable!("VecEntryRollbackGuard defused more than once");
-            }
-        }
+    pub(crate) fn defuse(mut self) {
+        self.state = GuardState::Defused;
     }
 }
 
@@ -86,7 +79,7 @@ mod tests {
         let mut vec = Vec::new();
 
         {
-            let mut guard =
+            let guard =
                 VecEntryRollbackGuard::new(&mut vec, Interned::from(Cow::Borrowed("persist")));
 
             assert_eq!(guard.last().as_slice(), "persist");
@@ -97,14 +90,4 @@ mod tests {
         assert_eq!(vec[0].as_slice(), "persist");
     }
 
-    #[test]
-    #[should_panic(expected = "VecEntryRollbackGuard defused more than once")]
-    fn defusing_guard_twice_panics() {
-        let mut vec = Vec::new();
-        let mut guard =
-            VecEntryRollbackGuard::new(&mut vec, Interned::from(Cow::Borrowed("persist")));
-
-        guard.defuse();
-        guard.defuse();
-    }
 }
