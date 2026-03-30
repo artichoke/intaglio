@@ -115,6 +115,46 @@ impl fmt::Debug for Interned<Path> {
     }
 }
 
+/// Roll back the last push to an interner backing vector if unwinding occurs
+/// before the corresponding map insert succeeds.
+pub struct VecEntryRollbackGuard<'a, T: 'static + ?Sized> {
+    vec: &'a mut Vec<Interned<T>>,
+    armed: bool,
+}
+
+impl<'a, T> VecEntryRollbackGuard<'a, T>
+where
+    T: ?Sized,
+{
+    #[inline]
+    pub fn new(vec: &'a mut Vec<Interned<T>>, value: Interned<T>) -> Self {
+        vec.push(value);
+        Self { vec, armed: true }
+    }
+
+    #[inline]
+    pub fn last(&self) -> &Interned<T> {
+        // SAFETY: `VecEntryRollbackGuard::new` always pushes one element.
+        unsafe { self.vec.last().unwrap_unchecked() }
+    }
+
+    #[inline]
+    pub fn disarm(&mut self) {
+        self.armed = false;
+    }
+}
+
+impl<T> Drop for VecEntryRollbackGuard<'_, T>
+where
+    T: ?Sized,
+{
+    fn drop(&mut self) {
+        if self.armed {
+            drop(self.vec.pop());
+        }
+    }
+}
+
 /// Wrapper around `&'static` slices.
 ///
 /// # Safety

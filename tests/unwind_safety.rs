@@ -1,6 +1,6 @@
-use std::ffi::OsStr;
 #[cfg(feature = "cstr")]
 use std::ffi::CStr;
+use std::ffi::OsStr;
 use std::hash::{BuildHasher, Hasher};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
@@ -107,8 +107,7 @@ fn cstr_symbol_table_rolls_back_after_hasher_panic() {
 fn osstr_symbol_table_rolls_back_after_hasher_panic() {
     let mut table = intaglio::osstr::SymbolTable::with_hasher(panic_build_hasher());
 
-    let result =
-        catch_unwind(AssertUnwindSafe(|| table.intern(OsStr::new("attacker"))));
+    let result = catch_unwind(AssertUnwindSafe(|| table.intern(OsStr::new("attacker"))));
 
     assert!(result.is_err());
     assert_eq!(table.len(), 0);
