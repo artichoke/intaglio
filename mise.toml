@@ -1,8 +1,6 @@
 [tools]
 node = "lts"
-python = "3.14"
 rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" }
-uv = "latest"
 zizmor = "latest"
 
 "cargo:cargo-deny" = "latest"

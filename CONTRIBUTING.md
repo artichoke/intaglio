@@ -32,9 +32,9 @@ Intaglio includes Rust and Text sources. Developing on Intaglio requires
 configuring several dependencies.
 
 Intaglio uses [mise] to manage the local development toolchain declared in
-[`mise.toml`](mise.toml), including Node.js, Python, Rust, `uv`, and auxiliary
-Rust tools. For Rust, `mise` uses [rustup] under the hood. Nightly-only Rust
-workflows in this repository continue to use `rustup` directly.
+[`mise.toml`](mise.toml), including Node.js, Rust, and auxiliary Rust tools. For
+Rust, `mise` uses [rustup] under the hood. Nightly-only Rust workflows in this
+repository continue to use `rustup` directly.
 
 ### Rust Toolchain
 
@@ -86,7 +86,6 @@ cargo test --workspace
 cargo fmt
 cargo clippy --workspace --all-features --all-targets
 npm run fmt
-uv run yamllint --strict .
 RUSTDOCFLAGS="-D warnings -D rustdoc::broken_intra_doc_links --cfg docsrs" \
   cargo +nightly doc --workspace
 ```
@@ -108,17 +107,6 @@ Install Node.js with `mise`:
 mise install
 ```
 
-### Python and uv
-
-Python and `uv` are optional dependencies that are used for linting YAML sources
-with `yamllint`.
-
-Install them with `mise`:
-
-```sh
-mise install
-```
-
 ## Linting
 
 To lint and format Rust sources run:
@@ -132,7 +120,6 @@ To lint and format text sources run:
 
 ```sh
 npm run fmt
-uv run yamllint --strict .
 ```
 
 ## Testing
