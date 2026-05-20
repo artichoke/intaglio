@@ -27,9 +27,9 @@ Intaglio includes Rust and Text sources. Developing on Intaglio requires
 configuring several dependencies.
 
 Intaglio uses [mise] to manage the local development toolchain declared in
-[`mise.toml`](mise.toml), including Node.js, Python, Ruby, Rust, and `uv`. For
-Rust, `mise` uses [rustup] under the hood. Nightly-only Rust workflows in this
-repository continue to use `rustup` directly.
+[`mise.toml`](mise.toml), including Node.js, Python, Rust, `uv`, and auxiliary
+Rust tools. For Rust, `mise` uses [rustup] under the hood. Nightly-only Rust
+workflows in this repository continue to use `rustup` directly.
 
 ### Rust Toolchain
 
@@ -50,9 +50,9 @@ mise install
 profile plus the `clippy` and `rustfmt` components. `mise` installs that
 toolchain via [rustup].
 
-Some repository tasks still require nightly Rust. For example,
-[`Rakefile`](Rakefile) runs `cargo doc` with `rustup run --install nightly`,
-which will install nightly on demand if needed.
+Some repository tasks still require nightly Rust. Documentation checks use
+`cargo +nightly doc` and Miri checks use `cargo +nightly miri`; install nightly
+with `rustup toolchain install nightly` if you run those workflows locally.
 
 To update your stable Rust compiler to the latest version, run:
 
@@ -70,59 +70,20 @@ toolchain installed, you can install the crates specified in
 cargo build
 ```
 
-### Ruby
-
-Intaglio requires a recent Ruby and [bundler] for development tasks. Install the
-development toolchain with [mise]:
-
-```sh
-mise install
-gem install bundler
-```
-
-The pinned versions for Node.js, Python, Ruby, Rust, and `uv` live in
-[`mise.toml`](mise.toml).
-
-The [`Gemfile`](Gemfile) in this repository specifies several dev dependencies.
-You can install these dependencies by running:
-
-```sh
-bundle install
-```
-
 [mise]: https://mise.jdx.dev/
 
-Intaglio uses [`rake`](Rakefile) as a task runner. You can see the available
-tasks by running:
-
-```console
-$ bundle exec rake --tasks
-rake build                         # Build Rust workspace
-rake bundle:audit:check            # Checks the Gemfile.lock for insecure dependencies
-rake bundle:audit:update           # Updates the bundler-audit vulnerability database
-rake doc                           # Generate Rust API documentation
-rake doc:open                      # Generate Rust API documentation and open it in a web browser
-rake fmt                           # Format sources
-rake fmt:rust                      # Format Rust sources with rustfmt
-rake fmt:text                      # Format text, YAML, and Markdown sources with prettier
-rake format                        # Format sources
-rake format:rust                   # Format Rust sources with rustfmt
-rake format:text                   # Format text, YAML, and Markdown sources with prettier
-rake lint                          # Lint sources
-rake lint:clippy                   # Lint Rust sources with Clippy
-rake lint:clippy:restriction       # Lint Rust sources with Clippy restriction pass (unenforced lints)
-rake lint:rubocop                  # Run RuboCop
-rake lint:rubocop:autocorrect      # Autocorrect RuboCop offenses (only when it's safe)
-rake lint:rubocop:autocorrect_all  # Autocorrect RuboCop offenses (safe and unsafe)
-rake test                          # Run Intaglio unit tests
-```
-
-To lint Ruby sources, Intaglio uses [RuboCop]. RuboCop runs as part of the
-`lint` task. To run RuboCop by itself, invoke the `lint:rubocop` task.
+Intaglio uses direct tool invocations instead of a repository task runner. The
+most common development commands are:
 
 ```sh
-bundle exec rake lint
-bundle exec rake lint:rubocop
+cargo build --workspace
+cargo test --workspace
+cargo fmt
+cargo clippy --workspace --all-features --all-targets
+npm run fmt
+uv run yamllint --strict .
+RUSTDOCFLAGS="-D warnings -D rustdoc::broken_intra_doc_links --cfg docsrs" \
+  cargo +nightly doc --workspace
 ```
 
 ### Node.js
@@ -158,14 +119,15 @@ mise install
 To lint and format Rust sources run:
 
 ```sh
-bundle exec rake lint:clippy
-bundle exec rake fmt:rust
+cargo clippy --workspace --all-features --all-targets
+cargo fmt
 ```
 
 To lint and format text sources run:
 
 ```sh
-bundle exec rake fmt:text
+npm run fmt
+uv run yamllint --strict .
 ```
 
 ## Testing
@@ -214,8 +176,6 @@ Regular dependency bumps are handled by [@dependabot].
   https://github.com/artichoke/intaglio/labels/E-easy
 [rustup]: https://rustup.rs/
 [homebrew]: https://docs.brew.sh/Installation
-[bundler]: https://bundler.io/
-[rubocop]: https://github.com/rubocop-hq/rubocop
 [prettier]: https://prettier.io/
 [node.js]: https://nodejs.org/en/download/package-manager/
 [rust book chapter on testing]:
