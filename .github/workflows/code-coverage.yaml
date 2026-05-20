@@ -68,7 +68,7 @@ jobs:
         run: grcov intaglio*.profraw --source-dir . --keep-only 'src/**/*.rs' --binary-path target/debug -t covdir --filter covered -o target/coverage/coverage.json
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         if: github.ref == 'refs/heads/trunk'
         with:
           aws-region: us-west-2
