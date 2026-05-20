@@ -29,10 +29,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          components: miri,rust-src
-          toolchain: nightly
+        run: rustup toolchain install nightly --profile minimal --component miri --component rust-src
 
       - name: Miri setup
         run: cargo miri setup
