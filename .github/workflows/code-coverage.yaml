@@ -87,48 +87,55 @@ jobs:
           aws s3 sync target/coverage/ s3://artichoke-forge-code-coverage-us-west-2/intaglio/ --delete --sse AES256 --include '*' --exclude '*.svg' --exclude '*.html' --exclude '*.json'
 
       - name: Check missed lines
-        shell: python
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_EVENT_NUMBER: ${{ github.event.number }}
         run: |
-          import json
-          import os
-          from urllib.request import urlopen
+          node --input-type=module <<'EOF'
+          import { readFile } from "node:fs/promises";
 
-          trunk_coverage_url = "https://codecov.artichokeruby.org/intaglio/coverage.json"
+          const trunkCoverageUrl =
+            "https://codecov.artichokeruby.org/intaglio/coverage.json";
 
+          function printReport(coverage, on) {
+            if (on == null) {
+              throw new Error("must provide `on` argument");
+            }
 
-          def print_report(coverage, *, on=None):
-              if on is None:
-                  raise ValueError("must provide `on` kwarg")
+            console.log(`On ${on}:`);
+            console.log("coveragePercent =", coverage.coveragePercent);
+            console.log("linesCovered =", coverage.linesCovered);
+            console.log("linesMissed =", coverage.linesMissed);
+            console.log("linesTotal =", coverage.linesTotal);
+            console.log("");
+          }
 
-              print(f"On {on}:")
-              print("coveragePercent =", coverage["coveragePercent"])
-              print("linesCovered =", coverage["linesCovered"])
-              print("linesMissed =", coverage["linesMissed"])
-              print("linesTotal =", coverage["linesTotal"])
-              print("")
+          if (process.env.GITHUB_REF_NAME === "trunk") {
+            process.exit(0);
+          }
 
+          const response = await fetch(trunkCoverageUrl, {
+            signal: AbortSignal.timeout(3000),
+          });
+          if (!response.ok) {
+            throw new Error(`failed to fetch trunk coverage: ${response.status}`);
+          }
+          const trunkCoverage = await response.json();
+          printReport(trunkCoverage, "branch trunk");
 
-          if os.environ.get("GITHUB_REF_NAME") == "trunk":
-              # We don't need to compare trunk coverage to itself
-              exit(0)
+          const branchCoverage = JSON.parse(
+            await readFile("target/coverage/coverage.json", "utf8"),
+          );
 
-          with urlopen(trunk_coverage_url, data=None, timeout=3) as remote:
-              trunk_coverage = json.load(remote)
+          let on = null;
+          if (process.env.GITHUB_EVENT_NAME === "pull_request") {
+            on = `PR artichoke/intaglio#${process.env.GITHUB_EVENT_NUMBER}`;
+          }
 
-          print_report(trunk_coverage, on="branch trunk")
+          printReport(branchCoverage, on);
 
-          with open("target/coverage/coverage.json") as local:
-              branch_coverage = json.load(local)
-
-          on = None
-          if os.environ.get("GITHUB_EVENT_NAME") == "pull_request":
-              on = "PR artichoke/intaglio#" + os.environ.get("GITHUB_EVENT_NUMBER")
-
-          print_report(branch_coverage, on=on)
-
-          is_ok = branch_coverage["linesMissed"] <= trunk_coverage["linesMissed"]
-          exit(0) if is_ok else exit(1)
+          if (branchCoverage.linesMissed > trunkCoverage.linesMissed) {
+            process.exit(1);
+          }
+          EOF
