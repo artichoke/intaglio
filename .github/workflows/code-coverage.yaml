@@ -30,7 +30,9 @@ jobs:
           persist-credentials: false
 
       - name: Install nightly Rust toolchain
-        run: rustup toolchain install nightly --profile minimal --component llvm-tools-preview
+        run: |
+          rustup toolchain install nightly --profile minimal --component llvm-tools-preview
+          rustup default nightly
 
       - name: Setup grcov
         env:

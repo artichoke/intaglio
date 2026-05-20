@@ -29,7 +29,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install nightly --profile minimal --component miri --component rust-src
+        run: |
+          rustup toolchain install nightly --profile minimal --component miri --component rust-src
+          rustup default nightly
 
       - name: Miri setup
         run: cargo miri setup

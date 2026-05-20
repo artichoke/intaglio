@@ -39,7 +39,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install stable --profile minimal
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
 
       - name: Compile
         run: cargo build --verbose
@@ -79,7 +81,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install stable --profile minimal --target "$CI_TARGET_TRIPLE"
+        run: |
+          rustup toolchain install stable --profile minimal --target "$CI_TARGET_TRIPLE"
+          rustup default stable
         shell: bash
 
       - name: Install 32-bit platform support
@@ -120,7 +124,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install 1.85.0 --profile minimal
+        run: |
+          rustup toolchain install 1.85.0 --profile minimal
+          rustup default 1.85.0
 
       - name: Compile
         run: cargo build --verbose
@@ -159,7 +165,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install nightly --profile minimal --target "$CI_TARGET_TRIPLE"
+        run: |
+          rustup toolchain install nightly --profile minimal --target "$CI_TARGET_TRIPLE"
+          rustup default nightly
         shell: bash
 
       - name: Test with leak sanitizer and all features
@@ -183,10 +191,14 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install nightly --profile minimal --component rustfmt
+        run: |
+          rustup toolchain install nightly --profile minimal --component rustfmt
+          rustup default nightly
 
       - name: Install Rust toolchain
-        run: rustup toolchain install stable --profile minimal --component clippy
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy
+          rustup default stable
 
       - name: Check formatting
         run: cargo +nightly fmt --check

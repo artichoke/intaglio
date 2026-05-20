@@ -40,7 +40,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        run: rustup toolchain install nightly --profile minimal
+        run: |
+          rustup toolchain install nightly --profile minimal
+          rustup default nightly
 
       - name: Check docs with no default features
         run: cargo doc --workspace --no-default-features
