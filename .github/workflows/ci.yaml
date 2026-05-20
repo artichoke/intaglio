@@ -206,6 +206,16 @@ jobs:
       - name: Lint with Clippy
         run: cargo clippy --workspace --all-features --all-targets
 
+      - name: Check docs with no default features
+        run: cargo +nightly doc --workspace --no-default-features
+        env:
+          RUSTDOCFLAGS: -D warnings -D rustdoc::broken_intra_doc_links --cfg docsrs
+
+      - name: Check docs
+        run: cargo +nightly doc --workspace
+        env:
+          RUSTDOCFLAGS: -D warnings -D rustdoc::broken_intra_doc_links --cfg docsrs
+
   text:
     name: Lint and format text
     runs-on: ubuntu-latest
