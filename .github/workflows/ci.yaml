@@ -39,9 +39,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          toolchain: stable
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
 
       - name: Compile
         run: cargo build --verbose
@@ -81,10 +81,10 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
+        run: |
+          rustup toolchain install stable --profile minimal --target "$CI_TARGET_TRIPLE"
+          rustup default stable
+        shell: bash
 
       - name: Install 32-bit platform support
         if: matrix.os == 'ubuntu-latest'
@@ -124,9 +124,9 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          toolchain: "1.85.0"
+        run: |
+          rustup toolchain install 1.85.0 --profile minimal
+          rustup default 1.85.0
 
       - name: Compile
         run: cargo build --verbose
@@ -165,10 +165,10 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          toolchain: nightly
-          target: ${{ matrix.target }}
+        run: |
+          rustup toolchain install nightly --profile minimal --target "$CI_TARGET_TRIPLE"
+          rustup default nightly
+        shell: bash
 
       - name: Test with leak sanitizer and all features
         # LeakSanitzier is broken: https://github.com/rust-lang/rust/issues/111073
@@ -191,16 +191,14 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          components: rustfmt
-          toolchain: nightly
+        run: |
+          rustup toolchain install nightly --profile minimal --component rustfmt
+          rustup default nightly
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master
-        with:
-          components: clippy
-          toolchain: stable
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy
+          rustup default stable
 
       - name: Check formatting
         run: cargo +nightly fmt --check

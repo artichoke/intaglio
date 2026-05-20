@@ -21,6 +21,11 @@ interesting and leave a comment that you're beginning to investigate. If there
 is no issue, please file one before beginning to work on a PR. [Good first
 issues are labeled `E-easy`].
 
+Maintenance of this repository is Codex-first. Prefer asking Codex to prepare
+routine code, documentation, CI, and dependency changes. Contributors should
+focus on issue selection, review, release decisions, and validating that the
+resulting diff and CI status match the intended change.
+
 ## Setup
 
 Intaglio includes Rust and Text sources. Developing on Intaglio requires
@@ -149,6 +154,16 @@ cargo test drop
 ```
 
 Tests are run for every PR. All builds must pass before merging a PR.
+
+## Codex Maintenance Workflow
+
+Prefer asking Codex to prepare changes on a branch, including any docs and CI
+updates needed for the patch. Review the resulting diff as authored code:
+
+- Confirm the change is scoped to the issue or maintenance task.
+- Confirm generated or mechanical changes are intentional.
+- Confirm CI passes before merging.
+- Ask Codex to follow up on review comments or failed checks.
 
 ## Updating Dependencies
 
