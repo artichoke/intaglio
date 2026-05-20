@@ -1,7 +1,6 @@
 [tools]
 node = "lts"
 python = "3.14"
-ruby = "4.0"
 rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" }
 uv = "latest"
 zizmor = "latest"

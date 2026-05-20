@@ -8,18 +8,18 @@
 - `tests/` contains integration tests; the `leak_drop/` suite exercises drop
   safety across symbol table types.
 - Tooling configs: `Cargo.toml` for Rust deps, `deny.toml` for cargo-deny,
-  `.config/spellcheck.toml` for spellchecking, `Rakefile` for dev tasks, and
-  `package.json` for optional prettier tooling.
+  `.config/spellcheck.toml` for spellchecking, `package.json` for optional
+  prettier tooling, and `pyproject.toml` for optional YAML linting.
 
 ## Build, Test, and Development Commands
 
 - `cargo build` – compile the crate with default features.
 - `cargo test` – run the full test suite; append a filter (e.g.,
   `cargo test drop`) to target specific cases.
-- `bundle exec rake fmt` – format Rust and text sources (rustfmt + prettier).
-- `bundle exec rake lint` – run clippy and RuboCop; add `:clippy` or `:rubocop`
-  to scope.
-- `bundle exec rake test` – wrapper to run the Rust tests used in CI.
+- `cargo fmt` – format Rust sources with rustfmt.
+- `cargo clippy --workspace --all-features --all-targets` – lint Rust sources.
+- `npm run fmt` – format text, YAML, and Markdown sources with prettier.
+- `uv run yamllint --strict .` – lint YAML sources.
 - `cargo doc --open` – build and open API docs locally.
 
 ## Coding Style & Naming
@@ -49,8 +49,9 @@
 - For PRs: describe the change, note user-visible API impacts, link issues, and
   mention new tests. Include screenshots only if docs/UI artifacts change (rare
   here).
-- Ensure `bundle exec rake fmt lint test` passes before requesting review; CI
-  must be green.
+- Ensure `cargo fmt`, `cargo clippy --workspace --all-features --all-targets`,
+  `npm run fmt`, `uv run yamllint --strict .`, and `cargo test` pass before
+  requesting review; CI must be green.
 
 ## Security & Configuration Tips
 

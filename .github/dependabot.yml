@@ -30,20 +30,6 @@ updates:
       - A-deps
     cooldown:
       default-days: 7
-  - package-ecosystem: bundler
-    directory: "/"
-    schedule:
-      interval: monthly
-    groups:
-      bundler-deps:
-        patterns:
-          - "*"
-    assignees:
-      - lopopolo
-    labels:
-      - A-deps
-    cooldown:
-      default-days: 7
   - package-ecosystem: npm
     directory: "/"
     schedule:
