@@ -1,6 +1,6 @@
 [package]
 name = "intaglio"
-version = "1.13.3" # remember to set `html_root_url` in `src/lib.rs`.
+version = "1.14.0" # remember to set `html_root_url` in `src/lib.rs`.
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 license = "Apache-2.0 OR MIT"
 edition = "2024"

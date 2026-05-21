@@ -108,7 +108,7 @@
 //! [`&Path`]: std::path::Path
 //! [`&'static Path`]: std::path::Path
 
-#![doc(html_root_url = "https://docs.rs/intaglio/1.13.3")]
+#![doc(html_root_url = "https://docs.rs/intaglio/1.14.0")]
 
 use core::fmt;
 use core::num::TryFromIntError;
