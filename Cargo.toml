@@ -2,7 +2,7 @@
 name = "intaglio"
 version = "1.13.3" # remember to set `html_root_url` in `src/lib.rs`.
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
-license = "MIT"
+license = "Apache-2.0 OR MIT"
 edition = "2024"
 rust-version = "1.85.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ homepage = "https://github.com/artichoke/intaglio"
 description = "UTF-8 string and byte string interner and symbol table"
 keywords = ["bytestring", "intern", "interner", "symbol", "utf8"]
 categories = ["caching", "data-structures"]
-include = ["/src/**/*", "/tests/**/*", "/LICENSE", "/README.md"]
+include = ["/src/**/*", "/tests/**/*", "/LICENSE-*", "/README.md"]
 
 [features]
 # All features are enabled by default.
