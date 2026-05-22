@@ -140,8 +140,8 @@ LeakSanitizer.
 All string table features except **bstr** are enabled by default.
 
 - **bstr** - Enables an additional symbol table implementation for interning
-  bstr byte strings (`bstr::BString` and `&'static bstr::BStr`). This feature is
-  disabled by default.
+  [`bstr`] byte strings (`bstr::BString` and `&'static bstr::BStr`). This
+  feature is disabled by default.
 - **bytes** - Enables an additional symbol table implementation for interning
   byte strings (`Vec<u8>` and `&'static [u8]`).
 - **cstr** - Enables an additional symbol table implementation for interning C
@@ -167,3 +167,4 @@ releases.
 
 [symbol]: https://ruby-doc.org/core-3.1.2/Symbol.html
 [artichoke]: https://github.com/artichoke/artichoke
+[bstr]: https://crates.io/crates/bstr
