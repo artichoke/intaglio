@@ -422,6 +422,21 @@ impl<S> SymbolTable<S> {
         }
     }
 
+    /// Returns a reference to the symbol table's [`BuildHasher`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::collections::hash_map::RandomState;
+    /// # use intaglio::path::SymbolTable;
+    /// let hash_builder = RandomState::new();
+    /// let table = SymbolTable::with_hasher(hash_builder);
+    /// let _: &RandomState = table.hasher();
+    /// ```
+    pub fn hasher(&self) -> &S {
+        self.map.hasher()
+    }
+
     /// Returns the number of path strings the table can hold without reallocating.
     ///
     /// # Examples
@@ -478,6 +493,30 @@ impl<S> SymbolTable<S> {
     /// ```
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
+    }
+
+    /// Clears the symbol table, removing all interned path strings.
+    ///
+    /// Keeps the allocated memory for reuse.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::path::Path;
+    /// # use intaglio::path::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// table.intern(Path::new("abc"))?;
+    /// table.clear();
+    /// assert!(table.is_empty());
+    /// assert!(!table.is_interned(Path::new("abc")));
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    pub fn clear(&mut self) {
+        self.map.clear();
+        self.vec.clear();
     }
 
     /// Returns `true` if the symbol table contains the given symbol.
@@ -816,6 +855,37 @@ where
     #[must_use]
     pub fn check_interned(&self, contents: &Path) -> Option<Symbol> {
         self.map.get(contents).copied()
+    }
+
+    /// Returns the `Symbol` identifier and interned path string for `contents`
+    /// if it has been interned before, `None` otherwise.
+    ///
+    /// This method does not modify the symbol table. The returned path string
+    /// has the same lifetime as the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::path::{Path, PathBuf};
+    /// # use intaglio::path::SymbolTable;
+    /// # use intaglio::Symbol;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// assert_eq!(None, table.get_interned(Path::new("abc")));
+    ///
+    /// table.intern(PathBuf::from("abc"))?;
+    /// assert_eq!(
+    ///     Some((Symbol::new(0), Path::new("abc"))),
+    ///     table.get_interned(Path::new("abc"))
+    /// );
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    #[must_use]
+    pub fn get_interned(&self, contents: &Path) -> Option<(Symbol, &Path)> {
+        let (&path, &id) = self.map.get_key_value(contents)?;
+        Some((id, path))
     }
 
     /// Returns `true` if the given path string has been interned before.
