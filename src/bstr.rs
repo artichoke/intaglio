@@ -1,4 +1,4 @@
-//! Intern bstr byte strings.
+//! Intern byte strings from the [`bstr` crate][::bstr].
 //!
 //! This module provides a nearly identical API to the one found in the
 //! top-level of this crate. There is one important difference:
