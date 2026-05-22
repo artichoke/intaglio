@@ -1,6 +1,8 @@
 //! A Wrapper around interned strings that maintains the safety invariants of
 //! the `'static` slices handed out to the interner.
 
+#[cfg(feature = "bstr")]
+use ::bstr::{BStr, BString};
 use core::fmt;
 use std::borrow::Cow;
 #[cfg(feature = "cstr")]
@@ -27,6 +29,14 @@ impl From<Cow<'static, str>> for Interned<str> {
 impl From<Cow<'static, [u8]>> for Interned<[u8]> {
     #[inline]
     fn from(cow: Cow<'static, [u8]>) -> Self {
+        Self(cow.into())
+    }
+}
+
+#[cfg(feature = "bstr")]
+impl From<Cow<'static, BStr>> for Interned<BStr> {
+    #[inline]
+    fn from(cow: Cow<'static, BStr>) -> Self {
         Self(cow.into())
     }
 }
@@ -89,6 +99,13 @@ impl fmt::Debug for Interned<str> {
 
 #[cfg(feature = "bytes")]
 impl fmt::Debug for Interned<[u8]> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+#[cfg(feature = "bstr")]
+impl fmt::Debug for Interned<BStr> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
@@ -171,6 +188,26 @@ impl From<Vec<u8>> for Slice<[u8]> {
 impl From<Cow<'static, [u8]>> for Slice<[u8]> {
     #[inline]
     fn from(cow: Cow<'static, [u8]>) -> Self {
+        match cow {
+            Cow::Borrowed(slice) => slice.into(),
+            Cow::Owned(owned) => owned.into(),
+        }
+    }
+}
+
+#[cfg(feature = "bstr")]
+impl From<BString> for Slice<BStr> {
+    #[inline]
+    fn from(owned: BString) -> Self {
+        let boxed = Vec::<u8>::from(owned).into_boxed_slice();
+        Self::Owned(PinBox::new(Box::<BStr>::from(boxed)))
+    }
+}
+
+#[cfg(feature = "bstr")]
+impl From<Cow<'static, BStr>> for Slice<BStr> {
+    #[inline]
+    fn from(cow: Cow<'static, BStr>) -> Self {
         match cow {
             Cow::Borrowed(slice) => slice.into(),
             Cow::Owned(owned) => owned.into(),
@@ -303,6 +340,14 @@ impl fmt::Debug for Slice<[u8]> {
         } else {
             write!(f, "{:?}", self.as_slice())
         }
+    }
+}
+
+#[cfg(feature = "bstr")]
+impl fmt::Debug for Slice<BStr> {
+    /// Formats the `BStr` slice using the given formatter.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_slice().fmt(f)
     }
 }
 

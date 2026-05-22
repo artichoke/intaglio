@@ -1,3 +1,5 @@
+#[cfg(feature = "bstr")]
+use bstr::BStr;
 #[cfg(feature = "cstr")]
 use std::ffi::CStr;
 #[cfg(feature = "osstr")]
@@ -85,6 +87,23 @@ fn bytes_symbol_table_rolls_back_after_hasher_panic() {
     assert_eq!(sym, Symbol::new(0));
     assert_eq!(table.get(sym), Some(&b"victim"[..]));
     assert_eq!(table.check_interned(&b"victim"[..]), Some(sym));
+}
+
+#[cfg(feature = "bstr")]
+#[test]
+fn bstr_symbol_table_rolls_back_after_hasher_panic() {
+    let mut table = intaglio::bstr::SymbolTable::with_hasher(panic_build_hasher());
+
+    let result = catch_unwind(AssertUnwindSafe(|| table.intern(BStr::new(b"attacker"))));
+
+    assert!(result.is_err());
+    assert_eq!(table.len(), 0);
+    assert_eq!(table.check_interned(BStr::new(b"attacker")), None);
+
+    let sym = table.intern(BStr::new(b"victim")).unwrap();
+    assert_eq!(sym, Symbol::new(0));
+    assert_eq!(table.get(sym), Some(BStr::new(b"victim")));
+    assert_eq!(table.check_interned(BStr::new(b"victim")), Some(sym));
 }
 
 #[cfg(feature = "cstr")]

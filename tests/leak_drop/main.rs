@@ -3,6 +3,8 @@
 #![warn(clippy::cargo)]
 #![allow(unknown_lints)]
 
+#[cfg(feature = "bstr")]
+mod bstr;
 #[cfg(feature = "bytes")]
 mod bytes;
 #[cfg(feature = "cstr")]

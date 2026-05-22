@@ -72,6 +72,10 @@
     doc = "- [`bytes::SymbolTable`] interns binary strings: [`Vec<u8>`] and `&[u8]`."
 )]
 #![cfg_attr(
+    feature = "bstr",
+    doc = "- [`bstr::SymbolTable`] interns bstr byte strings: `bstr::BString` and `bstr::BStr`."
+)]
+#![cfg_attr(
     feature = "cstr",
     doc = "- [`cstr::SymbolTable`] interns C strings: [`CString`] and [`&CStr`]."
 )]
@@ -86,8 +90,11 @@
 //!
 //! # Crate features
 //!
-//! All features are enabled by default.
+//! All string table features except **bstr** are enabled by default.
 //!
+//! - **bstr** - Enables an additional symbol table implementation for
+//!   interning bstr byte strings (`bstr::BString` and `&'static bstr::BStr`).
+//!   This feature is disabled by default.
 //! - **bytes** - Enables an additional symbol table implementation for interning
 //!   byte strings ([`Vec<u8>`] and `&'static [u8]`).
 //! - **cstr** - Enables an additional symbol table implementation for interning
@@ -114,6 +121,9 @@ use core::fmt;
 use core::num::TryFromIntError;
 use std::error;
 
+#[cfg(feature = "bstr")]
+#[cfg_attr(docsrs, doc(cfg(feature = "bstr")))]
+pub mod bstr;
 #[cfg(feature = "bytes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
 pub mod bytes;
@@ -347,6 +357,8 @@ mod tests {
         fn constraint<T: RefUnwindSafe + Send + Sync + Unpin + UnwindSafe>(_table: T) {}
 
         constraint(crate::SymbolTable::with_capacity(0));
+        #[cfg(feature = "bstr")]
+        constraint(crate::bstr::SymbolTable::with_capacity(0));
         #[cfg(feature = "bytes")]
         constraint(crate::bytes::SymbolTable::with_capacity(0));
         #[cfg(feature = "cstr")]
@@ -368,6 +380,7 @@ mod tests {
 #[cfg(all(
     doctest,
     feature = "bytes",
+    feature = "bstr",
     feature = "cstr",
     feature = "osstr",
     feature = "path"
