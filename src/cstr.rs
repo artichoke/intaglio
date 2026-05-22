@@ -58,7 +58,7 @@ use core::hash::BuildHasher;
 use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
-use core::ops::Range;
+use core::ops::{Index, Range};
 use core::slice;
 use std::borrow::Cow;
 use std::collections::{
@@ -284,6 +284,32 @@ impl<'a, S> IntoIterator for &'a SymbolTable<S> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl<S> Index<Symbol> for SymbolTable<S> {
+    type Output = CStr;
+
+    /// Returns a reference to the C string associated with the given symbol.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given symbol does not exist in the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::cstr::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// let sym = table.intern(c"abc")?;
+    /// assert_eq!(c"abc", &table[sym]);
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    fn index(&self, index: Symbol) -> &Self::Output {
+        self.get(index).expect("no entry found for symbol")
     }
 }
 
