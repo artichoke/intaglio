@@ -59,7 +59,7 @@ use core::hash::BuildHasher;
 use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
-use core::ops::Range;
+use core::ops::{Index, Range};
 use core::slice;
 use std::borrow::Cow;
 use std::collections::{
@@ -290,6 +290,33 @@ impl<'a, S> IntoIterator for &'a SymbolTable<S> {
     }
 }
 
+impl<S> Index<Symbol> for SymbolTable<S> {
+    type Output = OsStr;
+
+    /// Returns a reference to the platform string associated with the given symbol.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given symbol does not exist in the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::ffi::OsStr;
+    /// # use intaglio::osstr::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// let sym = table.intern(OsStr::new("abc"))?;
+    /// assert_eq!(OsStr::new("abc"), &table[sym]);
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    fn index(&self, index: Symbol) -> &Self::Output {
+        self.get(index).expect("no entry found for symbol")
+    }
+}
+
 /// Platform string interner.
 ///
 /// This symbol table is implemented by storing [`OsString`]s with a fast path
@@ -422,6 +449,21 @@ impl<S> SymbolTable<S> {
         }
     }
 
+    /// Returns a reference to the symbol table's [`BuildHasher`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::collections::hash_map::RandomState;
+    /// # use intaglio::osstr::SymbolTable;
+    /// let hash_builder = RandomState::new();
+    /// let table = SymbolTable::with_hasher(hash_builder);
+    /// let _: &RandomState = table.hasher();
+    /// ```
+    pub fn hasher(&self) -> &S {
+        self.map.hasher()
+    }
+
     /// Returns the number of platform strings the table can hold without reallocating.
     ///
     /// # Examples
@@ -478,6 +520,30 @@ impl<S> SymbolTable<S> {
     /// ```
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
+    }
+
+    /// Clears the symbol table, removing all interned platform strings.
+    ///
+    /// Keeps the allocated memory for reuse.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::ffi::OsStr;
+    /// # use intaglio::osstr::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// table.intern(OsStr::new("abc"))?;
+    /// table.clear();
+    /// assert!(table.is_empty());
+    /// assert!(!table.is_interned(OsStr::new("abc")));
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    pub fn clear(&mut self) {
+        self.map.clear();
+        self.vec.clear();
     }
 
     /// Returns `true` if the symbol table contains the given symbol.
@@ -816,6 +882,37 @@ where
     #[must_use]
     pub fn check_interned(&self, contents: &OsStr) -> Option<Symbol> {
         self.map.get(contents).copied()
+    }
+
+    /// Returns the `Symbol` identifier and interned platform string for
+    /// `contents` if it has been interned before, `None` otherwise.
+    ///
+    /// This method does not modify the symbol table. The returned platform
+    /// string has the same lifetime as the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::ffi::{OsStr, OsString};
+    /// # use intaglio::osstr::SymbolTable;
+    /// # use intaglio::Symbol;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// assert_eq!(None, table.get_interned(OsStr::new("abc")));
+    ///
+    /// table.intern(OsString::from("abc"))?;
+    /// assert_eq!(
+    ///     Some((Symbol::new(0), OsStr::new("abc"))),
+    ///     table.get_interned(OsStr::new("abc"))
+    /// );
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    #[must_use]
+    pub fn get_interned(&self, contents: &OsStr) -> Option<(Symbol, &OsStr)> {
+        let (&os_str, &id) = self.map.get_key_value(contents)?;
+        Some((id, os_str))
     }
 
     /// Returns `true` if the given platform string has been interned before.

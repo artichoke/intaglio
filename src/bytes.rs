@@ -54,7 +54,7 @@ use core::hash::BuildHasher;
 use core::iter::{FromIterator, FusedIterator, Zip};
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
-use core::ops::Range;
+use core::ops::{Index, Range};
 use core::slice;
 use std::borrow::Cow;
 use std::collections::{
@@ -281,6 +281,32 @@ impl<'a, S> IntoIterator for &'a SymbolTable<S> {
     }
 }
 
+impl<S> Index<Symbol> for SymbolTable<S> {
+    type Output = [u8];
+
+    /// Returns a reference to the byte string associated with the given symbol.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given symbol does not exist in the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::bytes::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// let sym = table.intern(b"abc")?;
+    /// assert_eq!(b"abc", &table[sym]);
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    fn index(&self, index: Symbol) -> &Self::Output {
+        self.get(index).expect("no entry found for symbol")
+    }
+}
+
 /// Byte string interner.
 ///
 /// This symbol table is implemented by storing byte strings with a fast path for
@@ -409,6 +435,21 @@ impl<S> SymbolTable<S> {
         }
     }
 
+    /// Returns a reference to the symbol table's [`BuildHasher`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::collections::hash_map::RandomState;
+    /// # use intaglio::bytes::SymbolTable;
+    /// let hash_builder = RandomState::new();
+    /// let table = SymbolTable::with_hasher(hash_builder);
+    /// let _: &RandomState = table.hasher();
+    /// ```
+    pub fn hasher(&self) -> &S {
+        self.map.hasher()
+    }
+
     /// Returns the number of byte strings the table can hold without
     /// reallocating.
     ///
@@ -464,6 +505,29 @@ impl<S> SymbolTable<S> {
     /// ```
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
+    }
+
+    /// Clears the symbol table, removing all interned byte strings.
+    ///
+    /// Keeps the allocated memory for reuse.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::bytes::SymbolTable;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// table.intern(b"abc")?;
+    /// table.clear();
+    /// assert!(table.is_empty());
+    /// assert!(!table.is_interned(b"abc"));
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    pub fn clear(&mut self) {
+        self.map.clear();
+        self.vec.clear();
     }
 
     /// Returns `true` if the symbol table contains the given symbol.
@@ -792,6 +856,33 @@ where
     #[must_use]
     pub fn check_interned(&self, contents: &[u8]) -> Option<Symbol> {
         self.map.get(contents).copied()
+    }
+
+    /// Returns the `Symbol` identifier and interned byte string for `contents`
+    /// if it has been interned before, `None` otherwise.
+    ///
+    /// This method does not modify the symbol table. The returned byte string
+    /// has the same lifetime as the symbol table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use intaglio::bytes::SymbolTable;
+    /// # use intaglio::Symbol;
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut table = SymbolTable::new();
+    /// assert_eq!(None, table.get_interned(b"abc"));
+    ///
+    /// table.intern(b"abc".to_vec())?;
+    /// assert_eq!(Some((Symbol::new(0), &b"abc"[..])), table.get_interned(b"abc"));
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ```
+    #[must_use]
+    pub fn get_interned(&self, contents: &[u8]) -> Option<(Symbol, &[u8])> {
+        let (&slice, &id) = self.map.get_key_value(contents)?;
+        Some((id, slice))
     }
 
     /// Returns `true` if the given byte string has been interned before.
