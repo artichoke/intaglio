@@ -93,7 +93,7 @@ use crate::{DEFAULT_SYMBOL_TABLE_CAPACITY, Symbol, SymbolOverflowError};
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(docsrs, doc(cfg(feature = "osstr")))]
 pub struct AllSymbols<'a> {
-    range: RangeInclusive<u32>,
+    range: Option<RangeInclusive<u32>>,
     // Hold a shared reference to the underlying `SymbolTable` to ensure the
     // table is not modified while we are iterating which would make the results
     // not match the real state.
@@ -104,37 +104,39 @@ impl Iterator for AllSymbols<'_> {
     type Item = Symbol;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.range.next().map(Symbol::from)
+        self.range.as_mut()?.next().map(Symbol::from)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.range.size_hint()
+        self.range
+            .as_ref()
+            .map_or((0, Some(0)), Iterator::size_hint)
     }
 
     fn count(self) -> usize {
-        self.range.count()
+        self.range.map_or(0, Iterator::count)
     }
 
     fn last(self) -> Option<Self::Item> {
-        self.range.last().map(Symbol::from)
+        self.range.and_then(Iterator::last).map(Symbol::from)
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.range.nth(n).map(Symbol::from)
+        self.range.as_mut()?.nth(n).map(Symbol::from)
     }
 
     fn collect<B: FromIterator<Self::Item>>(self) -> B {
-        self.range.map(Symbol::from).collect()
+        self.range.into_iter().flatten().map(Symbol::from).collect()
     }
 }
 
 impl DoubleEndedIterator for AllSymbols<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.range.next_back().map(Symbol::from)
+        self.range.as_mut()?.next_back().map(Symbol::from)
     }
 
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        self.range.nth_back(n).map(Symbol::from)
+        self.range.as_mut()?.nth_back(n).map(Symbol::from)
     }
 }
 
@@ -681,10 +683,10 @@ impl<S> SymbolTable<S> {
     /// ```
     pub fn all_symbols(&self) -> AllSymbols<'_> {
         AllSymbols {
-            range: match self.len() {
-                0 => RangeInclusive::new(1, 0),
-                len => 0..=u32::try_from(len - 1).unwrap_or(u32::MAX),
-            },
+            range: self
+                .len()
+                .checked_sub(1)
+                .map(|last| 0..=u32::try_from(last).unwrap_or(u32::MAX)),
             phantom: PhantomData,
         }
     }
