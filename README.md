@@ -65,6 +65,22 @@ fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+Or intern bstr byte strings like:
+
+```rust
+use bstr::{BStr, BString};
+
+fn intern_and_get() -> Result<(), Box<dyn std::error::Error>> {
+    let mut table = intaglio::bstr::SymbolTable::new();
+    let name: &'static BStr = BStr::new(b"abc");
+    let sym = table.intern(name)?;
+    let retrieved = table.get(sym);
+    assert_eq!(Some(name), retrieved);
+    assert_eq!(sym, table.intern(BString::from("abc"))?);
+    Ok(())
+}
+```
+
 Or intern C strings like:
 
 ```rust
@@ -121,8 +137,11 @@ LeakSanitizer.
 
 ## Crate features
 
-All features are enabled by default.
+All string table features except **bstr** are enabled by default.
 
+- **bstr** - Enables an additional symbol table implementation for interning
+  [`bstr`] byte strings (`bstr::BString` and `&'static bstr::BStr`). This
+  feature is disabled by default.
 - **bytes** - Enables an additional symbol table implementation for interning
   byte strings (`Vec<u8>` and `&'static [u8]`).
 - **cstr** - Enables an additional symbol table implementation for interning C
@@ -148,3 +167,4 @@ releases.
 
 [symbol]: https://ruby-doc.org/core-3.1.2/Symbol.html
 [artichoke]: https://github.com/artichoke/artichoke
+[bstr]: https://crates.io/crates/bstr
