@@ -151,6 +151,8 @@ All string table features except **bstr** are enabled by default.
 - **path** - Enables an additional symbol table implementation for interning
   path strings (`PathBuf` and `&'static Path`).
 
+[`bstr`]: https://docs.rs/bstr
+
 ### Minimum Supported Rust Version
 
 This crate requires at least Rust 1.85.0. This version can be bumped in minor
