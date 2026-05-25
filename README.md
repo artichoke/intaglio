@@ -34,7 +34,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-intaglio = "1.15.0"
+intaglio = "1.15.1"
 ```
 
 Then intern UTF-8 strings like:
@@ -150,6 +150,8 @@ All string table features except **bstr** are enabled by default.
   platform strings (`OsString` and `&'static OsStr`).
 - **path** - Enables an additional symbol table implementation for interning
   path strings (`PathBuf` and `&'static Path`).
+
+[`bstr`]: https://docs.rs/bstr
 
 ### Minimum Supported Rust Version
 
