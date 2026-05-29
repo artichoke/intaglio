@@ -1,60 +1,62 @@
-# Repository Guidelines
+# Repository Map
 
-## Project Structure & Modules
+This file is a map for agents working in this repository. It points to the
+source-of-truth docs, configuration, and code landmarks; it should not duplicate
+the policy held by those files.
 
-- `src/` holds the library; key tables live in `bytes.rs`, `cstr.rs`,
-  `osstr.rs`, and `path.rs`, with shared internals in `internal.rs` and exports
-  in `lib.rs`.
-- `tests/` contains integration tests; the `leak_drop/` suite exercises drop
-  safety across symbol table types.
-- Tooling configs: `Cargo.toml` for Rust deps, `deny.toml` for cargo-deny,
-  `.config/spellcheck.toml` for spellchecking, and `package.json` for optional
-  prettier tooling.
+## Start Here
 
-## Build, Test, and Development Commands
+- `README.md`: crate purpose, supported interned value types, and public
+  examples.
+- `CONTRIBUTING.md`: local development setup and command expectations.
+- `Cargo.toml`: crate metadata, feature flags, MSRV, dependency ranges, and
+  docs.rs metadata.
+- `docs/guardrails/README.md`: index for Rust, OSS, unsafe, platform, testing,
+  API, FFI, and performance guardrails.
+- `docs/dependencies.md`: dependency and supply-chain posture.
+- `docs/automations/README.md`: recurring maintenance map.
+- `.github/labels.yaml`: PR label vocabulary for this repository.
 
-- `cargo build` – compile the crate with default features.
-- `cargo test` – run the full test suite; append a filter (e.g.,
-  `cargo test drop`) to target specific cases.
-- `cargo fmt` – format Rust sources with rustfmt.
-- `cargo clippy --workspace --all-features --all-targets` – lint Rust sources.
-- `pnpm run fmt` – format text, YAML, and Markdown sources with prettier.
-- `cargo doc --open` – build and open API docs locally.
+## Change Map
 
-## Coding Style & Naming
+- Public API, semver, features, MSRV, or publishing:
+  `docs/guardrails/api-stability-semver-and-msrv.md`,
+  `docs/guardrails/working-in-public-and-publishing-oss-crates.md`,
+  `Cargo.toml`, `README.md`, and `src/lib.rs`.
+- Rust implementation quality, lints, error handling, or docs:
+  `docs/guardrails/high-quality-rust-code.md`, `CONTRIBUTING.md`, `src/lib.rs`,
+  and `.github/workflows/ci.yaml`.
+- Unsafe, lifetime, allocation, panic, or rollback behavior:
+  `docs/guardrails/unsafe-code.md`,
+  `docs/guardrails/performance-allocation-and-memory-behavior.md`,
+  `src/internal.rs`, `src/rollback.rs`, and `.github/workflows/miri.yaml`.
+- Tests, feature matrix, or compatibility coverage:
+  `docs/guardrails/testing-compatibility-and-conformance.md`,
+  `tests/leak_drop/`, `tests/unwind_safety.rs`, and `.github/workflows/ci.yaml`.
+- Dependency, audit, or runner maintenance: `docs/dependencies.md`,
+  `docs/automations/dependency-sweep.md`,
+  `docs/automations/github-actions-runner-images.md`, `.github/dependabot.yml`,
+  `.github/workflows/audit.yaml`, and `.github/workflows/repo-labels.yaml`.
+- Markdown, YAML, JSON, or generated formatting changes: `package.json`,
+  `.prettierrc.yaml`, and `pnpm-lock.yaml`.
 
-- Rust code is formatted with `rustfmt`; use 4-space indents, `snake_case` for
-  functions/modules, `CamelCase` for types, and `SCREAMING_SNAKE_CASE` for
-  consts.
-- Avoid unsafe unless justified; keep `unsafe` blocks small and commented.
-- Prefer `?` for error propagation and `Result<T, E>` returns over panics in
-  library code.
-- Keep public API docs (`///`) concise; add examples when behavior is subtle.
+## Code Map
 
-## Testing Guidelines
+- `src/lib.rs`: crate-level docs, feature gates, lint configuration, and public
+  exports.
+- `src/str.rs`, `src/bytes.rs`, `src/bstr.rs`, `src/cstr.rs`, `src/osstr.rs`,
+  and `src/path.rs`: type-specific interner implementations.
+- `src/internal.rs`: shared interner internals and the main unsafe boundary.
+- `src/rollback.rs`: rollback helpers for partially completed insertions.
+- `src/convert.rs` and `src/eq.rs`: conversion and equality support shared by
+  the public interners.
+- `tests/leak_drop/`: drop and leak behavior coverage by interned type.
+- `tests/unwind_safety.rs`: panic and unwind-safety coverage.
 
-- Default to `cargo test`; integration tests live under `tests/`.
-- Add focused tests near regressions; mirror naming like `*_drop` for
-  drop-behavior cases.
-- When changing internals, cover both borrowed and owned symbol paths and check
-  token stability.
-- Run tests with `MIRI_SYSROOT` in CI is handled; local Miri runs are optional
-  but welcome.
+## Pull Request Map
 
-## Commit & Pull Request Guidelines
-
-- Commit messages follow imperative tone with a short summary (≈50 chars) and
-  optional body explaining the why.
-- For PRs: describe the change, note user-visible API impacts, link issues, and
-  mention new tests. Include screenshots only if docs/UI artifacts change (rare
-  here).
-- Ensure `cargo fmt`, `cargo clippy --workspace --all-features --all-targets`,
-  `pnpm run fmt`, and `cargo test` pass before requesting review; CI must be
-  green.
-
-## Security & Configuration Tips
-
-- Keep toolchains in sync with `mise.toml` and Rust stable (see README); bump
-  MSRV only with justification.
-- Use `cargo deny check` before dependency updates; update the advisory DB with
-  `cargo deny --all-features --locked check` if needed.
+- Use labels from `.github/labels.yaml`; lopopolo-owned repositories require at
+  least one `A-*` label.
+- For automation-generated work, use `C-automation` and add the `codex` label.
+  Keep `codex` as the last label definition in `.github/labels.yaml`.
+- Do not add a Codex tag to PR titles or descriptions.
