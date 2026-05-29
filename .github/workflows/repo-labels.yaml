@@ -22,7 +22,7 @@ concurrency:
 jobs:
   labels:
     name: Synchronize repository labels
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read # required to checkout
       issues: write # required to create and destroy labels
