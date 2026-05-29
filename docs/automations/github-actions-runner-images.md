@@ -128,7 +128,7 @@ For workflow-only edits, run:
 
 ```sh
 git diff --check
-npx prettier --check '**/*'
+pnpm exec prettier --check '**/*'
 ```
 
 If `actionlint` is available, run it against the changed workflows. If it is not

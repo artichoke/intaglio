@@ -18,7 +18,7 @@
   `cargo test drop`) to target specific cases.
 - `cargo fmt` – format Rust sources with rustfmt.
 - `cargo clippy --workspace --all-features --all-targets` – lint Rust sources.
-- `npm run fmt` – format text, YAML, and Markdown sources with prettier.
+- `pnpm run fmt` – format text, YAML, and Markdown sources with prettier.
 - `cargo doc --open` – build and open API docs locally.
 
 ## Coding Style & Naming
@@ -49,7 +49,7 @@
   mention new tests. Include screenshots only if docs/UI artifacts change (rare
   here).
 - Ensure `cargo fmt`, `cargo clippy --workspace --all-features --all-targets`,
-  `npm run fmt`, and `cargo test` pass before requesting review; CI must be
+  `pnpm run fmt`, and `cargo test` pass before requesting review; CI must be
   green.
 
 ## Security & Configuration Tips
