@@ -1,7 +1,6 @@
 # intaglio
 
 [![GitHub Actions](https://github.com/artichoke/intaglio/workflows/CI/badge.svg)](https://github.com/artichoke/intaglio/actions)
-[![Code Coverage](https://codecov.artichokeruby.org/intaglio/badges/flat.svg?nocache=2)](https://codecov.artichokeruby.org/intaglio/index.html)
 [![Twitter](https://img.shields.io/twitter/follow/artichokeruby?label=Follow&style=social)](https://twitter.com/artichokeruby)
 <br>
 [![Crate](https://img.shields.io/crates/v/intaglio.svg)](https://crates.io/crates/intaglio)

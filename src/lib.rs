@@ -374,9 +374,6 @@ mod tests {
 //
 // The README contains examples from all interners, so only run these doctests
 // when all features are enabled.
-//
-// This module declaration should be kept at the end of the file, in order to
-// not interfere with code coverage.
 #[cfg(all(
     doctest,
     feature = "bytes",
