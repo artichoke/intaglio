@@ -16,7 +16,7 @@ concurrency:
 jobs:
   rust:
     name: Audit Rust Dependencies
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         checks:
@@ -53,7 +53,7 @@ jobs:
 
   zizmor:
     name: Run zizmor 🌈
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read # required to checkout repository
       security-events: write # required to add findings via sarif

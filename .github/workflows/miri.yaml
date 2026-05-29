@@ -17,7 +17,7 @@ permissions:
 jobs:
   miri:
     name: Test with Miri
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       RUST_BACKTRACE: 1
       MIRIFLAGS: "-Zmiri-strict-provenance -Zmiri-symbolic-alignment-check -Zrandomize-layout"
