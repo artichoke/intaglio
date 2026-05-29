@@ -1,0 +1,11 @@
+version = 1
+name = "Intaglio"
+
+[setup]
+script = "./scripts/setup_codex_worktree.sh"
+
+[setup.win32]
+script = """
+Write-Error "intaglio worktree setup is supported on macOS and Linux only."
+exit 69
+"""
