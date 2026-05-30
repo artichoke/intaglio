@@ -1,0 +1,7 @@
+packages:
+  - .
+
+blockExoticSubdeps: true
+
+# minimumReleaseAge is measured in minutes (10080m = 7 days).
+minimumReleaseAge: 10080

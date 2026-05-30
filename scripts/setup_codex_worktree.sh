@@ -109,15 +109,16 @@ setup_rust() {
 }
 
 setup_node() {
-  if [[ ! -f package.json || ! -f package-lock.json ]]; then
-    warn "skipping npm install because package.json or package-lock.json is missing"
+  if [[ ! -f package.json || ! -f pnpm-lock.yaml ]]; then
+    warn "skipping pnpm install because package.json or pnpm-lock.yaml is missing"
     return
   fi
 
-  need npm
+  need corepack
 
   log "installing Node dependencies"
-  npm ci
+  corepack enable
+  pnpm install --frozen-lockfile
 }
 
 main() {
