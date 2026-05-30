@@ -38,9 +38,11 @@ unless the repository's Rust support policy changes. The sweep may update the
 comment documenting that exception, but it should not replace the stable channel
 with a dated Rust version.
 
-Node.js should track the latest LTS line after a one-week cooldown. pnpm should
-be selected through Corepack from the `package.json#packageManager` pin; do not
-add a separate pnpm pin to `mise.toml`.
+Node.js should track the latest LTS line after a one-week cooldown. Local
+bootstrap should select pnpm through Corepack from the
+`package.json#packageManager` pin; do not add a separate pnpm pin to
+`mise.toml`. CI workflows should install pnpm with a pinned `pnpm/action-setup`
+action instead of Corepack.
 
 ## Workflow
 
