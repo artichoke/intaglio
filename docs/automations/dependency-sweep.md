@@ -51,6 +51,13 @@ request is mechanical, aligned with the dependency posture, and passing CI, it
 may be moved to auto-merge. Leave risky updates for human review with a short
 comment explaining why.
 
+The intended outcome is that safe, reviewed, green Dependabot pull requests
+land. Auto-merge is only a mechanism for reaching that outcome when GitHub still
+needs to wait for branch protection; it is not the success condition itself. A
+clean pull request with passing required checks has already reached the merge
+gate and should not be left open solely because enabling auto-merge is
+unavailable.
+
 For every Dependabot pull request, review the upstream dependency diff before
 enabling auto-merge or merging. The repository-side Dependabot diff only shows
 what changed in this repository; it is not enough to classify the dependency
