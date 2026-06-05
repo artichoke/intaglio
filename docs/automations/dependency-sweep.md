@@ -12,6 +12,23 @@ or inbox follow-ups, should be reviewed and used to update these guardrails
 before repeating the same class of change. Automation-authored pull request
 comments must start with the stable prefix `Codex automation note:`.
 
+## Dependabot First
+
+Start every run by reviewing open pull requests created by Dependabot. If a
+Dependabot pull request is mechanical, aligned with the dependency posture, and
+passing CI, move it to GitHub auto-merge.
+
+Do not use auto-merge for Dependabot pull requests with broad version jumps,
+unclear lockfile churn, failing or missing validation, compatibility risk, or
+other changes that need human review. Leave those pull requests open and add a
+short `Codex automation note:` comment when the reason is not already clear.
+
+If any Dependabot pull request is moved to auto-merge, wait until GitHub merges
+it and the repository primary branch contains the merge before creating or
+updating automation-owned dependency branches. When multiple Dependabot pull
+requests are accepted, wait for all accepted merges, fetch the updated primary
+branch, and rebase the current workspace onto it before continuing.
+
 ## Scope
 
 The sweep owns dependency maintenance that is not covered well by Dependabot:
@@ -45,11 +62,6 @@ bootstrap should select pnpm through Corepack from the
 action instead of Corepack.
 
 ## Workflow
-
-Start every run by reviewing open Dependabot pull requests. If a Dependabot pull
-request is mechanical, aligned with the dependency posture, and passing CI, it
-may be moved to auto-merge. Leave risky updates for human review with a short
-comment explaining why.
 
 For automation-owned updates:
 
