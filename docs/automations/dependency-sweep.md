@@ -51,6 +51,41 @@ request is mechanical, aligned with the dependency posture, and passing CI, it
 may be moved to auto-merge. Leave risky updates for human review with a short
 comment explaining why.
 
+The intended outcome is that safe, reviewed, green Dependabot pull requests
+land. Auto-merge is only a mechanism for reaching that outcome when GitHub still
+needs to wait for branch protection; it is not the success condition itself. A
+clean pull request with passing required checks has already reached the merge
+gate and should not be left open solely because enabling auto-merge is
+unavailable.
+
+For every Dependabot pull request, review the upstream dependency diff before
+enabling auto-merge or merging. The repository-side Dependabot diff only shows
+what changed in this repository; it is not enough to classify the dependency
+update as safe. A successful review needs the missing upstream context:
+
+- identify the updated dependency, ecosystem, old version or pinned commit, and
+  new version or pinned commit;
+- open the authoritative upstream compare, changelog, and release metadata for
+  the exact old and new refs;
+- inspect the upstream code diff, not only Dependabot's release-note summary,
+  with special attention to install/bootstrap behavior, runtime version
+  requirements, generated `dist` artifacts, lockfiles, transitive executable
+  downloads, workflow permissions, post-action behavior, and cache/PATH
+  handling;
+- confirm generated artifacts correspond to source changes when the dependency
+  ships generated code;
+- apply the repository cooldown policy when the update adopts a newly released
+  toolchain or package-manager version;
+- classify the update from the upstream diff. Auto-merge is only appropriate
+  when the upstream changes are understood, mechanical or low-risk for this
+  repository, aligned with dependency posture, and all required checks pass.
+
+If the upstream diff is too large, unavailable, generated without source, or
+changes behavior that is not clearly safe for this repository, do not merge it.
+Leave a `Codex automation note:` that names the dependency, the upstream compare
+that was reviewed or could not be reviewed, and the specific reason human review
+is required.
+
 For automation-owned updates:
 
 - use authoritative upstream release metadata;
@@ -71,6 +106,7 @@ unclear release notes, or non-mechanical migrations.
 Each pull request should summarize:
 
 - old and new versions or lockfile refresh scope;
+- upstream dependency compare reviewed and the risk classification;
 - cooldown decisions;
 - validation commands and results;
 - any Dependabot pull requests reviewed, merged, or intentionally left alone.
