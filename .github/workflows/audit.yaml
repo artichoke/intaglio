@@ -63,7 +63,19 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Resolve zizmor version
+        id: zizmor-version
+        shell: bash
+        run: |
+          version="$(awk -F '"' '/^[[:space:]]*zizmor[[:space:]]*=/{ print $2; exit }' mise.toml)"
+          if [[ ! "${version}" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
+            echo "Unable to resolve exact zizmor version from mise.toml" >&2
+            exit 1
+          fi
+          printf 'version=%s\n' "${version}" >> "${GITHUB_OUTPUT}"
+
       - name: Run zizmor 🌈
-        uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
         with:
           persona: "pedantic"
+          version: ${{ steps.zizmor-version.outputs.version }}
