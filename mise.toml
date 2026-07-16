@@ -4,7 +4,7 @@ node = "24.18.0"
 rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" }
 zizmor = "1.26.1"
 
-"cargo:cargo-deny" = "0.19.9"
+"cargo:cargo-deny" = "0.20.2"
 "cargo:cargo-mutants" = "27.1.0"
 "cargo:cargo-outdated" = "0.19.0"
 
