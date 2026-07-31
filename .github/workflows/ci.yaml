@@ -145,41 +145,6 @@ jobs:
       - name: Test with no default features
         run: cargo test --no-default-features
 
-  leaksan:
-    name: Leak sanitizer
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-24.04
-        include:
-          - os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-    env:
-      RUSTFLAGS: -D warnings
-      RUST_BACKTRACE: 1
-      CI_TARGET_TRIPLE: ${{ matrix.target }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Install Rust toolchain
-        run: |
-          rustup toolchain install nightly --profile minimal --target "$CI_TARGET_TRIPLE"
-          rustup default nightly
-        shell: bash
-
-      - name: Test with leak sanitizer and all features
-        # LeakSanitzier is broken: https://github.com/rust-lang/rust/issues/111073
-        if: false
-        run: cargo test --all-features --target "$CI_TARGET_TRIPLE"
-        env:
-          RUSTFLAGS: "-Z sanitizer=leak"
-          CI_TARGET_TRIPLE: ${{ matrix.target }}
-
   rust:
     name: Lint and format Rust
     runs-on: ubuntu-24.04

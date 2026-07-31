@@ -1,9 +1,6 @@
 ---
 name: Audit
 "on":
-  push:
-    branches:
-      - trunk
   pull_request:
     branches:
       - trunk
@@ -14,19 +11,59 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  rust:
-    name: Audit Rust Dependencies
+  changes:
+    name: Detect relevant changes
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        checks:
-          - advisories
-          - bans licenses sources
     permissions:
       contents: read # required to checkout repository
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+      workflows: ${{ steps.changes.outputs.workflows }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-    # Prevent sudden announcement of a new advisory from failing ci:
-    continue-on-error: ${{ matrix.checks == 'advisories' }}
+      - name: Detect relevant changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          changed_files="$(git diff --name-only "$BASE_SHA...$HEAD_SHA")"
+          rust=false
+          workflows=false
+
+          while IFS= read -r file; do
+            if [[ "$file" == *.rs ||
+                  "$file" == "Cargo.toml" ||
+                  "$file" == "Cargo.lock" ||
+                  "$file" == "deny.toml" ||
+                  "$file" == "mise.toml" ||
+                  "$file" == ".github/workflows/audit.yaml" ]]; then
+              rust=true
+            fi
+            if [[ "$file" == .github/workflows/* ||
+                  "$file" == "mise.toml" ]]; then
+              workflows=true
+            fi
+          done <<< "$changed_files"
+
+          printf 'rust=%s\n' "$rust" >> "$GITHUB_OUTPUT"
+          printf 'workflows=%s\n' "$workflows" >> "$GITHUB_OUTPUT"
+
+  rust:
+    name: Audit Rust Dependencies
+    needs: changes
+    if: >-
+      always() &&
+      (github.event_name == 'schedule' || needs.changes.outputs.rust == 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read # required to checkout repository
 
     steps:
       - name: Checkout repository
@@ -45,14 +82,28 @@ jobs:
             cargo generate-lockfile --verbose
           fi
 
-      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+      - name: Audit advisories
+        continue-on-error: true
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
         with:
           arguments: --locked --all-features
-          command: check ${{ matrix.checks }}
+          command: check advisories
+          command-arguments: --show-stats
+
+      - name: Audit bans, licenses, and sources
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          arguments: --locked --all-features
+          command: check bans licenses sources
           command-arguments: --show-stats
 
   zizmor:
     name: Run zizmor 🌈
+    needs: changes
+    if: >-
+      always() &&
+      (github.event_name == 'schedule' ||
+      needs.changes.outputs.workflows == 'true')
     runs-on: ubuntu-24.04
     permissions:
       contents: read # required to checkout repository
