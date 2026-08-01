@@ -15,7 +15,7 @@
   "homepage": "https://www.artichokeruby.org",
   "bugs": "https://github.com/artichoke/intaglio/issues",
   "devDependencies": {
-    "prettier": "3.8.4"
+    "prettier": "3.9.6"
   },
   "scripts": {
     "fmt": "prettier --write \"**/*\""
