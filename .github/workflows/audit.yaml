@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read # required to checkout repository
     outputs:
+      js: ${{ steps.changes.outputs.js }}
       rust: ${{ steps.changes.outputs.rust }}
       workflows: ${{ steps.changes.outputs.workflows }}
     steps:
@@ -34,10 +35,18 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           changed_files="$(git diff --name-only "$BASE_SHA...$HEAD_SHA")"
+          js=false
           rust=false
           workflows=false
 
           while IFS= read -r file; do
+            if [[ "$file" == "package.json" ||
+                  "$file" == "pnpm-lock.yaml" ||
+                  "$file" == "pnpm-workspace.yaml" ||
+                  "$file" == "mise.toml" ||
+                  "$file" == ".github/workflows/audit.yaml" ]]; then
+              js=true
+            fi
             if [[ "$file" == *.rs ||
                   "$file" == "Cargo.toml" ||
                   "$file" == "Cargo.lock" ||
@@ -52,6 +61,7 @@ jobs:
             fi
           done <<< "$changed_files"
 
+          printf 'js=%s\n' "$js" >> "$GITHUB_OUTPUT"
           printf 'rust=%s\n' "$rust" >> "$GITHUB_OUTPUT"
           printf 'workflows=%s\n' "$workflows" >> "$GITHUB_OUTPUT"
 
@@ -96,6 +106,38 @@ jobs:
           arguments: --locked --all-features
           command: check bans licenses sources
           command-arguments: --show-stats
+
+  js:
+    name: Audit JS Dependencies
+    needs: changes
+    if: >-
+      always() &&
+      (github.event_name == 'schedule' || needs.changes.outputs.js == 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read # required to checkout repository
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.18.0"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm audit
+        run: pnpm audit
 
   zizmor:
     name: Run zizmor 🌈
