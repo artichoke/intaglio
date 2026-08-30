@@ -2,7 +2,7 @@
 node = "24.19.0"
 # Rust intentionally tracks the stable channel for this Rust library.
 rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" }
-zizmor = "1.29.0"
+"aqua:zizmorcore/zizmor" = "1.29.0"
 
 "cargo:cargo-deny" = "0.20.2"
 "cargo:cargo-mutants" = "27.1.0"
