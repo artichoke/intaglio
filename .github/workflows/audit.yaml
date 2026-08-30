@@ -162,14 +162,14 @@ jobs:
         with:
           github-token: ${{ github.token }}
 
-      - name: Install zizmor
-        uses: ./.github/actions/mise-install
+      - name: Resolve toolchain versions
+        id: toolchains
+        uses: ./.github/actions/mise-tool-versions
         with:
           executable: ${{ steps.mise.outputs.executable }}
-          github-token: ${{ github.token }}
-          tools: aqua:zizmorcore/zizmor
 
       - name: Run zizmor 🌈
-        env:
-          ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
-        run: zizmor --persona=pedantic --format=github .
+        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+        with:
+          persona: "pedantic"
+          version: ${{ steps.toolchains.outputs.zizmor }}
