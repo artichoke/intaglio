@@ -13,6 +13,7 @@ postinstall = "corepack enable"
 
 [settings]
 experimental = true
+use_versions_host_track = false
 
 [env]
 _.path = ["{{config_root}}/node_modules/.bin"]
