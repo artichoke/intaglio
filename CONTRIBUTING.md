@@ -158,6 +158,12 @@ updates needed for the patch. Review the resulting diff as authored code:
 - Confirm CI passes before merging.
 - Ask Codex to follow up on review comments or failed checks.
 
+## Publishing
+
+Maintainers publish releases through crates.io trusted publishing. See
+[`docs/publishing.md`](docs/publishing.md) for the trust configuration, release
+procedure, and failure-recovery guidance.
+
 ## Updating Dependencies
 
 ### Rust Crates
