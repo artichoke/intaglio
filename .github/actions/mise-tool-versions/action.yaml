@@ -1,0 +1,24 @@
+---
+name: Resolve mise tool versions
+description: Expose exact mise.toml tool versions as GitHub Action outputs
+inputs:
+  executable:
+    description: Absolute path to the verified mise executable
+    required: true
+outputs:
+  node:
+    description: Node.js toolchain version
+    value: ${{ steps.resolve.outputs.node }}
+  zizmor:
+    description: zizmor tool version
+    value: ${{ steps.resolve.outputs.zizmor }}
+runs:
+  using: composite
+  steps:
+    - name: Resolve tool versions
+      id: resolve
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        MISE: ${{ inputs.executable }}
+      run: '"$ACTION_PATH/resolve.sh"'

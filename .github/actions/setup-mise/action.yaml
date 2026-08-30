@@ -1,0 +1,29 @@
+---
+name: Setup mise
+description: Install the repository-pinned mise bootstrap after checksum verification
+inputs:
+  github-token:
+    description: GitHub token used to authenticate the release download
+    required: true
+outputs:
+  executable:
+    description: Absolute path to the verified mise executable
+    value: ${{ steps.install.outputs.executable }}
+runs:
+  using: composite
+  steps:
+    - name: Disable mise version download tracking
+      shell: bash
+      run: printf '%s\n' 'MISE_USE_VERSIONS_HOST_TRACK=false' >> "$GITHUB_ENV"
+
+    - name: Install mise
+      id: install
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        MISE_VERSION: "2026.8.10"
+        MISE_SHA256_LINUX_X64: "db4afe188fc405489fe6a04e159d46eb2053499c12e133240c790d988f248710"
+        MISE_SHA256_MACOS_ARM64: "a8190378f6c0b394c54068405260282dcff2af14a153b327198cf4c44364e1b1"
+        MISE_SHA256_MACOS_X64: "cda2095e2e71a2f046c2c6628d7e21e08a79933aa1a04fd3114e9284b72db423"
+      run: '"$ACTION_PATH/setup.sh"'
