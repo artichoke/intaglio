@@ -58,11 +58,14 @@ Prefer explicit OS labels over `*-latest` for jobs where stable, explainable
 coverage matters. `*-latest` is acceptable only when the job is intentionally
 exercising GitHub's moving default.
 
-For cross-platform build coverage, keep the matrix on maintained GA images for
-Ubuntu, Windows, and macOS. When a new OS image becomes GA, add it before the
-previous default migrates. When an older image enters deprecation, remove it
-before brownouts begin unless there is a documented compatibility reason to keep
-it.
+For cross-platform build coverage, keep one maintained GA image per OS and
+architecture coverage slot. When a new OS image becomes GA and supersedes the
+image in an existing slot, replace the old label in that slot before the
+previous default migrates; do not add a duplicate job solely to exercise the
+transition. Keep an older explicit label only when it provides distinct
+coverage, such as a 32-bit target, MSRV baseline, or documented compatibility
+requirement. When an older image enters deprecation, remove it before brownouts
+begin unless there is a documented compatibility reason to keep it.
 
 For MSRV, Miri, leak sanitizer, coverage, publish, repository label, lint,
 formatting, and documentation jobs, prefer explicit maintained labels unless the
