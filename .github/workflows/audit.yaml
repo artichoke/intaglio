@@ -124,13 +124,13 @@ jobs:
 
       - name: Setup mise
         id: mise
-        uses: ./.github/actions/setup-mise
+        uses: $/.github/actions/setup-mise
         with:
           github-token: ${{ github.token }}
 
       - name: Resolve toolchain versions
         id: toolchains
-        uses: ./.github/actions/mise-tool-versions
+        uses: $/.github/actions/mise-tool-versions
         with:
           executable: ${{ steps.mise.outputs.executable }}
 
@@ -170,13 +170,13 @@ jobs:
 
       - name: Setup mise
         id: mise
-        uses: ./.github/actions/setup-mise
+        uses: $/.github/actions/setup-mise
         with:
           github-token: ${{ github.token }}
 
       - name: Resolve toolchain versions
         id: toolchains
-        uses: ./.github/actions/mise-tool-versions
+        uses: $/.github/actions/mise-tool-versions
         with:
           executable: ${{ steps.mise.outputs.executable }}
 
