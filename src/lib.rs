@@ -299,7 +299,7 @@ mod tests {
         let tc = SymbolOverflowError::new();
         let mut buf = String::new();
         write!(&mut buf, "{tc}").unwrap();
-        assert!(!buf.is_empty());
+        assert_ne!(buf, "");
     }
 
     #[test]
@@ -307,7 +307,7 @@ mod tests {
         let tc = SymbolOverflowError::new();
         let mut buf = String::new();
         write!(&mut buf, "{tc:?}").unwrap();
-        assert!(!buf.is_empty());
+        assert_ne!(buf, "");
     }
 
     #[test]
