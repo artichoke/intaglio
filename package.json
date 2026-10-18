@@ -10,7 +10,7 @@
     "rust"
   ],
   "repository": "github:artichoke/intaglio",
-  "packageManager": "pnpm@11.27.1+sha512.a81d4c21b9b09a4b0aebf90ef5e527d4262bdda322d26082978cb549023ac6d9cafc98b19fffaa5c71db438a65f70224edb78d7311187861ff96480d1cdca23c",
+  "packageManager": "pnpm@11.28.5+sha512.484563d30b4c2ad27cb48aa94ff2b302dbcebc8ff6bf28816c2589886e146ce7f76f354f3bc1a438e6f5e9768c302aa0a6f7add8232903cd4cf81426cbc14d9e",
   "author": "Ryan Lopopolo <rjl@hyperbo.la> (https://hyperbo.la/)",
   "homepage": "https://www.artichokeruby.org",
   "bugs": "https://github.com/artichoke/intaglio/issues",
