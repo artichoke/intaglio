@@ -1,5 +1,7 @@
+min_version = "2026.10.21"
+
 [tools]
-node = "24.22.0"
+node = "26.13.0"
 # Rust intentionally tracks the stable channel for this Rust library.
 rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" }
 "aqua:zizmorcore/zizmor" = "1.31.1"
@@ -8,10 +10,8 @@ rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" 
 "cargo:cargo-mutants" = "27.1.0"
 "cargo:cargo-outdated" = "0.19.0"
 
-[hooks]
-postinstall = "corepack enable"
-
 [settings]
+idiomatic_version_file_enable_tools = ["pnpm"]
 experimental = true
 use_versions_host_track = false
 

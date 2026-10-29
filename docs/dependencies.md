@@ -51,9 +51,9 @@ rewrite the pnpm lockfile or workspace config.
 unless the repository's Rust support policy changes.
 
 Node.js should track the latest LTS line after cooldown. Local bootstrap uses
-Corepack to select pnpm from the exact `package.json#packageManager` pin rather
-than a separate `mise.toml` tool pin. CI workflows should install pnpm with a
-pinned `pnpm/action-setup` action instead of Corepack.
+mise to select pnpm from the exact `package.json#packageManager` pin rather than
+a separate `mise.toml` tool pin. CI workflows should install pnpm with a pinned
+`pnpm/action-setup` action instead of Corepack.
 
 ## Language Dependencies
 
