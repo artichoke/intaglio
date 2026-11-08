@@ -18,7 +18,8 @@ The sweep owns dependency maintenance that is not covered well by Dependabot:
 
 - non-Rust tool versions in `mise.toml`, including Node.js, Zizmor, and
   cargo-installed development tools;
-- the pnpm `packageManager` pin in `package.json`;
+- the matching pnpm versions in `package.json#packageManager` and the
+  `aqua:pnpm/pnpm` entry in `mise.toml`;
 - pnpm lockfile refreshes and transitive Node dependency updates;
 - `pnpm-workspace.yaml` hardening settings;
 - documentation updates needed to keep dependency posture and automation
@@ -38,10 +39,9 @@ unless the repository's Rust support policy changes. The sweep may update the
 comment documenting that exception, but it should not replace the stable channel
 with a dated Rust version.
 
-Node.js should track the latest LTS line after a one-week cooldown. Local
-bootstrap should select pnpm through mise from the `package.json#packageManager`
-pin; do not add a separate pnpm pin to `mise.toml`. CI workflows should install
-pnpm with a pinned `pnpm/action-setup` action instead of Corepack.
+Node.js should track the latest LTS line after a one-week cooldown. Refresh
+`mise.lock` when updating the standalone pnpm pin. CI installs pnpm with the
+pinned `pnpm/action-setup` action.
 
 ## Workflow
 

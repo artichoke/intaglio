@@ -2,6 +2,8 @@ min_version = "2026.10.21"
 
 [tools]
 node = "26.13.0"
+# Keep the standalone pnpm release in sync with package.json#packageManager.
+"aqua:pnpm/pnpm" = "12.14.0"
 # Rust intentionally tracks the stable channel for this Rust library.
 rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" }
 "aqua:zizmorcore/zizmor" = "1.31.1"
@@ -11,7 +13,6 @@ rust = { version = "stable", profile = "minimal", components = "clippy,rustfmt" 
 "cargo:cargo-outdated" = "0.19.0"
 
 [settings]
-idiomatic_version_file_enable_tools = ["pnpm"]
 experimental = true
 use_versions_host_track = false
 

@@ -34,7 +34,6 @@ trap 'error "Failure on or near line $LINENO"; exit 70' ERR
 trap 'log "completed in ${SECONDS}s"' EXIT
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 cd_repo_root() {
   local repo_root
@@ -114,10 +113,9 @@ setup_node() {
     return
   fi
 
-  need corepack
+  need pnpm
 
   log "installing Node dependencies"
-  corepack enable
   pnpm install --frozen-lockfile
 }
 
