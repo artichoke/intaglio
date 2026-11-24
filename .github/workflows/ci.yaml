@@ -23,13 +23,13 @@ jobs:
       matrix:
         os:
           - ubuntu-26.04
-          - windows-2025-vs2026
+          - windows-2025
           - macos-26
           - macos-26-intel
         include:
           - os: ubuntu-26.04
             target: x86_64-unknown-linux-gnu
-          - os: windows-2025-vs2026
+          - os: windows-2025
             target: x86_64-pc-windows-msvc
           - os: macos-26
             target: aarch64-apple-darwin
@@ -70,11 +70,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025-vs2026]
+        os: [ubuntu-24.04, windows-2025]
         include:
           - os: ubuntu-24.04
             target: i686-unknown-linux-gnu
-          - os: windows-2025-vs2026
+          - os: windows-2025
             target: i686-pc-windows-msvc
     env:
       RUSTFLAGS: -D warnings
